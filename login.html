@@ -144,9 +144,13 @@
         </div>
       </div>
     </div>
-
+    <script src="js/app.js"></script>
     <script>
-      async function login() {
+      async function login(event) {
+        if (event) {
+          event.preventDefault();
+        }
+
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         const msgDiv = document.getElementById("msg");
@@ -158,7 +162,9 @@
           return;
         }
 
-        const loginBtn = event.target;
+        const loginBtn = event
+          ? event.currentTarget
+          : document.querySelector("button");
         const originalText = loginBtn.innerHTML;
         loginBtn.innerHTML =
           '<i class="fas fa-spinner fa-spin"></i> Memproses...';
@@ -167,6 +173,10 @@
         try {
           const res = await fetch(BASE_URL, {
             method: "POST",
+
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            },
             body: JSON.stringify({
               action: "login",
               data: { username, password },
@@ -185,6 +195,7 @@
               "Login gagal. Periksa kembali username/password.";
           }
         } catch (error) {
+          console.error("Detail Error:", error);
           msgDiv.classList.remove("hidden");
           msgSpan.innerText = "Terjadi kesalahan jaringan.";
         } finally {
