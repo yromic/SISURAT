@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SISURAT - Sistem Manajemen Surat & Piagam</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #eeeeee;
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+    </style>
+  </head>
+  <body class="text-[#222831] antialiased">
+    <nav
+      class="bg-white shadow-sm py-4 px-6 md:px-12 flex justify-between items-center"
+    >
+      <div class="flex items-center gap-2 text-2xl font-bold">
+        <i class="fas fa-folder-open text-[#00ADB5]"></i>
+        <span class="text-[#222831]">SISURAT</span>
+      </div>
+      <div class="space-x-2">
+        <a
+          href="#fitur"
+          class="text-[#393E46] hover:text-[#00ADB5] px-3 py-2 text-sm font-medium transition"
+          >Fitur</a
+        >
+        <a
+          href="#tentang"
+          class="text-[#393E46] hover:text-[#00ADB5] px-3 py-2 text-sm font-medium transition"
+          >Tentang</a
+        >
+      </div>
+    </nav>
+
+    <section
+      class="max-w-6xl mx-auto px-6 py-20 md:py-28 flex flex-col md:flex-row items-center gap-12"
+    >
+      <div class="flex-1 text-center md:text-left">
+        <h1
+          class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight"
+        >
+          Kelola Surat & Piagam
+          <span class="text-[#00ADB5]">Lebih Mudah</span>
+        </h1>
+        <p class="text-lg text-[#393E46] mt-6 max-w-xl mx-auto md:mx-0">
+          SISURAT membantu Anda mencatat, mencari, dan mengarsipkan surat masuk,
+          surat keluar, serta piagam dalam satu sistem terintegrasi.
+        </p>
+
+        <div
+          class="flex flex-col sm:flex-row gap-4 mt-10 justify-center md:justify-start"
+        >
+          <a
+            href="piagam.html"
+            class="group inline-flex items-center justify-center gap-3 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover-lift"
+          >
+            <i class="fas fa-upload text-xl"></i>
+            <span>Upload Piagam</span>
+            <i
+              class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"
+            ></i>
+          </a>
+          <a
+            href="login.html"
+            class="group inline-flex items-center justify-center gap-3 bg-[#393E46] hover:bg-[#4a525c] text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-300 hover-lift"
+          >
+            <i class="fas fa-sign-in-alt text-xl"></i>
+            <span>Login</span>
+            <i
+              class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"
+            ></i>
+          </a>
+        </div>
+
+        <div
+          class="flex gap-6 mt-12 text-sm text-[#393E46] justify-center md:justify-start"
+        >
+          <div>
+            <i class="fas fa-check-circle text-[#00ADB5] mr-1"></i> 1000+ Surat
+          </div>
+          <div>
+            <i class="fas fa-check-circle text-[#00ADB5] mr-1"></i> 500+ Piagam
+          </div>
+          <div>
+            <i class="fas fa-check-circle text-[#00ADB5] mr-1"></i> 99% Kepuasan
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 flex justify-center">
+        <div class="relative w-72 h-72 md:w-96 md:h-96">
+          <div
+            class="absolute inset-0 bg-[#00ADB5] opacity-10 rounded-full"
+          ></div>
+
+          <div
+            class="absolute top-10 left-10 animate-bounce"
+            style="animation-duration: 3s"
+          >
+            <div class="bg-white p-4 rounded-2xl shadow-xl">
+              <i class="fas fa-envelope-open-text text-4xl text-[#00ADB5]"></i>
+            </div>
+          </div>
+          <div
+            class="absolute bottom-10 right-10 animate-bounce"
+            style="animation-duration: 4s"
+          >
+            <div class="bg-white p-4 rounded-2xl shadow-xl">
+              <i class="fas fa-award text-4xl text-[#393E46]"></i>
+            </div>
+          </div>
+          <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+          >
+            <div class="bg-[#222831] p-6 rounded-3xl shadow-2xl">
+              <i class="fas fa-folder-open text-6xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fitur" class="bg-white py-20">
+      <div class="max-w-6xl mx-auto px-6">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+          Mengapa Memilih SISURAT?
+        </h2>
+        <p class="text-center text-[#393E46] mb-12 max-w-2xl mx-auto">
+          Platform modern untuk manajemen arsip surat dan piagam yang efisien.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div
+            class="bg-[#EEEEEE] p-6 rounded-2xl shadow-md hover:shadow-xl transition"
+          >
+            <div
+              class="bg-[#00ADB5] bg-opacity-20 w-16 h-16 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-search text-3xl text-[#00ADB5]"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Pencarian Cepat</h3>
+            <p class="text-[#393E46]">
+              Temukan surat atau piagam dalam hitungan detik dengan filter dan
+              kata kunci.
+            </p>
+          </div>
+
+          <div
+            class="bg-[#EEEEEE] p-6 rounded-2xl shadow-md hover:shadow-xl transition"
+          >
+            <div
+              class="bg-[#00ADB5] bg-opacity-20 w-16 h-16 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-chart-line text-3xl text-[#00ADB5]"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Statistik Real-time</h3>
+            <p class="text-[#393E46]">
+              Pantau jumlah surat masuk, keluar, dan piagam melalui dashboard
+              interaktif.
+            </p>
+          </div>
+
+          <div
+            class="bg-[#EEEEEE] p-6 rounded-2xl shadow-md hover:shadow-xl transition"
+          >
+            <div
+              class="bg-[#00ADB5] bg-opacity-20 w-16 h-16 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-cloud-upload-alt text-3xl text-[#00ADB5]"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Upload Piagam</h3>
+            <p class="text-[#393E46]">
+              Langsung unggah piagam dengan mudah, tersimpan aman di cloud.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-6xl mx-auto px-6 py-20">
+      <div
+        class="bg-gradient-to-r from-[#222831] to-[#393E46] rounded-3xl p-12 text-center text-white"
+      >
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Siap untuk mencoba?</h2>
+        <p class="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
+          Mulai kelola arsip surat dan piagam Anda dengan lebih teratur.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="piagam.html"
+            class="bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-upload"></i> Upload Piagam
+          </a>
+          <a
+            href="login.html"
+            class="bg-white text-[#222831] hover:bg-gray-100 font-semibold px-8 py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-sign-in-alt"></i> Login
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bg-white border-t border-gray-200 py-8">
+      <div class="max-w-6xl mx-auto px-6 text-center text-[#393E46] text-sm">
+        <div class="flex justify-center space-x-6 mb-4">
+          <a href="#" class="hover:text-[#00ADB5]"
+            ><i class="fab fa-twitter"></i
+          ></a>
+          <a href="#" class="hover:text-[#00ADB5]"
+            ><i class="fab fa-facebook"></i
+          ></a>
+          <a href="#" class="hover:text-[#00ADB5]"
+            ><i class="fab fa-instagram"></i
+          ></a>
+        </div>
+        <p>&copy; 2026 SISURAT. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const user = localStorage.getItem("user");
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Input Piagam | SISURAT</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #eeeeee;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+
+      canvas {
+        touch-action: none;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div
+      class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in"
+    >
+      <div class="bg-[#222831] px-6 py-4 flex items-center gap-3">
+        <div class="bg-[#00ADB5] p-2 rounded-lg">
+          <i class="fas fa-award text-white text-xl"></i>
+        </div>
+        <h1 class="text-xl font-bold text-white">Input Piagam Baru</h1>
+        <div class="ml-auto">
+          <a
+            href="dashboard.html"
+            class="text-white hover:text-[#00ADB5] transition flex items-center gap-1 text-sm bg-[#393E46] px-3 py-1.5 rounded-lg"
+          >
+            <i class="fas fa-arrow-left"></i> Dashboard
+          </a>
+        </div>
+      </div>
+
+      <div class="p-6 md:p-8">
+        <form
+          id="piagamForm"
+          onsubmit="
+            event.preventDefault();
+            submitData();
+          "
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-user text-[#00ADB5] mr-1"></i> Nama Pengambil
+                </label>
+                <input
+                  type="text"
+                  id="nama_pengambil"
+                  placeholder="Contoh: Ahmad Fauzi"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-briefcase text-[#00ADB5] mr-1"></i> Jabatan
+                </label>
+                <input
+                  type="text"
+                  id="jabatan"
+                  placeholder="Contoh: Kepala Sekolah"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-building text-[#00ADB5] mr-1"></i> Unit Kerja
+                </label>
+                <input
+                  type="text"
+                  id="unit_kerja"
+                  placeholder="Contoh: SMPN 1 Jakarta"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-hashtag text-[#00ADB5] mr-1"></i> NPSN
+                </label>
+                <input
+                  type="text"
+                  id="npsn"
+                  placeholder="Nomor Pokok Sekolah"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-calendar-alt text-[#00ADB5] mr-1"></i>
+                  Pengambilan (Tanggal)
+                </label>
+                <input
+                  type="date"
+                  id="pengambilan"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-trophy text-[#00ADB5] mr-1"></i> Jenis
+                  Perlombaan
+                </label>
+                <input
+                  type="text"
+                  id="jenis_perlombaan"
+                  placeholder="Contoh: OSN Matematika"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-calendar text-[#00ADB5] mr-1"></i> Tahun
+                  Perlombaan
+                </label>
+                <input
+                  type="number"
+                  id="tahun_perlombaan"
+                  placeholder="2025"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-graduation-cap text-[#00ADB5] mr-1"></i> Nama
+                  Siswa
+                </label>
+                <input
+                  type="text"
+                  id="nama_siswa"
+                  placeholder="Contoh: Siti Aisyah"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#393E46] mb-1">
+                  <i class="fas fa-school text-[#00ADB5] mr-1"></i> Asal Sekolah
+                </label>
+                <input
+                  type="text"
+                  id="asal_sekolah"
+                  placeholder="Contoh: SMPN 1 Bandung"
+                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-[#393E46] mb-2">
+              <i class="fas fa-pen text-[#00ADB5] mr-1"></i> Tanda Tangan
+              (Gambar dengan mouse/sentuh)
+            </label>
+            <div
+              class="border-2 border-dashed border-[#00ADB5] rounded-xl p-1 bg-[#FAFAFA]"
+            >
+              <canvas
+                id="canvas"
+                class="w-full h-40 rounded-lg cursor-crosshair"
+              ></canvas>
+            </div>
+            <div class="flex justify-end mt-2 gap-2">
+              <button
+                type="button"
+                onclick="clearCanvas()"
+                class="text-sm bg-[#393E46] hover:bg-[#4a525c] text-white px-4 py-2 rounded-lg transition flex items-center gap-1"
+              >
+                <i class="fas fa-eraser"></i> Hapus
+              </button>
+            </div>
+            <p class="text-xs text-[#393E46] mt-1">
+              <i class="fas fa-info-circle text-[#00ADB5] mr-1"></i> Tanda
+              tangani di atas area ini.
+            </p>
+          </div>
+
+          <div
+            id="msg"
+            class="hidden mt-4 p-3 rounded-lg flex items-center gap-2 text-sm"
+          ></div>
+
+          <div class="mt-6">
+            <button
+              type="submit"
+              id="submitBtn"
+              class="w-full bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <i class="fas fa-save"></i> Simpan Piagam
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const BASE_URL =
+        "https://script.google.com/macros/s/AKfycbyey9N4Wcy1RsMAsxk0CxE_wNIaAAB9Ks1QHz6srF1i4qKQthyiHf2tRtAyE78Ygwjn/exec";
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        const containerWidth = canvas.parentElement.clientWidth;
+        canvas.width = containerWidth;
+        canvas.height = 160;
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      let drawing = false;
+
+      function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let clientX, clientY;
+        if (e.touches) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+
+        const x = (clientX - rect.left) * scaleX;
+        const y = (clientY - rect.top) * scaleY;
+        return { x, y };
+      }
+
+      function startDrawing(e) {
+        e.preventDefault();
+        drawing = true;
+        ctx.beginPath();
+        const { x, y } = getCanvasCoordinates(e);
+        ctx.moveTo(x, y);
+      }
+
+      function draw(e) {
+        e.preventDefault();
+        if (!drawing) return;
+
+        const { x, y } = getCanvasCoordinates(e);
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#222831";
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
+
+      function stopDrawing() {
+        drawing = false;
+        ctx.beginPath();
+      }
+
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+      canvas.addEventListener("mouseleave", stopDrawing);
+
+      canvas.addEventListener("touchstart", startDrawing, { passive: false });
+      canvas.addEventListener("touchmove", draw, { passive: false });
+      canvas.addEventListener("touchend", stopDrawing);
+      canvas.addEventListener("touchcancel", stopDrawing);
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      async function submitData() {
+        const msgDiv = document.getElementById("msg");
+        const submitBtn = document.getElementById("submitBtn");
+
+        const data = {
+          nama_pengambil: document.getElementById("nama_pengambil").value,
+          jabatan: document.getElementById("jabatan").value,
+          unit_kerja: document.getElementById("unit_kerja").value,
+          npsn: document.getElementById("npsn").value,
+          pengambilan: document.getElementById("pengambilan").value,
+          jenis_perlombaan: document.getElementById("jenis_perlombaan").value,
+          tahun_perlombaan: document.getElementById("tahun_perlombaan").value,
+          nama_siswa: document.getElementById("nama_siswa").value,
+          asal_sekolah: document.getElementById("asal_sekolah").value,
+          ttd_base64: canvas.toDataURL("image/png"),
+        };
+
+        for (let key in data) {
+          if (key !== "ttd_base64" && !data[key]) {
+            msgDiv.classList.remove(
+              "hidden",
+              "bg-green-100",
+              "text-green-700",
+              "bg-red-100",
+              "text-red-700",
+            );
+            msgDiv.classList.add("bg-red-100", "text-red-700");
+            msgDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Semua field harus diisi!</span>`;
+            return;
+          }
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+        try {
+          const res = await fetch(BASE_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "simpan_piagam",
+              data: data,
+            }),
+          });
+
+          const result = await res.json();
+
+          if (result.status === "success") {
+            msgDiv.classList.remove("hidden", "bg-red-100", "text-red-700");
+            msgDiv.classList.add("bg-green-100", "text-green-700");
+            msgDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>Berhasil disimpan!</span>`;
+
+            document.getElementById("piagamForm").reset();
+            clearCanvas();
+
+            setTimeout(() => {
+              msgDiv.classList.add("hidden");
+            }, 3000);
+          } else {
+            msgDiv.classList.remove("hidden", "bg-green-100", "text-green-700");
+            msgDiv.classList.add("bg-red-100", "text-red-700");
+            msgDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${result.message || "Gagal menyimpan."}</span>`;
+          }
+        } catch (error) {
+          msgDiv.classList.remove("hidden", "bg-green-100", "text-green-700");
+          msgDiv.classList.add("bg-red-100", "text-red-700");
+          msgDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Terjadi kesalahan jaringan.</span>`;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Piagam';
+        }
+      }
+
+      const inputs = document.querySelectorAll("input");
+      inputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          document.getElementById("msg").classList.add("hidden");
+        });
+      });
+    </script>
+  </body>
+</html>

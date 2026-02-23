@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Arsip</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #eeeeee;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #393e46;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #00adb5;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="flex text-[#222831]">
+    <aside
+      class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col"
+    >
+      <div class="p-6">
+        <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
+          <i class="fas fa-folder-open text-[#00ADB5]"></i> Arsip
+        </h2>
+      </div>
+      <nav class="flex-1 px-4">
+        <ul class="space-y-2">
+          <li>
+            <a
+              href="dashboard.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md"
+            >
+              <i class="fas fa-chart-pie w-5"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a
+              href="cari.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-search w-5"></i> Cari
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-database w-5"></i> Master Data
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-bars w-5"></i> Menu Lain
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="p-4 border-t border-[#393E46] mt-auto">
+        <button
+          onclick="logout()"
+          class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200"
+        >
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
+          <i class="fas fa-chart-line text-[#00ADB5]"></i> Dashboard
+        </h1>
+        <div class="flex items-center gap-4">
+          <span
+            class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm"
+          >
+            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+            <span id="user-name" class="font-semibold">User</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-envelope-open-text text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Total Surat
+            </p>
+            <p id="total" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-inbox text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Masuk
+            </p>
+            <p id="masuk" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-paper-plane text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Keluar
+            </p>
+            <p id="keluar" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-award text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">Piagam</p>
+            <p id="piagam" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-8">
+        <a
+          href="#"
+          class="inline-flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200"
+        >
+          <i class="fas fa-plus-circle"></i> Input Surat Masuk
+        </a>
+        <a
+          href="#"
+          class="inline-flex items-center gap-2 bg-[#393E46] hover:bg-[#4a525c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200"
+        >
+          <i class="fas fa-plus-circle"></i> Input Surat Keluar
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2
+              class="text-xl font-semibold text-[#222831] flex items-center gap-2"
+            >
+              <i class="fas fa-chart-bar text-[#00ADB5]"></i> Statistik Surat
+            </h2>
+            <div class="flex gap-2">
+              <button
+                onclick="changeChartType('bar')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-bar"></i>
+              </button>
+              <button
+                onclick="changeChartType('line')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-line"></i>
+              </button>
+              <button
+                onclick="changeChartType('pie')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-pie"></i>
+              </button>
+            </div>
+          </div>
+          <div class="h-80">
+            <canvas id="suratChart"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2
+            class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2"
+          >
+            <i class="fas fa-history text-[#00ADB5]"></i> Aktivitas Terbaru
+          </h2>
+          <div
+            id="aktivitas-list"
+            class="space-y-3 max-h-96 overflow-y-auto pr-1"
+          >
+            <div class="flex items-center justify-center py-8 text-[#393E46]">
+              <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+              <span class="ml-2">Memuat...</span>
+            </div>
+          </div>
+          <div class="mt-4 text-right">
+            <a
+              href="cari.html"
+              class="text-sm text-[#00ADB5] hover:underline flex items-center justify-end gap-1"
+            >
+              Lihat semua <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2
+            class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2"
+          >
+            <i class="fas fa-calendar-alt text-[#00ADB5]"></i> Tren Surat per
+            Bulan
+          </h2>
+          <div class="h-64">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const BASE_URL =
+        "https://script.google.com/macros/s/AKfycbyey9N4Wcy1RsMAsxk0CxE_wNIaAAB9Ks1QHz6srF1i4qKQthyiHf2tRtAyE78Ygwjn/exec";
+
+      (function checkAuth() {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user && window.location.pathname.includes("dashboard.html")) {
+          window.location.href = "index.html";
+        } else if (user) {
+          document.getElementById("user-name").innerText =
+            user.username || "User";
+        }
+      })();
+
+      async function fetchData(table) {
+        try {
+          const res = await fetch(`${BASE_URL}?action=get_data&table=${table}`);
+          const result = await res.json();
+          return result.data || [];
+        } catch (error) {
+          console.error(`Gagal mengambil data dari ${table}:`, error);
+          return [];
+        }
+      }
+
+      async function loadAllData() {
+        const [masuk, keluar, piagam] = await Promise.all([
+          fetchData("db_surat_masuk"),
+          fetchData("db_surat_keluar"),
+          fetchData("db_piagam"),
+        ]);
+
+        masuk.forEach((d) => {
+          d.jenis = "Surat Masuk";
+          d.tanggal = d.tanggal_surat || d.timestamp || null;
+        });
+        keluar.forEach((d) => {
+          d.jenis = "Surat Keluar";
+          d.tanggal = d.tanggal_surat || d.timestamp || null;
+        });
+        piagam.forEach((d) => {
+          d.jenis = "Piagam";
+          d.tanggal = d.tahun_perlombaan || d.timestamp || null;
+        });
+
+        return { masuk, keluar, piagam, all: [...masuk, ...keluar, ...piagam] };
+      }
+
+      let chartSurat = null;
+      let chartMonthly = null;
+
+      async function loadDashboard() {
+        const data = await loadAllData();
+
+        document.getElementById("total").innerText = data.all.length;
+        document.getElementById("masuk").innerText = data.masuk.length;
+        document.getElementById("keluar").innerText = data.keluar.length;
+        document.getElementById("piagam").innerText = data.piagam.length;
+
+        updateMainChart(
+          data.masuk.length,
+          data.keluar.length,
+          data.piagam.length,
+        );
+
+        updateMonthlyChart(data.all);
+
+        updateAktivitas(data.all);
+      }
+
+      function updateMainChart(masuk, keluar, piagam) {
+        const ctx = document.getElementById("suratChart").getContext("2d");
+        if (chartSurat) chartSurat.destroy();
+
+        chartSurat = new Chart(ctx, {
+          type: "bar", // default
+          data: {
+            labels: ["Surat Masuk", "Surat Keluar", "Piagam"],
+            datasets: [
+              {
+                label: "Jumlah",
+                data: [masuk, keluar, piagam],
+                backgroundColor: ["#00ADB5", "#393E46", "#222831"],
+                borderRadius: 8,
+                barPercentage: 0.6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "#EEEEEE" },
+                ticks: { stepSize: 1, color: "#393E46" },
+              },
+              x: { ticks: { color: "#222831" } },
+            },
+          },
+        });
+      }
+
+      function changeChartType(type) {
+        const masuk = parseInt(document.getElementById("masuk").innerText);
+        const keluar = parseInt(document.getElementById("keluar").innerText);
+        const piagam = parseInt(document.getElementById("piagam").innerText);
+
+        const ctx = document.getElementById("suratChart").getContext("2d");
+        if (chartSurat) chartSurat.destroy();
+
+        let config = {
+          type: type,
+          data: {
+            labels: ["Surat Masuk", "Surat Keluar", "Piagam"],
+            datasets: [
+              {
+                label: "Jumlah",
+                data: [masuk, keluar, piagam],
+                backgroundColor: ["#00ADB5", "#393E46", "#222831"],
+                borderColor: "#00ADB5",
+                borderWidth: type === "line" ? 2 : 0,
+                tension: 0.1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: type === "pie" ? true : false,
+                position: "bottom",
+              },
+            },
+          },
+        };
+
+        if (type !== "pie") {
+          config.options.scales = {
+            y: {
+              beginAtZero: true,
+              grid: { color: "#EEEEEE" },
+              ticks: { stepSize: 1, color: "#393E46" },
+            },
+            x: { ticks: { color: "#222831" } },
+          };
+        }
+
+        chartSurat = new Chart(ctx, config);
+      }
+
+      function updateMonthlyChart(allData) {
+        // Filter data yang memiliki tanggal valid
+        const withDate = allData.filter(
+          (d) => d.tanggal && !isNaN(new Date(d.tanggal)),
+        );
+
+        const months = {};
+        withDate.forEach((d) => {
+          const date = new Date(d.tanggal);
+          if (isNaN(date)) return;
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+          months[monthKey] = (months[monthKey] || 0) + 1;
+        });
+
+        const sortedMonths = Object.keys(months).sort();
+        const monthLabels = sortedMonths.map((m) => {
+          const [y, mon] = m.split("-");
+          return `${mon}/${y}`;
+        });
+        const monthData = sortedMonths.map((m) => months[m]);
+
+        const ctx = document.getElementById("monthlyChart").getContext("2d");
+        if (chartMonthly) chartMonthly.destroy();
+
+        chartMonthly = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: monthLabels,
+            datasets: [
+              {
+                label: "Jumlah Surat",
+                data: monthData,
+                borderColor: "#00ADB5",
+                backgroundColor: "rgba(0, 173, 181, 0.1)",
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: "#393E46",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { color: "#EEEEEE" } },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
+
+      function updateAktivitas(allData) {
+        const container = document.getElementById("aktivitas-list");
+
+        if (!allData || allData.length === 0) {
+          container.innerHTML =
+            '<div class="text-center py-8 text-[#393E46]"><i class="fas fa-folder-open text-4xl mb-2 opacity-30"></i><p>Belum ada data</p></div>';
+          return;
+        }
+
+        const sorted = [...allData]
+          .sort((a, b) => {
+            const dateA = a.tanggal ? new Date(a.tanggal) : 0;
+            const dateB = b.tanggal ? new Date(b.tanggal) : 0;
+            return dateB - dateA;
+          })
+          .slice(0, 5);
+
+        container.innerHTML = sorted
+          .map((item) => {
+            let icon = "fa-file";
+            if (item.jenis === "Surat Masuk") icon = "fa-inbox";
+            else if (item.jenis === "Surat Keluar") icon = "fa-paper-plane";
+            else if (item.jenis === "Piagam") icon = "fa-award";
+
+            let tanggalStr = "-";
+            if (item.tanggal) {
+              const d = new Date(item.tanggal);
+              if (!isNaN(d))
+                tanggalStr = d.toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                });
+            }
+
+            const judul =
+              item.perihal || item.jenis_perlombaan || item.nama || "-";
+
+            return `
+          <div class="flex items-start gap-3 p-3 bg-[#EEEEEE] rounded-lg hover:bg-gray-200 transition">
+            <div class="bg-[#00ADB5] bg-opacity-10 p-2 rounded-full">
+              <i class="fas ${icon} text-[#00ADB5]"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-[#222831] truncate">${judul}</p>
+              <div class="flex items-center gap-2 text-xs text-[#393E46] mt-1">
+                <span class="bg-white px-2 py-0.5 rounded-full">${item.jenis}</span>
+                <span><i class="far fa-calendar-alt mr-1"></i>${tanggalStr}</span>
+              </div>
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+      }
+
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "index.html";
+      }
+
+      window.onload = loadDashboard;
+    </script>
+  </body>
+</html>
