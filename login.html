@@ -144,76 +144,8 @@
         </div>
       </div>
     </div>
-    <script src="js/app.js"></script>
-    <script>
-      async function login(event) {
-        if (event) {
-          event.preventDefault();
-        }
-
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const msgDiv = document.getElementById("msg");
-        const msgSpan = msgDiv.querySelector("span");
-
-        if (!username || !password) {
-          msgDiv.classList.remove("hidden");
-          msgSpan.innerText = "Username dan password harus diisi!";
-          return;
-        }
-
-        const loginBtn = event
-          ? event.currentTarget
-          : document.querySelector("button");
-        const originalText = loginBtn.innerHTML;
-        loginBtn.innerHTML =
-          '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-        loginBtn.disabled = true;
-
-        try {
-          const res = await fetch(BASE_URL, {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8",
-            },
-            body: JSON.stringify({
-              action: "login",
-              data: { username, password },
-            }),
-          });
-
-          const result = await res.json();
-
-          if (result.status === "success") {
-            localStorage.setItem("user", JSON.stringify(result.user));
-            window.location.href = "dashboard.html";
-          } else {
-            msgDiv.classList.remove("hidden");
-            msgSpan.innerText =
-              result.message ||
-              "Login gagal. Periksa kembali username/password.";
-          }
-        } catch (error) {
-          console.error("Detail Error:", error);
-          msgDiv.classList.remove("hidden");
-          msgSpan.innerText = "Terjadi kesalahan jaringan.";
-        } finally {
-          loginBtn.innerHTML = originalText;
-          loginBtn.disabled = false;
-        }
-      }
-
-      document
-        .getElementById("username")
-        .addEventListener("input", function () {
-          document.getElementById("msg").classList.add("hidden");
-        });
-      document
-        .getElementById("password")
-        .addEventListener("input", function () {
-          document.getElementById("msg").classList.add("hidden");
-        });
-    </script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/login.js"></script>
   </body>
 </html>
