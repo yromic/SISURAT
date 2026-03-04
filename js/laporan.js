@@ -74,6 +74,25 @@
         ],
     };
 
+    // Kolom unified untuk mode "Semua Jenis" (campuran) — key harus ada di semua tabel via row.tanggal/row.jenis
+    const CSV_COLUMNS_MIXED = [
+        { header: "Jenis Dok.", key: "_table" },
+        { header: "No / Tahun", key: "_no_tahun" },
+        { header: "Perihal / Nama", key: "_perihal_nama" },
+        { header: "Tanggal", key: "tanggal" },
+        { header: "Nama Upload / Siswa", key: "_nama" },
+    ];
+
+    // Normalisasi baris ke kolom unified (dipanggil saat mode campuran)
+    function normalizeRowMixed(row) {
+        return {
+            ...row,
+            _no_tahun: row.nomor_surat || row.tahun_perlombaan || "",
+            _perihal_nama: row.perihal || row.jenis_perlombaan || "",
+            _nama: row.nama_upload || row.nama_siswa || "",
+        };
+    }
+
     // Label tampilan
     const TABLE_LABELS = {
         db_piagam: "Piagam",
@@ -219,21 +238,41 @@
             Tidak ada data sesuai filter
           </td>
         </tr>`;
-            // Sembunyikan pagination preview
             const pager = document.getElementById("preview-pagination");
             if (pager) pager.style.display = "none";
             return;
         }
 
-        // Sort
-        let sorted = [...data];
+        // FIX BUG 1: Tentukan mode campuran dari DATA KESELURUHAN (bukan pageData),
+        //            agar kolom/header tidak berubah saat sort atau ganti halaman.
+        const uniqueTables = [...new Set(data.map(r => r._table).filter(Boolean))];
+        const isMixed = uniqueTables.length > 1;
+
+        // Untuk mode campuran, normalisasi semua baris ke kolom unified SEBELUM sort
+        const workData = isMixed ? data.map(normalizeRowMixed) : data;
+        const cols = isMixed ? CSV_COLUMNS_MIXED : (CSV_COLUMNS[uniqueTables[0]] || CSV_COLUMNS["db_piagam"]);
+
+        // FIX BUG 2 (sort): Untuk sort kolom special '_table', gunakan TABLE_LABELS
+        //                   Perbaiki deteksi numerik: string kosong bukan angka
+        let sorted = [...workData];
         if (state.sortKey) {
             sorted.sort((a, b) => {
-                const va = String(a[state.sortKey] || "").toLowerCase();
-                const vb = String(b[state.sortKey] || "").toLowerCase();
-                const na = Number(va), nb = Number(vb);
+                let va = String(a[state.sortKey] ?? "").trim().toLowerCase();
+                let vb = String(b[state.sortKey] ?? "").trim().toLowerCase();
+
+                // Khusus _table: sort berdasar label nama saja
+                if (state.sortKey === "_table") {
+                    va = (TABLE_LABELS[a._table] || a._table || "").toLowerCase();
+                    vb = (TABLE_LABELS[b._table] || b._table || "").toLowerCase();
+                }
+
+                // FIX BUG 3: Deteksi numerik yang benar (string kosong bukan angka 0)
+                const na = va !== "" ? Number(va) : NaN;
+                const nb = vb !== "" ? Number(vb) : NaN;
                 if (!isNaN(na) && !isNaN(nb)) return (na - nb) * state.sortDir;
-                return va.localeCompare(vb) * state.sortDir;
+
+                // FIX BUG 4: localeCompare dengan locale bahasa Indonesia
+                return va.localeCompare(vb, "id", { sensitivity: "base" }) * state.sortDir;
             });
         }
 
@@ -247,79 +286,78 @@
         const end = Math.min(start + pageSize, total);
         const pageData = sorted.slice(start, end);
 
-        // Tentukan kolom berdasar jenis pertama
-        const firstRow = pageData[0] || data[0];
-        const table = firstRow._table || "db_piagam";
-        const cols = CSV_COLUMNS[table] || CSV_COLUMNS["db_piagam"];
+        // ── Render header (kolom sudah stabil, tidak berubah-ubah) ───────────────
+        const renderSortIcon = (key) => {
+            const isActive = state.sortKey === key;
+            if (!isActive) return `<i class="fas fa-sort text-xs text-gray-300"></i>`;
+            return `<i class="fas ${state.sortDir === 1 ? 'fa-sort-up' : 'fa-sort-down'} text-xs text-[#00ADB5]"></i>`;
+        };
 
-        // Render header dengan sort ikon
         thead.innerHTML = `
       <tr>
-        ${cols.map((c) => {
-            const isActive = state.sortKey === c.key;
-            const icon = isActive
-                ? (state.sortDir === 1 ? 'fa-sort-up text-[#00ADB5]' : 'fa-sort-down text-[#00ADB5]')
-                : 'fa-sort text-gray-300';
-            return `<th class="th-preview cursor-pointer hover:bg-[#e6fafb] select-none"
-                onclick="sortPreviewBy('${c.key}')">
-                <span class="flex items-center gap-1">
-                    ${c.header}
-                    <i class="fas ${icon} text-xs"></i>
-                </span>
-            </th>`;
-        }).join('')}
-        <th class="th-preview text-center cursor-pointer hover:bg-[#e6fafb] select-none"
-            onclick="sortPreviewBy('_table')">
-            <span class="flex items-center gap-1 justify-center">
-                Jenis
-                <i class="fas ${state.sortKey === '_table'
-                ? (state.sortDir === 1 ? 'fa-sort-up' : 'fa-sort-down')
-                : 'fa-sort'} text-xs ${state.sortKey === '_table' ? 'text-[#00ADB5]' : 'text-gray-300'}"></i>
+        ${cols.map((c) => `
+          <th class="th-preview" onclick="sortPreviewBy('${c.key}')">
+            <span class="flex items-center gap-1">
+              ${c.header} ${renderSortIcon(c.key)}
             </span>
-        </th>
+          </th>`
+        ).join('')}
       </tr>`;
 
-        // Render body
-        container.innerHTML = pageData
-            .map((row) => {
-                const rowTable = row._table || table;
+        // ── Render body ──────────────────────────────────────────────────────────
+        container.innerHTML = pageData.map((row) => {
+            const rowTable = row._table || "";
+            const badge = rowTable === "db_piagam"
+                ? "bg-yellow-100 text-yellow-700"
+                : rowTable === "db_surat_masuk"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-green-100 text-green-700";
+
+            if (isMixed) {
+                // Mode campuran: gunakan kolom unified, tampilkan label jenis di kolom pertama
+                return `
+          <tr class="tr-preview">
+            <td class="td-preview">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${badge}">
+                ${TABLE_LABELS[rowTable] || "—"}
+              </span>
+            </td>
+            ${cols.slice(1).map((c) => `<td class="td-preview">${row[c.key] || "—"}</td>`).join('')}
+          </tr>`;
+            } else {
+                // Mode satu jenis: tampilkan kolom spesifik + badge Jenis di akhir
                 const rowCols = CSV_COLUMNS[rowTable] || cols;
                 return `
           <tr class="tr-preview">
             ${rowCols.map((c) => `<td class="td-preview">${row[c.key] || "—"}</td>`).join('')}
             <td class="td-preview text-center">
-              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
-                ${rowTable === "db_piagam" ? "bg-yellow-100 text-yellow-700" : rowTable === "db_surat_masuk" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${badge}">
                 ${TABLE_LABELS[rowTable] || "—"}
               </span>
             </td>
           </tr>`;
-            })
-            .join('');
+            }
+        }).join('');
 
-        // Update pagination preview
+        // ── Pagination ───────────────────────────────────────────────────────────
         const pager = document.getElementById("preview-pagination");
         if (pager) {
-            // Tampilkan pagination hanya jika ada lebih dari 1 halaman
             pager.style.display = (totalPages > 1 || total > pageSize) ? "flex" : "none";
             const infoEl = document.getElementById("preview-page-info");
             if (infoEl) infoEl.textContent = `${start + 1}–${end} dari ${total} data`;
             document.getElementById("preview-btn-prev").disabled = page <= 1;
             document.getElementById("preview-btn-next").disabled = page >= totalPages;
-            // Page buttons
+
             const numbersEl = document.getElementById("preview-page-numbers");
             if (numbersEl) {
                 let html = "";
                 const delta = 2;
-                let pages = new Set([1, totalPages]);
+                const pages = new Set([1, totalPages]);
                 for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) pages.add(i);
                 [...pages].sort((a, b) => a - b).forEach((p, i, arr) => {
                     if (i > 0 && p - arr[i - 1] > 1) html += `<span class="text-gray-400 text-xs px-1">…</span>`;
                     const active = p === page;
-                    html += `<button onclick="goPreviewPage(${p})"
-                        class="w-7 h-7 rounded-lg text-xs font-semibold transition ${active
-                            ? 'bg-[#00ADB5] text-white'
-                            : 'bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white'
+                    html += `<button onclick="goPreviewPage(${p})" class="w-7 h-7 rounded-lg text-xs font-semibold transition ${active ? 'bg-[#00ADB5] text-white' : 'bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white'
                         }">${p}</button>`;
                 });
                 numbersEl.innerHTML = html;
