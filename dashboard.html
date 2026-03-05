@@ -1,218 +1,264 @@
 <!doctype html>
 <html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | SISURAT</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | SISURAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
+      rel="stylesheet"
+    />
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #eeeeee;
+      }
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-      background-color: #eeeeee;
-    }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
+      ::-webkit-scrollbar-track {
+        background: #393e46;
+      }
 
-    ::-webkit-scrollbar-track {
-      background: #393e46;
-    }
+      ::-webkit-scrollbar-thumb {
+        background: #00adb5;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
 
-    ::-webkit-scrollbar-thumb {
-      background: #00adb5;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-
-<body class="flex text-[#222831]">
-  <aside class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
-    <div class="p-6">
-      <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
-        <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
-      </h2>
-    </div>
-    <nav class="flex-1 px-4">
-      <ul class="space-y-2">
-        <li>
-          <a href="dashboard.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md">
-            <i class="fas fa-chart-pie w-5"></i> Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="cari.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-search w-5"></i> Cari
-          </a>
-        </li>
-        <li>
-          <a href="master.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-database w-5"></i> Master Data
-          </a>
-        </li>
-        <li>
-          <a href="laporan.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-file-export w-5"></i> Laporan
-          </a>
-        </li>
-      </ul>
-    </nav>
-    <div class="p-4 border-t border-[#393E46] mt-auto">
-      <button onclick="logout()"
-        class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
-  </aside>
-
-  <main class="flex-1 p-8 overflow-y-auto">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
-        <i class="fas fa-chart-line text-[#00ADB5]"></i> Dashboard
-      </h1>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm">
-          <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-          <span id="user-name" class="font-semibold">User</span>
-        </span>
+  <body class="flex text-[#222831]">
+    <aside
+      class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col"
+    >
+      <div class="p-6 flex items-center">
+        <a href="dashboard.html" class="flex items-center gap-2">
+          <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
+          <h2 class="text-2xl font-bold">SISURAT</h2>
+        </a>
       </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-envelope-open-text text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Total Surat
-          </p>
-          <p id="total" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
+      <nav class="flex-1 px-4">
+        <ul class="space-y-2">
+          <li>
+            <a
+              href="dashboard.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md"
+            >
+              <i class="fas fa-chart-pie w-5"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a
+              href="cari.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-search w-5"></i> Cari
+            </a>
+          </li>
+          <li>
+            <a
+              href="master.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-database w-5"></i> Master Data
+            </a>
+          </li>
+          <li>
+            <a
+              href="laporan.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-file-export w-5"></i> Laporan
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="p-4 border-t border-[#393E46] mt-auto">
+        <button
+          onclick="logout()"
+          class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200"
+        >
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
+    </aside>
 
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-inbox text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Surat Masuk
-          </p>
-          <p id="masuk" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
+          <i class="fas fa-chart-line text-[#00ADB5]"></i> Dashboard
+        </h1>
+        <div class="flex items-center gap-4">
+          <span
+            class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm"
+          >
+            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+            <span id="user-name" class="font-semibold">User</span>
+          </span>
         </div>
       </div>
 
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-paper-plane text-2xl text-[#00ADB5]"></i>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-envelope-open-text text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Total Surat
+            </p>
+            <p id="total" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
         </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Surat Keluar
-          </p>
-          <p id="keluar" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-inbox text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Masuk
+            </p>
+            <p id="masuk" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-paper-plane text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Keluar
+            </p>
+            <p id="keluar" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center"
+        >
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-award text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">Piagam</p>
+            <p id="piagam" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
         </div>
       </div>
 
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-award text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">Piagam</p>
-          <p id="piagam" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
+      <div class="flex flex-wrap gap-4 mb-8">
+        <a
+          href="https://forms.gle/Sa9yFGAY4uvAUJBm7"
+          class="inline-flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200"
+        >
+          <i class="fas fa-plus-circle"></i> Input Surat Masuk
+        </a>
+        <a
+          href="https://forms.gle/UP2vbGjEdfFQcSCZ6"
+          class="inline-flex items-center gap-2 bg-[#393E46] hover:bg-[#4a525c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200"
+        >
+          <i class="fas fa-plus-circle"></i> Input Surat Keluar
+        </a>
       </div>
-    </div>
 
-    <div class="flex flex-wrap gap-4 mb-8">
-      <a href="https://forms.gle/Sa9yFGAY4uvAUJBm7"
-        class="inline-flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
-        <i class="fas fa-plus-circle"></i> Input Surat Masuk
-      </a>
-      <a href="https://forms.gle/UP2vbGjEdfFQcSCZ6"
-        class="inline-flex items-center gap-2 bg-[#393E46] hover:bg-[#4a525c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
-        <i class="fas fa-plus-circle"></i> Input Surat Keluar
-      </a>
-    </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2
+              class="text-xl font-semibold text-[#222831] flex items-center gap-2"
+            >
+              <i class="fas fa-chart-bar text-[#00ADB5]"></i> Statistik Surat
+            </h2>
+            <div class="flex gap-2">
+              <button
+                onclick="changeChartType('bar')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-bar"></i>
+              </button>
+              <button
+                onclick="changeChartType('line')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-line"></i>
+              </button>
+              <button
+                onclick="changeChartType('pie')"
+                class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition"
+              >
+                <i class="fas fa-chart-pie"></i>
+              </button>
+            </div>
+          </div>
+          <div class="h-80">
+            <canvas id="suratChart"></canvas>
+          </div>
+        </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-[#222831] flex items-center gap-2">
-            <i class="fas fa-chart-bar text-[#00ADB5]"></i> Statistik Surat
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2
+            class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2"
+          >
+            <i class="fas fa-history text-[#00ADB5]"></i> Aktivitas Terbaru
           </h2>
-          <div class="flex gap-2">
-            <button onclick="changeChartType('bar')"
-              class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition">
-              <i class="fas fa-chart-bar"></i>
-            </button>
-            <button onclick="changeChartType('line')"
-              class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition">
-              <i class="fas fa-chart-line"></i>
-            </button>
-            <button onclick="changeChartType('pie')"
-              class="px-3 py-1 text-xs bg-[#EEEEEE] hover:bg-gray-200 rounded transition">
-              <i class="fas fa-chart-pie"></i>
-            </button>
+          <div
+            id="aktivitas-list"
+            class="space-y-3 max-h-96 overflow-y-auto pr-1"
+          >
+            <div class="flex items-center justify-center py-8 text-[#393E46]">
+              <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+              <span class="ml-2">Memuat...</span>
+            </div>
+          </div>
+          <div class="mt-4 text-right">
+            <a
+              href="cari.html"
+              class="text-sm text-[#00ADB5] hover:underline flex items-center justify-end gap-1"
+            >
+              Lihat semua <i class="fas fa-arrow-right"></i>
+            </a>
           </div>
         </div>
-        <div class="h-80">
-          <canvas id="suratChart"></canvas>
-        </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2">
-          <i class="fas fa-history text-[#00ADB5]"></i> Aktivitas Terbaru
-        </h2>
-        <div id="aktivitas-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
-          <div class="flex items-center justify-center py-8 text-[#393E46]">
-            <i class="fas fa-circle-notch fa-spin text-2xl"></i>
-            <span class="ml-2">Memuat...</span>
+      <div class="grid grid-cols-1 gap-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2
+            class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2"
+          >
+            <i class="fas fa-calendar-alt text-[#00ADB5]"></i> Tren Surat per
+            Bulan
+          </h2>
+          <div class="h-64">
+            <canvas id="monthlyChart"></canvas>
           </div>
         </div>
-        <div class="mt-4 text-right">
-          <a href="cari.html" class="text-sm text-[#00ADB5] hover:underline flex items-center justify-end gap-1">
-            Lihat semua <i class="fas fa-arrow-right"></i>
-          </a>
-        </div>
       </div>
-    </div>
+    </main>
 
-    <div class="grid grid-cols-1 gap-6">
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2">
-          <i class="fas fa-calendar-alt text-[#00ADB5]"></i> Tren Surat per
-          Bulan
-        </h2>
-        <div class="h-64">
-          <canvas id="monthlyChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/dashboard.js"></script>
-</body>
-
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
 </html>
