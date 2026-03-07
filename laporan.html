@@ -1,153 +1,161 @@
 <!doctype html>
 <html lang="id">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Laporan Rekapitulasi | SISURAT</title>
-    <meta name="description"
-        content="Export laporan rekapitulasi data Piagam, Surat Masuk, dan Surat Keluar dalam format CSV atau PDF." />
+    <meta
+      name="description"
+      content="Export laporan rekapitulasi data Piagam, Surat Masuk, dan Surat Keluar dalam format CSV atau PDF."
+    />
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
 
     <!-- jsPDF + AutoTable untuk export PDF client-side -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: #eeeeee;
-        }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #eeeeee;
+      }
 
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
 
-        ::-webkit-scrollbar-track {
-            background: #393e46;
-        }
+      ::-webkit-scrollbar-track {
+        background: #393e46;
+      }
 
-        ::-webkit-scrollbar-thumb {
-            background: #00adb5;
-            border-radius: 4px;
-        }
+      ::-webkit-scrollbar-thumb {
+        background: #00adb5;
+        border-radius: 4px;
+      }
 
-        /* Table preview */
-        .th-preview {
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: #f8f9fa;
-            color: #393E46;
-            border-bottom: 2px solid #e5e7eb;
-            white-space: nowrap;
-        }
+      /* Table preview */
+      .th-preview {
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: #f8f9fa;
+        color: #393e46;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+      }
 
-        .td-preview {
-            padding: 9px 14px;
-            font-size: 12px;
-            color: #222831;
-            border-bottom: 1px solid #f3f4f6;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+      .td-preview {
+        padding: 9px 14px;
+        font-size: 12px;
+        color: #222831;
+        border-bottom: 1px solid #f3f4f6;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-        .tr-preview:hover {
-            background: #f0fdfd;
-        }
+      .tr-preview:hover {
+        background: #f0fdfd;
+      }
 
-        /* Sortable th in preview */
-        .th-preview {
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: #f8f9fa;
-            color: #393E46;
-            border-bottom: 2px solid #e5e7eb;
-            white-space: nowrap;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.15s;
-        }
+      /* Sortable th in preview */
+      .th-preview {
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: #f8f9fa;
+        color: #393e46;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+      }
 
-        .th-preview:hover {
-            background: #e6fafb;
-        }
+      .th-preview:hover {
+        background: #e6fafb;
+      }
 
-        /* Rows per page select */
-        .rows-select {
-            padding: 5px 28px 5px 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #393E46;
-            background: #fff;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-        }
+      /* Rows per page select */
+      .rows-select {
+        padding: 5px 28px 5px 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #393e46;
+        background: #fff;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+      }
 
-        .rows-select:focus {
-            border-color: #00ADB5;
-        }
+      .rows-select:focus {
+        border-color: #00adb5;
+      }
 
-        /* Export buttons */
-        .btn-export {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 10px 22px;
-            border-radius: 12px;
-            transition: all 0.2s;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+      /* Export buttons */
+      .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 22px;
+        border-radius: 12px;
+        transition: all 0.2s;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
 
-        .btn-csv {
-            background: #16a34a;
-            color: #fff;
-        }
+      .btn-csv {
+        background: #16a34a;
+        color: #fff;
+      }
 
-        .btn-csv:hover {
-            background: #15803d;
-            box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
-        }
+      .btn-csv:hover {
+        background: #15803d;
+        box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
+      }
 
-        .btn-pdf {
-            background: #dc2626;
-            color: #fff;
-        }
+      .btn-pdf {
+        background: #dc2626;
+        color: #fff;
+      }
 
-        .btn-pdf:hover {
-            background: #b91c1c;
-            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
-        }
+      .btn-pdf:hover {
+        background: #b91c1c;
+        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
+      }
 
-        .btn-email {
-            background: #7c3aed;
-            color: #fff;
-        }
+      .btn-email {
+        background: #7c3aed;
+        color: #fff;
+      }
 
-        .btn-email:hover {
-            background: #6d28d9;
-            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
-        }
+      .btn-email:hover {
+        background: #6d28d9;
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
+      }
 
+<<<<<<< HEAD
         /* Loading overlay */
         #loading-overlay {
             position: absolute;
@@ -240,10 +248,85 @@
                 class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
+=======
+      /* Loading overlay */
+      #loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+
+  <body class="flex text-[#222831]">
+    <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside
+      class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col"
+    >
+      <div class="p-6 flex items-center">
+        <a href="laporan.html" class="flex items-center gap-2">
+          <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
+          <h2 class="text-2xl font-bold">SISURAT</h2>
+        </a>
+      </div>
+      <nav class="flex-1 px-4">
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="dashboard.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-chart-pie w-5"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a
+              href="cari.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-search w-5"></i> Cari
+            </a>
+          </li>
+          <li>
+            <a
+              href="master.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
+            >
+              <i class="fas fa-database w-5"></i> Master Data
+            </a>
+          </li>
+          <li>
+            <a
+              href="laporan.html"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md"
+            >
+              <i class="fas fa-file-export w-5"></i> Laporan
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="p-4 border-t border-[#393E46]">
+        <div class="flex items-center gap-2 mb-3 text-sm">
+          <i class="fas fa-user-circle text-[#00ADB5] text-lg"></i>
+          <span id="user-name" class="font-semibold truncate">User</span>
+>>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
         </div>
+        <button
+          onclick="logout()"
+          class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+        >
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
     </aside>
 
     <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
+<<<<<<< HEAD
     <main class="flex-1 overflow-y-auto min-h-screen">
         <!-- Top bar mobile -->
         <div
@@ -258,9 +341,158 @@
                 <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
                 <span id="user-name-mobile" class="font-semibold">User</span>
             </span>
+=======
+    <main class="flex-1 p-8 overflow-y-auto min-h-screen">
+      <!-- Header -->
+      <div class="mb-6">
+        <div class="flex flex-col gap-1">
+          <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
+            <i class="fas fa-file-export text-[#00ADB5]"></i> Laporan
+            Rekapitulasi
+          </h1>
+          <button
+            onclick="
+              document.getElementById('infoLaporan').classList.toggle('hidden')
+            "
+            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all"
+          >
+            <i class="fas fa-info-circle"></i> Info Laporan & Ekspor
+          </button>
+        </div>
+      </div>
+
+      <!-- Informasi Fitur (Accordion) -->
+      <div
+        id="infoLaporan"
+        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
+            >
+              <i class="fas fa-filter"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">Cakupan Data</h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
+                Tentukan batas rentang waktu penyortiran, serta spesifikasi
+                target jenis dokumen untuk menghasilkan rekap log yang akurat.
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
+            >
+              <i class="fas fa-file-export"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">
+                Multi Format Unduh
+              </h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
+                Dapatkan salinan <strong>PDF</strong> untuk siap
+                dipresentasikan, maupun <strong>CSV</strong> mentah yang dapat
+                diolah kembali di dalam Excel.
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
+            >
+              <i class="fas fa-paper-plane"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">
+                Notifikasi Eksternal
+              </h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
+                Sebar laporan lebih cepat melalui tombol email instan yang akan
+                otomatis membuka aplikasi mail Anda dengan pesan pengantar
+                bawaan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Panel -->
+      <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <h2
+          class="text-sm font-bold text-[#393E46] uppercase tracking-wider mb-4 flex items-center gap-2"
+        >
+          <i class="fas fa-filter text-[#00ADB5]"></i> Filter Data
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Date From -->
+          <div>
+            <label
+              class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide"
+            >
+              <i class="fas fa-calendar-alt text-[#00ADB5] mr-1"></i>Dari
+              Tanggal
+            </label>
+            <input
+              id="filter-from"
+              type="date"
+              class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition"
+            />
+          </div>
+          <!-- Date To -->
+          <div>
+            <label
+              class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide"
+            >
+              <i class="fas fa-calendar-alt text-[#00ADB5] mr-1"></i>Sampai
+              Tanggal
+            </label>
+            <input
+              id="filter-to"
+              type="date"
+              class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition"
+            />
+          </div>
+          <!-- Jenis -->
+          <div>
+            <label
+              class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide"
+            >
+              <i class="fas fa-tags text-[#00ADB5] mr-1"></i>Jenis Dokumen
+            </label>
+            <select
+              id="filter-jenis"
+              class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition bg-white"
+            >
+              <option value="">Semua Jenis</option>
+              <option value="db_piagam">Piagam</option>
+              <option value="db_surat_masuk">Surat Masuk</option>
+              <option value="db_surat_keluar">Surat Keluar</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Count + Export Buttons -->
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4"
+      >
+        <!-- Count Badge -->
+        <div class="flex items-center gap-3">
+          <span
+            class="bg-[#00ADB5] text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm"
+            id="result-count"
+          ></span>
+          <span class="text-xs text-[#393E46]">
+            <i class="fas fa-info-circle text-[#00ADB5] mr-1"></i>Data
+            ditampilkan dengan pagination &amp; dapat diurutkan
+          </span>
+>>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
         </div>
         <div class="p-4 sm:p-6 lg:p-8">
 
+<<<<<<< HEAD
             <!-- Header -->
             <div class="mb-5">
                 <div class="flex flex-col gap-1">
@@ -454,11 +686,136 @@
             </div>
 
         </div><!-- end inner padding -->
+=======
+        <!-- Export Buttons -->
+        <div class="flex flex-wrap gap-3">
+          <button
+            onclick="downloadCsv()"
+            class="btn-export btn-csv"
+            id="btn-csv"
+          >
+            <i class="fas fa-file-csv"></i>
+            <span>Download CSV</span>
+          </button>
+          <button
+            onclick="downloadPdf()"
+            class="btn-export btn-pdf"
+            id="btn-pdf"
+          >
+            <i class="fas fa-file-pdf"></i>
+            <span>Download PDF</span>
+          </button>
+          <button
+            onclick="sendEmail()"
+            class="btn-export btn-email"
+            id="btn-email"
+          >
+            <i class="fas fa-envelope"></i>
+            <span>Kirim Email</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview Table -->
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden relative">
+        <div
+          class="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap"
+        >
+          <div class="flex items-center gap-2">
+            <i class="fas fa-table text-[#00ADB5]"></i>
+            <h2 class="font-semibold text-[#222831] text-sm">Preview Data</h2>
+            <span class="text-xs text-gray-400"
+              >(klik header kolom untuk sort)</span
+            >
+          </div>
+          <!-- Rows per page -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">Tampilkan:</span>
+            <select
+              onchange="setPreviewPageSize(this.value)"
+              class="rows-select"
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-gray-400">baris</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full table-auto">
+            <thead id="preview-thead"></thead>
+            <tbody id="preview-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Preview -->
+        <div
+          id="preview-pagination"
+          style="display: none"
+          class="flex-wrap items-center justify-between gap-2 px-6 py-3 border-t border-gray-100 bg-gray-50"
+        >
+          <span id="preview-page-info" class="text-xs text-[#393E46]"></span>
+          <div class="flex items-center gap-1.5">
+            <button
+              id="preview-btn-prev"
+              onclick="prevPreviewPage()"
+              disabled
+              class="flex items-center px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div
+              id="preview-page-numbers"
+              class="flex items-center gap-1"
+            ></div>
+            <button
+              id="preview-btn-next"
+              onclick="nextPreviewPage()"
+              disabled
+              class="flex items-center px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Info note CSV columns per jenis -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <p
+            class="text-xs text-[#393E46] flex flex-col md:flex-row gap-2 leading-relaxed"
+          >
+            <span class="shrink-0 flex items-center"
+              ><i class="fas fa-info-circle text-[#00ADB5] mr-1"></i>
+              <strong>Format Export CSV:</strong></span
+            >
+            <span>
+              <span
+                class="text-yellow-700 font-medium px-1 bg-yellow-50 rounded"
+                >Piagam</span
+              >
+              Tahun, Jenis, Nama, NPSN, Unit Kerja, Total &nbsp;|&nbsp;
+              <span class="text-blue-700 font-medium px-1 bg-blue-50 rounded"
+                >Masuk</span
+              >
+              No Surat, Asal, Perihal, Tgl Diterima, Total &nbsp;|&nbsp;
+              <span class="text-green-700 font-medium px-1 bg-green-50 rounded"
+                >Keluar</span
+              >
+              No Surat, Perihal, Tgl Shared, Nama Upload, Total
+            </span>
+          </p>
+        </div>
+      </div>
+>>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
     </main>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/laporan.js"></script>
+<<<<<<< HEAD
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -481,3 +838,7 @@
 </body>
 
 </html>
+=======
+  </body>
+</html>
+>>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
