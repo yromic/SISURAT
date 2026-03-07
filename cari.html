@@ -49,11 +49,44 @@
     .rows-select:focus {
       border-color: #00ADB5;
     }
+
+    /* Sidebar responsive */
+    #sidebar {
+      transition: transform 0.3s ease;
+      z-index: 40;
+    }
+
+    @media (max-width: 1023px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+      }
+    }
+
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 30;
+    }
+
+    #sidebar-overlay.open {
+      display: block;
+    }
   </style>
 </head>
 
 <body class="flex text-[#222831]">
-  <aside class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
     <div class="p-6">
       <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
         <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
@@ -95,175 +128,191 @@
     </div>
   </aside>
 
-  <main class="flex-1 p-8 overflow-y-auto">
-    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-      <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
-          <i class="fas fa-search text-[#00ADB5]"></i> Cari Surat
-        </h1>
-        <button onclick="document.getElementById('infoCari').classList.toggle('hidden')"
-          class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all">
-          <i class="fas fa-info-circle"></i> Info & Panduan Fitur
-        </button>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-          <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-          <span id="user-name" class="font-semibold">User</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Informasi Fitur (Accordion) -->
-    <div id="infoCari"
-      class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="flex gap-3 group items-start">
-          <div
-            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-            <i class="fas fa-search"></i>
-          </div>
-          <div>
-            <h4 class="font-semibold text-sm text-[#222831]">Pencarian Cerdas</h4>
-            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Gunakan kata kunci, nomor surat, atau perihal.
-              Manfaatkan filter spesifik berdasarkan tanggal dan jenis dokumen.</p>
-          </div>
-        </div>
-        <div class="flex gap-3 group items-start">
-          <div
-            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-            <i class="fas fa-th-large"></i>
-          </div>
-          <div>
-            <h4 class="font-semibold text-sm text-[#222831]">Tampilan Fleksibel</h4>
-            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Ubah mode tampilan ke <strong>Grid</strong> atau
-              <strong>List</strong>, serta sesuaikan jumlah data yang tampil per halamannya.
-            </p>
-          </div>
-        </div>
-        <div class="flex gap-3 group items-start">
-          <div
-            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-            <i class="fas fa-eye"></i>
-          </div>
-          <div>
-            <h4 class="font-semibold text-sm text-[#222831]">Pratinjau Instan</h4>
-            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Klik pratinjau data untuk melihat detail berkas
-              secara langsung dalam modal interaktif tanpa perlu berpindah halaman.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="flex gap-3 mb-5">
-      <div class="relative flex-1">
-        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"></i>
-        <input id="search" type="text" placeholder="Cari surat, nomor, perihal..."
-          class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md" />
-      </div>
-      <button onclick="toggleFilter()"
-        class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-        <i class="fas fa-sliders-h"></i> Filter
+  <main class="flex-1 overflow-y-auto min-h-screen">
+    <!-- Top bar mobile -->
+    <div
+      class="lg:hidden flex items-center justify-between bg-[#222831] text-white px-4 py-3 sticky top-0 z-20 shadow-md">
+      <button onclick="toggleSidebar()" class="text-white focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
       </button>
+      <span class="text-lg font-bold flex items-center gap-2">
+        <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
+      </span>
+      <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
+        <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+        <span id="user-name-mobile" class="font-semibold">User</span>
+      </span>
     </div>
-
-    <!-- Filter Panel -->
-    <div id="filterPanel"
-      class="hidden bg-white p-5 rounded-xl shadow-lg mb-6 border-l-4 border-[#00ADB5] transition-all">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-              class="fas fa-tag mr-1 text-[#00ADB5]"></i>Jenis</label>
-          <select id="jenis"
-            class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]">
-            <option value="">Semua</option>
-            <option value="db_surat_masuk">Surat Masuk</option>
-            <option value="db_surat_keluar">Surat Keluar</option>
-            <option value="db_piagam">Piagam</option>
-          </select>
+    <div class="p-4 sm:p-6 lg:p-8">
+      <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
+        <div class="flex flex-col gap-1">
+          <h1 class="text-2xl lg:text-3xl font-bold text-[#222831] flex items-center gap-3">
+            <i class="fas fa-search text-[#00ADB5]"></i> Cari Surat
+          </h1>
+          <button onclick="document.getElementById('infoCari').classList.toggle('hidden')"
+            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all">
+            <i class="fas fa-info-circle"></i> Info &amp; Panduan Fitur
+          </button>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-              class="fas fa-calendar-alt mr-1 text-[#00ADB5]"></i>Dari</label>
-          <input type="date" id="from"
-            class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-              class="fas fa-calendar-check mr-1 text-[#00ADB5]"></i>Sampai</label>
-          <input type="date" id="to"
-            class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
+        <div class="hidden lg:flex items-center gap-4">
+          <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+            <span id="user-name" class="font-semibold">User</span>
+          </span>
         </div>
       </div>
-      <div class="flex justify-end mt-4 gap-2">
-        <button onclick="resetFilter()"
-          class="px-4 py-2 text-sm bg-[#EEEEEE] hover:bg-gray-200 rounded-lg transition flex items-center gap-1">
-          <i class="fas fa-undo-alt"></i> Reset
-        </button>
-        <button onclick="runSearch()"
-          class="px-4 py-2 text-sm bg-[#00ADB5] hover:bg-[#00939c] text-white rounded-lg transition flex items-center gap-1">
-          <i class="fas fa-search"></i> Terapkan
+
+      <!-- Informasi Fitur (Accordion) -->
+      <div id="infoCari"
+        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
+              <i class="fas fa-search"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">Pencarian Cerdas</h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Gunakan kata kunci, nomor surat, atau perihal.
+                Manfaatkan filter spesifik berdasarkan tanggal dan jenis dokumen.</p>
+            </div>
+          </div>
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
+              <i class="fas fa-th-large"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">Tampilan Fleksibel</h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Ubah mode tampilan ke <strong>Grid</strong> atau
+                <strong>List</strong>, serta sesuaikan jumlah data yang tampil per halamannya.
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-3 group items-start">
+            <div
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
+              <i class="fas fa-eye"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm text-[#222831]">Pratinjau Instan</h4>
+              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Klik pratinjau data untuk melihat detail berkas
+                secara langsung dalam modal interaktif tanpa perlu berpindah halaman.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="flex gap-3 mb-5">
+        <div class="relative flex-1">
+          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"></i>
+          <input id="search" type="text" placeholder="Cari surat, nomor, perihal..."
+            class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md" />
+        </div>
+        <button onclick="toggleFilter()"
+          class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
+          <i class="fas fa-sliders-h"></i> Filter
         </button>
       </div>
-    </div>
 
-    <!-- Info Bar & Controls -->
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <p class="text-sm text-[#393E46]">
-        <i class="fas fa-file-alt mr-1"></i>
-        <span id="result-count">0</span> hasil ditemukan
-      </p>
-      <div class="flex items-center gap-3">
-        <!-- Rows per page -->
+      <!-- Filter Panel -->
+      <div id="filterPanel"
+        class="hidden bg-white p-5 rounded-xl shadow-lg mb-6 border-l-4 border-[#00ADB5] transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
+                class="fas fa-tag mr-1 text-[#00ADB5]"></i>Jenis</label>
+            <select id="jenis"
+              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]">
+              <option value="">Semua</option>
+              <option value="db_surat_masuk">Surat Masuk</option>
+              <option value="db_surat_keluar">Surat Keluar</option>
+              <option value="db_piagam">Piagam</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
+                class="fas fa-calendar-alt mr-1 text-[#00ADB5]"></i>Dari</label>
+            <input type="date" id="from"
+              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
+                class="fas fa-calendar-check mr-1 text-[#00ADB5]"></i>Sampai</label>
+            <input type="date" id="to"
+              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
+          </div>
+        </div>
+        <div class="flex justify-end mt-4 gap-2">
+          <button onclick="resetFilter()"
+            class="px-4 py-2 text-sm bg-[#EEEEEE] hover:bg-gray-200 rounded-lg transition flex items-center gap-1">
+            <i class="fas fa-undo-alt"></i> Reset
+          </button>
+          <button onclick="runSearch()"
+            class="px-4 py-2 text-sm bg-[#00ADB5] hover:bg-[#00939c] text-white rounded-lg transition flex items-center gap-1">
+            <i class="fas fa-search"></i> Terapkan
+          </button>
+        </div>
+      </div>
+
+      <!-- Info Bar & Controls -->
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <p class="text-sm text-[#393E46]">
+          <i class="fas fa-file-alt mr-1"></i>
+          <span id="result-count">0</span> hasil ditemukan
+        </p>
+        <div class="flex items-center gap-3">
+          <!-- Rows per page -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-gray-400">Per hal:</span>
+            <select id="search-page-size" onchange="setSearchPageSize(this.value)" class="rows-select">
+              <option value="12">12</option>
+              <option value="24">24</option>
+              <option value="48">48</option>
+              <option value="96">96</option>
+            </select>
+          </div>
+          <!-- View toggle -->
+          <div class="flex gap-1">
+            <button id="btn-view-grid" onclick="setView('grid')"
+              class="w-8 h-8 rounded bg-[#00ADB5] text-white flex items-center justify-center">
+              <i class="fas fa-th"></i>
+            </button>
+            <button id="btn-view-list" onclick="setView('list')"
+              class="w-8 h-8 rounded bg-white text-[#393E46] hover:bg-[#EEEEEE] flex items-center justify-center">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Grid -->
+      <div id="result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="col-span-full text-center py-10 text-[#393E46]">
+          <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
+          <p class="mt-2">Memuat data...</p>
+        </div>
+      </div>
+
+      <!-- Pagination Cari -->
+      <div id="search-pagination" style="display:none"
+        class="flex flex-wrap items-center justify-between gap-2 mt-5 pt-4 border-t border-gray-200">
+        <span id="search-page-info" class="text-sm text-[#393E46]"></span>
         <div class="flex items-center gap-1.5">
-          <span class="text-xs text-gray-400">Per hal:</span>
-          <select id="search-page-size" onchange="setSearchPageSize(this.value)" class="rows-select">
-            <option value="12">12</option>
-            <option value="24">24</option>
-            <option value="48">48</option>
-            <option value="96">96</option>
-          </select>
-        </div>
-        <!-- View toggle -->
-        <div class="flex gap-1">
-          <button id="btn-view-grid" onclick="setView('grid')"
-            class="w-8 h-8 rounded bg-[#00ADB5] text-white flex items-center justify-center">
-            <i class="fas fa-th"></i>
+          <button id="search-btn-prev" onclick="prevSearchPage()" disabled
+            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+            <i class="fas fa-chevron-left"></i>
           </button>
-          <button id="btn-view-list" onclick="setView('list')"
-            class="w-8 h-8 rounded bg-white text-[#393E46] hover:bg-[#EEEEEE] flex items-center justify-center">
-            <i class="fas fa-list"></i>
+          <div id="search-page-numbers" class="flex items-center gap-1"></div>
+          <button id="search-btn-next" onclick="nextSearchPage()" disabled
+            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+            <i class="fas fa-chevron-right"></i>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Result Grid -->
-    <div id="result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <div class="col-span-full text-center py-10 text-[#393E46]">
-        <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
-        <p class="mt-2">Memuat data...</p>
-      </div>
-    </div>
-
-    <!-- Pagination Cari -->
-    <div id="search-pagination" style="display:none"
-      class="flex flex-wrap items-center justify-between gap-2 mt-5 pt-4 border-t border-gray-200">
-      <span id="search-page-info" class="text-sm text-[#393E46]"></span>
-      <div class="flex items-center gap-1.5">
-        <button id="search-btn-prev" onclick="prevSearchPage()" disabled
-          class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <div id="search-page-numbers" class="flex items-center gap-1"></div>
-        <button id="search-btn-next" onclick="nextSearchPage()" disabled
-          class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-    </div>
-
+    </div><!-- end inner padding -->
   </main>
 
   <!-- Modal Detail -->
@@ -298,6 +347,25 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/search.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const observer = new MutationObserver(function () {
+        const nm = document.getElementById('user-name');
+        const nmm = document.getElementById('user-name-mobile');
+        if (nm && nmm) nmm.textContent = nm.textContent;
+      });
+      const nm = document.getElementById('user-name');
+      if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+    });
+  </script>
 </body>
 
 </html>

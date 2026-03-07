@@ -31,11 +31,45 @@
       background: #00adb5;
       border-radius: 4px;
     }
+
+    /* Sidebar responsive */
+    #sidebar {
+      transition: transform 0.3s ease;
+      z-index: 40;
+    }
+
+    @media (max-width: 1023px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+      }
+    }
+
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 30;
+    }
+
+    #sidebar-overlay.open {
+      display: block;
+    }
   </style>
 </head>
 
 <body class="flex text-[#222831]">
-  <aside class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
+  <!-- Overlay untuk mobile -->
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
     <div class="p-6">
       <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
         <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
@@ -77,83 +111,100 @@
     </div>
   </aside>
 
-  <main class="flex-1 p-8 overflow-y-auto">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
-        <i class="fas fa-chart-line text-[#00ADB5]"></i> Dashboard
-      </h1>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm">
-          <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-          <span id="user-name" class="font-semibold">User</span>
-        </span>
+  <main class="flex-1 overflow-y-auto min-h-screen">
+    <!-- Top bar mobile -->
+    <div
+      class="lg:hidden flex items-center justify-between bg-[#222831] text-white px-4 py-3 sticky top-0 z-20 shadow-md">
+      <button onclick="toggleSidebar()" class="text-white focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+      <span class="text-lg font-bold flex items-center gap-2">
+        <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
+      </span>
+      <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
+        <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+        <span id="user-name-mobile" class="font-semibold">User</span>
+      </span>
+    </div>
+    <div class="p-4 sm:p-6 lg:p-8">
+      <div class="flex justify-between items-center mb-6 lg:mb-8">
+        <h1 class="text-2xl lg:text-3xl font-bold text-[#222831] flex items-center gap-3">
+          <i class="fas fa-chart-line text-[#00ADB5]"></i> Dashboard
+        </h1>
+        <div class="hidden lg:flex items-center gap-4">
+          <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm">
+            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+            <span id="user-name" class="font-semibold">User</span>
+          </span>
+        </div>
       </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-envelope-open-text text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Total Surat
+            </p>
+            <p id="total" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-inbox text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Masuk
+            </p>
+            <p id="masuk" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-paper-plane text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">
+              Surat Keluar
+            </p>
+            <p id="keluar" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
+          <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
+            <i class="fas fa-award text-2xl text-[#00ADB5]"></i>
+          </div>
+          <div>
+            <p class="text-sm text-[#393E46] uppercase font-medium">Piagam</p>
+            <p id="piagam" class="text-3xl font-bold text-[#222831] mt-1">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 mb-6 lg:mb-8">
+        <a href="https://forms.gle/Sa9yFGAY4uvAUJBm7"
+          class="inline-flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
+          <i class="fas fa-plus-circle"></i> Input Surat Masuk
+        </a>
+        <a href="https://forms.gle/UP2vbGjEdfFQcSCZ6"
+          class="inline-flex items-center gap-2 bg-[#393E46] hover:bg-[#4a525c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
+          <i class="fas fa-plus-circle"></i> Input Surat Keluar
+        </a>
+      </div>
+
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-envelope-open-text text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Total Surat
-          </p>
-          <p id="total" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
-      </div>
-
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-inbox text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Surat Masuk
-          </p>
-          <p id="masuk" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
-      </div>
-
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-paper-plane text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">
-            Surat Keluar
-          </p>
-          <p id="keluar" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
-      </div>
-
-      <div
-        class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#00ADB5] hover:shadow-lg transition flex items-center">
-        <div class="bg-[#00ADB5] bg-opacity-10 p-3 rounded-full mr-4">
-          <i class="fas fa-award text-2xl text-[#00ADB5]"></i>
-        </div>
-        <div>
-          <p class="text-sm text-[#393E46] uppercase font-medium">Piagam</p>
-          <p id="piagam" class="text-3xl font-bold text-[#222831] mt-1">0</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap gap-4 mb-8">
-      <a href="https://forms.gle/Sa9yFGAY4uvAUJBm7"
-        class="inline-flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
-        <i class="fas fa-plus-circle"></i> Input Surat Masuk
-      </a>
-      <a href="https://forms.gle/UP2vbGjEdfFQcSCZ6"
-        class="inline-flex items-center gap-2 bg-[#393E46] hover:bg-[#4a525c] text-white font-medium px-6 py-3 rounded-lg shadow-md transition-colors duration-200">
-        <i class="fas fa-plus-circle"></i> Input Surat Keluar
-      </a>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
       <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-[#222831] flex items-center gap-2">
@@ -197,7 +248,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6">
+    <div class="grid grid-cols-1 gap-4 lg:gap-6">
       <div class="bg-white rounded-xl shadow-md p-6">
         <h2 class="text-xl font-semibold text-[#222831] mb-4 flex items-center gap-2">
           <i class="fas fa-calendar-alt text-[#00ADB5]"></i> Tren Surat per
@@ -208,11 +259,32 @@
         </div>
       </div>
     </div>
+    </div><!-- end inner padding -->
   </main>
 
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/dashboard.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+    // Sync mobile username
+    document.addEventListener('DOMContentLoaded', function () {
+      const observer = new MutationObserver(function () {
+        const nm = document.getElementById('user-name');
+        const nmm = document.getElementById('user-name-mobile');
+        if (nm && nmm) nmm.textContent = nm.textContent;
+      });
+      const nm = document.getElementById('user-name');
+      if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+    });
+  </script>
 </body>
 
 </html>
