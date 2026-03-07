@@ -1,818 +1,384 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Master Data | SISURAT</title>
-    <meta
-      name="description"
-      content="Kelola data Piagam, Surat Masuk, dan Surat Keluar dalam satu halaman terpadu."
-    />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master Data | SISURAT</title>
+  <meta name="description" content="Kelola data Piagam, Surat Masuk, dan Surat Keluar dalam satu halaman terpadu." />
 
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #eeeeee;
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #eeeeee;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #393e46;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #00adb5;
+      border-radius: 4px;
+    }
+
+    .tab-active {
+      background: #00adb5;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 173, 181, 0.35);
+    }
+
+    .tab-inactive {
+      background: #fff;
+      color: #393e46;
+    }
+
+    .tab-inactive:hover {
+      background: #f0fdfd;
+      color: #00adb5;
+    }
+
+    .th-cell {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #f8f9fa;
+      color: #393e46;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    .td-cell {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #222831;
+      border-bottom: 1px solid #f3f4f6;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tr-row:hover {
+      background: #f0fdfd;
+    }
+
+    .tr-row:hover .td-cell {
+      color: #00adb5;
+    }
+
+    .action-btn-edit {
+      background: #e0f7fa;
+      color: #00adb5;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      transition: all 0.15s;
+      border: 1px solid #b2ebf2;
+    }
+
+    .action-btn-edit:hover {
+      background: #00adb5;
+      color: #fff;
+    }
+
+    .action-btn-delete {
+      background: #fef2f2;
+      color: #ef4444;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      transition: all 0.15s;
+      border: 1px solid #fecaca;
+    }
+
+    .action-btn-delete:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1.5px solid #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+
+    .form-input:focus {
+      border-color: #00adb5;
+      box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.12);
+    }
+
+    .modal-alert {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .modal-alert-error {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .modal-alert-success {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      min-width: 240px;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .toast-success {
+      background: #00adb5;
+      color: #fff;
+    }
+
+    .toast-error {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(80px);
+        opacity: 0;
       }
 
-      ::-webkit-scrollbar {
-        width: 6px;
+      to {
+        transform: translateX(0);
+        opacity: 1;
       }
+    }
 
-      ::-webkit-scrollbar-track {
-        background: #393e46;
-      }
+    canvas {
+      touch-action: none;
+    }
 
-      ::-webkit-scrollbar-thumb {
-        background: #00adb5;
-        border-radius: 4px;
-      }
+    .th-cell .fa-sort-up,
+    .th-cell .fa-sort-down {
+      color: #00adb5;
+    }
 
-      /* Tab */
-      .tab-active {
-        background: #00adb5;
-        color: #fff;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.35);
-      }
+    .col-toggle-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      padding: 12px 16px;
+      min-width: 180px;
+      z-index: 100;
+    }
 
-      .tab-inactive {
-        background: #fff;
-        color: #393e46;
-      }
+    .rows-select {
+      padding: 5px 30px 5px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #393e46;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
 
-      .tab-inactive:hover {
-        background: #f0fdfd;
-        color: #00adb5;
-      }
+    .rows-select:focus {
+      border-color: #00adb5;
+      box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.15);
+    }
 
-      /* Table */
-      .th-cell {
-        padding: 10px 14px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        background: #f8f9fa;
-        color: #393e46;
-        border-bottom: 2px solid #e5e7eb;
-        white-space: nowrap;
-      }
+    /* Sidebar responsive */
+    #sidebar {
+      transition: transform 0.3s ease;
+      z-index: 40;
+    }
 
-      .td-cell {
-        padding: 10px 14px;
-        font-size: 13px;
-        color: #222831;
-        border-bottom: 1px solid #f3f4f6;
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .tr-row:hover {
-        background: #f0fdfd;
-      }
-
-      .tr-row:hover .td-cell {
-        color: #00adb5;
-      }
-
-      /* Action Buttons */
-      .action-btn-edit {
-        background: #e0f7fa;
-        color: #00adb5;
-        border-radius: 6px;
-        padding: 5px 8px;
-        font-size: 12px;
-        transition: all 0.15s;
-        border: 1px solid #b2ebf2;
-      }
-
-      .action-btn-edit:hover {
-        background: #00adb5;
-        color: #fff;
-      }
-
-      .action-btn-delete {
-        background: #fef2f2;
-        color: #ef4444;
-        border-radius: 6px;
-        padding: 5px 8px;
-        font-size: 12px;
-        transition: all 0.15s;
-        border: 1px solid #fecaca;
-      }
-
-      .action-btn-delete:hover {
-        background: #ef4444;
-        color: #fff;
-      }
-
-      /* Form Input */
-      .form-input {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1.5px solid #e5e7eb;
-        font-size: 13px;
-        outline: none;
-        transition:
-          border-color 0.2s,
-          box-shadow 0.2s;
-        background: #fff;
-      }
-
-      .form-input:focus {
-        border-color: #00adb5;
-        box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.12);
-      }
-
-      /* Modal Alert */
-      .modal-alert {
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-      }
-
-      .modal-alert-error {
-        background: #fef2f2;
-        color: #dc2626;
-      }
-
-      .modal-alert-success {
-        background: #f0fdf4;
-        color: #16a34a;
-      }
-
-      /* Toast */
-      .toast {
+    @media (max-width: 1023px) {
+      #sidebar {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 9999;
-        padding: 12px 20px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 500;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        min-width: 240px;
-        animation: slideInRight 0.3s ease-out;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
       }
 
-      .toast-success {
-        background: #00adb5;
-        color: #fff;
+      #sidebar.open {
+        transform: translateX(0);
       }
+    }
 
-      .toast-error {
-        background: #ef4444;
-        color: #fff;
-      }
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 30;
+    }
 
-      @keyframes slideInRight {
-        from {
-          transform: translateX(80px);
-          opacity: 0;
-        }
-
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      canvas {
-        touch-action: none;
-      }
-
-      /* Sort icon in th */
-      .th-cell .fa-sort-up,
-      .th-cell .fa-sort-down {
-        color: #00adb5;
-      }
-
-      /* Column toggle dropdown */
-      .col-toggle-dropdown {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 6px);
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        padding: 12px 16px;
-        min-width: 180px;
-        z-index: 100;
-      }
-
-      /* Rows per page select */
-      .rows-select {
-        padding: 5px 30px 5px 10px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 12px;
-        color: #393e46;
-        background: #fff;
-        outline: none;
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-      }
-
-<<<<<<< HEAD
-        .tab-inactive:hover {
-            background: #f0fdfd;
-            color: #00ADB5;
-        }
-
-        /* Table */
-        .th-cell {
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: #f8f9fa;
-            color: #393E46;
-            border-bottom: 2px solid #e5e7eb;
-            white-space: nowrap;
-        }
-
-        .td-cell {
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #222831;
-            border-bottom: 1px solid #f3f4f6;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .tr-row:hover {
-            background: #f0fdfd;
-        }
-
-        .tr-row:hover .td-cell {
-            color: #00ADB5;
-        }
-
-        /* Action Buttons */
-        .action-btn-edit {
-            background: #e0f7fa;
-            color: #00ADB5;
-            border-radius: 6px;
-            padding: 5px 8px;
-            font-size: 12px;
-            transition: all 0.15s;
-            border: 1px solid #b2ebf2;
-        }
-
-        .action-btn-edit:hover {
-            background: #00ADB5;
-            color: #fff;
-        }
-
-        .action-btn-delete {
-            background: #fef2f2;
-            color: #ef4444;
-            border-radius: 6px;
-            padding: 5px 8px;
-            font-size: 12px;
-            transition: all 0.15s;
-            border: 1px solid #fecaca;
-        }
-
-        .action-btn-delete:hover {
-            background: #ef4444;
-            color: #fff;
-        }
-
-        /* Form Input */
-        .form-input {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1.5px solid #e5e7eb;
-            font-size: 13px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background: #fff;
-        }
-
-        .form-input:focus {
-            border-color: #00ADB5;
-            box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.12);
-        }
-
-        /* Modal Alert */
-        .modal-alert {
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-
-        .modal-alert-error {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-
-        .modal-alert-success {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 9999;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            min-width: 240px;
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        .toast-success {
-            background: #00ADB5;
-            color: #fff;
-        }
-
-        .toast-error {
-            background: #ef4444;
-            color: #fff;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(80px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        canvas {
-            touch-action: none;
-        }
-
-        /* Sort icon in th */
-        .th-cell .fa-sort-up,
-        .th-cell .fa-sort-down {
-            color: #00ADB5;
-        }
-
-        /* Column toggle dropdown */
-        .col-toggle-dropdown {
-            position: absolute;
-            right: 0;
-            top: calc(100% + 6px);
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            padding: 12px 16px;
-            min-width: 180px;
-            z-index: 100;
-        }
-
-        /* Rows per page select */
-        .rows-select {
-            padding: 5px 30px 5px 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #393E46;
-            background: #fff;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-        }
-
-        .rows-select:focus {
-            border-color: #00ADB5;
-            box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.15);
-        }
-
-        /* Sidebar responsive */
-        #sidebar {
-            transition: transform 0.3s ease;
-            z-index: 40;
-        }
-
-        @media (max-width: 1023px) {
-            #sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100vh;
-                transform: translateX(-100%);
-            }
-
-            #sidebar.open {
-                transform: translateX(0);
-            }
-        }
-
-        #sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 30;
-        }
-
-        #sidebar-overlay.open {
-            display: block;
-        }
-    </style>
+    #sidebar-overlay.open {
+      display: block;
+    }
+  </style>
 </head>
 
 <body class="flex text-[#222831]">
-    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
-    <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
-    <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
-        <div class="p-6">
-            <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
-                <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
-            </h2>
-        </div>
-        <nav class="flex-1 px-4">
-            <ul class="space-y-1">
-                <li>
-                    <a href="dashboard.html"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-                        <i class="fas fa-chart-pie w-5"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="cari.html"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-                        <i class="fas fa-search w-5"></i> Cari
-                    </a>
-                </li>
-                <li>
-                    <a href="master.html"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md">
-                        <i class="fas fa-database w-5"></i> Master Data
-                    </a>
-                </li>
-                <li>
-                    <a href="laporan.html"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-                        <i class="fas fa-file-export w-5"></i> Laporan
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="p-4 border-t border-[#393E46]">
-            <div class="flex items-center gap-2 mb-3 text-sm">
-                <i class="fas fa-user-circle text-[#00ADB5] text-lg"></i>
-                <span id="user-name" class="font-semibold truncate">User</span>
-            </div>
-            <button onclick="logout()"
-                class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-=======
-      .rows-select:focus {
-        border-color: #00adb5;
-        box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.15);
-      }
-    </style>
-  </head>
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-  <body class="flex text-[#222831]">
-    <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
-    <aside
-      class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col"
-    >
-      <div class="p-6 flex items-center">
-        <a href="master.html" class="flex items-center gap-2">
-          <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
-          <h2 class="text-2xl font-bold">SISURAT</h2>
-        </a>
+  <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
+  <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
+    <div class="p-6 flex items-center">
+      <a href="master.html" class="flex items-center gap-2">
+        <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
+        <h2 class="text-2xl font-bold">SISURAT</h2>
+      </a>
+    </div>
+    <nav class="flex-1 px-4">
+      <ul class="space-y-1">
+        <li>
+          <a href="dashboard.html"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
+            <i class="fas fa-chart-pie w-5"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="cari.html"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
+            <i class="fas fa-search w-5"></i> Cari
+          </a>
+        </li>
+        <li>
+          <a href="master.html"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md">
+            <i class="fas fa-database w-5"></i> Master Data
+          </a>
+        </li>
+        <li>
+          <a href="laporan.html"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
+            <i class="fas fa-file-export w-5"></i> Laporan
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="p-4 border-t border-[#393E46]">
+      <div class="flex items-center gap-2 mb-3 text-sm">
+        <i class="fas fa-user-circle text-[#00ADB5] text-lg"></i>
+        <span id="user-name" class="font-semibold truncate">User</span>
       </div>
-      <nav class="flex-1 px-4">
-        <ul class="space-y-1">
-          <li>
-            <a
-              href="dashboard.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-chart-pie w-5"></i> Dashboard
-            </a>
-          </li>
-          <li>
-            <a
-              href="cari.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-search w-5"></i> Cari
-            </a>
-          </li>
-          <li>
-            <a
-              href="master.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md"
-            >
-              <i class="fas fa-database w-5"></i> Master Data
-            </a>
-          </li>
-          <li>
-            <a
-              href="laporan.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-file-export w-5"></i> Laporan
-            </a>
-          </li>
-        </ul>
-      </nav>
-      <div class="p-4 border-t border-[#393E46]">
-        <div class="flex items-center gap-2 mb-3 text-sm">
-          <i class="fas fa-user-circle text-[#00ADB5] text-lg"></i>
-          <span id="user-name" class="font-semibold truncate">User</span>
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
-        </div>
-        <button
-          onclick="logout()"
-          class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-        >
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-      </div>
-    </aside>
+      <button onclick="logout()"
+        class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </aside>
 
-    <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
-<<<<<<< HEAD
-    <main class="flex-1 overflow-y-auto min-h-screen">
-        <!-- Top bar mobile -->
-        <div
-            class="lg:hidden flex items-center justify-between bg-[#222831] text-white px-4 py-3 sticky top-0 z-20 shadow-md">
-            <button onclick="toggleSidebar()" class="text-white focus:outline-none">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-            <span class="text-lg font-bold flex items-center gap-2">
-                <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
-            </span>
-            <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
-                <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-                <span id="user-name-mobile" class="font-semibold">User</span>
-            </span>
-        </div>
-        <div class="p-4 sm:p-6 lg:p-8">
+  <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
+  <main class="flex-1 overflow-y-auto min-h-screen">
+    <!-- Top bar mobile -->
+    <div
+      class="lg:hidden flex items-center justify-between bg-[#222831] text-white px-4 py-3 sticky top-0 z-20 shadow-md">
+      <button onclick="toggleSidebar()" class="text-white focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+      <span class="text-lg font-bold flex items-center gap-2">
+        <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8" />
+        SISURAT
+      </span>
+      <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
+        <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
+        <span id="user-name-mobile" class="font-semibold">User</span>
+      </span>
+    </div>
 
-            <!-- Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                <div class="flex flex-col gap-1">
-                    <h1 class="text-2xl lg:text-3xl font-bold text-[#222831] flex items-center gap-3">
-                        <i class="fas fa-database text-[#00ADB5]"></i> Master Data
-                    </h1>
-                    <button onclick="document.getElementById('infoMaster').classList.toggle('hidden')"
-                        class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all">
-                        <i class="fas fa-info-circle"></i> Panduan Pengelolaan
-                    </button>
-                </div>
-            </div>
-
-            <!-- Informasi Fitur (Accordion) -->
-            <div id="infoMaster"
-                class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div class="flex gap-3 group items-start">
-                        <div
-                            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-                            <i class="fas fa-layer-group"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-[#222831]">Pengajuan Terpusat</h4>
-                            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Ganti tab untuk mengelola
-                                <strong>Piagam</strong>, <strong>Masuk</strong>, atau <strong>Keluar</strong> hanya dari
-                                satu area kerja.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 group items-start">
-                        <div
-                            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-                            <i class="fas fa-columns"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-[#222831]">Meja Tabel Dinamis</h4>
-                            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Urutkan data dengan klik header tabel
-                                atau sembunyikan kolom yang tidak esensial melalui menu drop-down
-                                <strong>Kolom</strong>.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 group items-start">
-                        <div
-                            class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-                            <i class="fas fa-edit"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-[#222831]">Aksi Cepat</h4>
-                            <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Gunakan tombol
-                                <strong>Tambah</strong>
-                                untuk melampirkan data, serta kontrol aksi dalam tabel untuk mengubah/menghapus entri.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Container -->
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-
-                <!-- Tab Bar -->
-                <div class="flex border-b border-gray-100 bg-gray-50 p-2 gap-2">
-                    <button id="tab-piagam" data-tab="piagam" onclick="switchTab('piagam')"
-                        class="tab-active flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
-                        <i class="fas fa-award"></i> Piagam
-                    </button>
-                    <button id="tab-masuk" data-tab="masuk" onclick="switchTab('masuk')"
-                        class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
-                        <i class="fas fa-inbox"></i> Surat Masuk
-                    </button>
-                    <button id="tab-keluar" data-tab="keluar" onclick="switchTab('keluar')"
-                        class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
-                        <i class="fas fa-paper-plane"></i> Surat Keluar
-                    </button>
-                </div>
-
-                <!-- Toolbar -->
-                <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-gray-100">
-                    <!-- Search -->
-                    <div class="relative flex-1">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                        <input id="master-search" type="text" placeholder="Cari di semua kolom..."
-                            class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition" />
-                    </div>
-                    <!-- Rows per page -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-xs text-gray-400 whitespace-nowrap">Baris:</span>
-                        <select id="rows-per-page" onchange="setPageSize(this.value)" class="rows-select">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                    </div>
-                    <!-- Column Toggle -->
-                    <div class="relative flex-shrink-0" id="col-toggle-wrapper">
-                        <button onclick="toggleColPanel()"
-                            class="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-[#393E46] font-medium px-4 py-2.5 rounded-xl text-sm transition">
-                            <i class="fas fa-columns text-[#00ADB5]"></i> Kolom
-                            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
-                        </button>
-                        <div id="col-toggle-panel" class="col-toggle-dropdown hidden">
-                            <p class="text-xs font-bold text-[#393E46] uppercase tracking-wide mb-2">Tampilkan Kolom</p>
-                            <!-- Diisi oleh JS -->
-                        </div>
-                    </div>
-                    <!-- Tambah -->
-                    <button id="btn-tambah" onclick="openAddModal()"
-                        class="hidden flex-shrink-0 flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition-all duration-200 text-sm">
-                        <i class="fas fa-plus-circle"></i> Tambah
-                    </button>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full table-auto">
-                        <thead id="master-thead"></thead>
-                        <tbody id="master-tbody">
-                            <tr>
-                                <td colspan="10" class="py-16 text-center text-[#00ADB5]">
-                                    <i class="fas fa-circle-notch fa-spin text-3xl block mb-2"></i>
-                                    Memuat data...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div
-                    class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50">
-                    <span id="page-info" class="text-xs text-[#393E46]">— data</span>
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <button id="btn-prev" onclick="prevPage()" disabled
-                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <!-- Page number buttons (diisi JS) -->
-                        <div id="page-numbers" class="flex items-center gap-1"></div>
-                        <button id="btn-next" onclick="nextPage()" disabled
-                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </div><!-- end inner padding -->
-=======
-    <main class="flex-1 p-8 overflow-y-auto min-h-screen">
+    <div class="p-4 sm:p-6 lg:p-8">
       <!-- Header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
-      >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div class="flex flex-col gap-1">
-          <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
+          <h1 class="text-2xl lg:text-3xl font-bold text-[#222831] flex items-center gap-3">
             <i class="fas fa-database text-[#00ADB5]"></i> Master Data
           </h1>
-          <button
-            onclick="
-              document.getElementById('infoMaster').classList.toggle('hidden')
-            "
-            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all"
-          >
+          <button onclick="document.getElementById('infoMaster').classList.toggle('hidden')"
+            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all">
             <i class="fas fa-info-circle"></i> Panduan Pengelolaan
           </button>
         </div>
       </div>
 
       <!-- Informasi Fitur (Accordion) -->
-      <div
-        id="infoMaster"
-        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all"
-      >
+      <div id="infoMaster"
+        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div class="flex gap-3 group items-start">
             <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
               <i class="fas fa-layer-group"></i>
             </div>
             <div>
-              <h4 class="font-semibold text-sm text-[#222831]">
-                Pengajuan Terpusat
-              </h4>
+              <h4 class="font-semibold text-sm text-[#222831]">Pengajuan Terpusat</h4>
               <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
                 Ganti tab untuk mengelola <strong>Piagam</strong>,
-                <strong>Masuk</strong>, atau <strong>Keluar</strong> hanya dari
-                satu area kerja.
+                <strong>Masuk</strong>, atau <strong>Keluar</strong> hanya
+                dari satu area kerja.
               </p>
             </div>
           </div>
           <div class="flex gap-3 group items-start">
             <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
               <i class="fas fa-columns"></i>
             </div>
             <div>
-              <h4 class="font-semibold text-sm text-[#222831]">
-                Meja Tabel Dinamis
-              </h4>
+              <h4 class="font-semibold text-sm text-[#222831]">Meja Tabel Dinamis</h4>
               <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
                 Urutkan data dengan klik header tabel atau sembunyikan kolom
-                yang tidak esensial melalui menu drop-down
-                <strong>Kolom</strong>.
+                yang tidak esensial melalui menu drop-down <strong>Kolom</strong>.
               </p>
             </div>
           </div>
           <div class="flex gap-3 group items-start">
             <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
               <i class="fas fa-edit"></i>
             </div>
             <div>
               <h4 class="font-semibold text-sm text-[#222831]">Aksi Cepat</h4>
               <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Gunakan tombol <strong>Tambah</strong> untuk melampirkan data,
-                serta kontrol aksi dalam tabel untuk mengubah/menghapus entri.
+                Gunakan tombol <strong>Tambah</strong> untuk melampirkan
+                data, serta kontrol aksi dalam tabel untuk mengubah/menghapus entri.
               </p>
             </div>
           </div>
@@ -823,86 +389,50 @@
       <div class="bg-white rounded-2xl shadow-md overflow-hidden">
         <!-- Tab Bar -->
         <div class="flex border-b border-gray-100 bg-gray-50 p-2 gap-2">
-          <button
-            id="tab-piagam"
-            data-tab="piagam"
-            onclick="switchTab('piagam')"
-            class="tab-active flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200"
-          >
+          <button id="tab-piagam" data-tab="piagam" onclick="switchTab('piagam')"
+            class="tab-active flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
             <i class="fas fa-award"></i> Piagam
           </button>
-          <button
-            id="tab-masuk"
-            data-tab="masuk"
-            onclick="switchTab('masuk')"
-            class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200"
-          >
+          <button id="tab-masuk" data-tab="masuk" onclick="switchTab('masuk')"
+            class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
             <i class="fas fa-inbox"></i> Surat Masuk
           </button>
-          <button
-            id="tab-keluar"
-            data-tab="keluar"
-            onclick="switchTab('keluar')"
-            class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200"
-          >
+          <button id="tab-keluar" data-tab="keluar" onclick="switchTab('keluar')"
+            class="tab-inactive flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all duration-200">
             <i class="fas fa-paper-plane"></i> Surat Keluar
           </button>
         </div>
 
         <!-- Toolbar -->
-        <div
-          class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-gray-100"
-        >
-          <!-- Search -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-gray-100">
           <div class="relative flex-1">
-            <i
-              class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
-            ></i>
-            <input
-              id="master-search"
-              type="text"
-              placeholder="Cari di semua kolom..."
-              class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition"
-            />
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input id="master-search" type="text" placeholder="Cari di semua kolom..."
+              class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none text-sm transition" />
           </div>
-          <!-- Rows per page -->
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="text-xs text-gray-400 whitespace-nowrap">Baris:</span>
-            <select
-              id="rows-per-page"
-              onchange="setPageSize(this.value)"
-              class="rows-select"
-            >
+            <select id="rows-per-page" onchange="setPageSize(this.value)" class="rows-select">
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
           </div>
-          <!-- Column Toggle -->
           <div class="relative flex-shrink-0" id="col-toggle-wrapper">
-            <button
-              onclick="toggleColPanel()"
-              class="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-[#393E46] font-medium px-4 py-2.5 rounded-xl text-sm transition"
-            >
+            <button onclick="toggleColPanel()"
+              class="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-[#393E46] font-medium px-4 py-2.5 rounded-xl text-sm transition">
               <i class="fas fa-columns text-[#00ADB5]"></i> Kolom
               <i class="fas fa-chevron-down text-xs text-gray-400"></i>
             </button>
             <div id="col-toggle-panel" class="col-toggle-dropdown hidden">
-              <p
-                class="text-xs font-bold text-[#393E46] uppercase tracking-wide mb-2"
-              >
+              <p class="text-xs font-bold text-[#393E46] uppercase tracking-wide mb-2">
                 Tampilkan Kolom
               </p>
-              <!-- Diisi oleh JS -->
             </div>
           </div>
-          <!-- Tambah -->
-          <button
-            id="btn-tambah"
-            onclick="openAddModal()"
-            class="hidden flex-shrink-0 flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition-all duration-200 text-sm"
-          >
+          <button id="btn-tambah" onclick="openAddModal()"
+            class="hidden flex-shrink-0 flex items-center gap-2 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition-all duration-200 text-sm">
             <i class="fas fa-plus-circle"></i> Tambah
           </button>
         </div>
@@ -914,9 +444,7 @@
             <tbody id="master-tbody">
               <tr>
                 <td colspan="10" class="py-16 text-center text-[#00ADB5]">
-                  <i
-                    class="fas fa-circle-notch fa-spin text-3xl block mb-2"
-                  ></i>
+                  <i class="fas fa-circle-notch fa-spin text-3xl block mb-2"></i>
                   Memuat data...
                 </td>
               </tr>
@@ -925,160 +453,107 @@
         </div>
 
         <!-- Pagination -->
-        <div
-          class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50"
-        >
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50">
           <span id="page-info" class="text-xs text-[#393E46]">— data</span>
           <div class="flex items-center gap-1.5 flex-wrap">
-            <button
-              id="btn-prev"
-              onclick="prevPage()"
-              disabled
-              class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
+            <button id="btn-prev" onclick="prevPage()" disabled
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition">
               <i class="fas fa-chevron-left"></i>
             </button>
-            <!-- Page number buttons (diisi JS) -->
             <div id="page-numbers" class="flex items-center gap-1"></div>
-            <button
-              id="btn-next"
-              onclick="nextPage()"
-              disabled
-              class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
+            <button id="btn-next" onclick="nextPage()" disabled
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed transition">
               <i class="fas fa-chevron-right"></i>
             </button>
           </div>
         </div>
       </div>
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
-    </main>
+    </div><!-- end inner padding -->
+  </main>
 
-    <!-- ─── Modal Form Tambah/Edit ────────────────────────────────────────────── -->
-    <div
-      id="master-modal"
-      class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-      >
-        <!-- Modal Header -->
-        <div
-          class="bg-[#222831] px-6 py-4 flex items-center gap-3 sticky top-0 rounded-t-2xl"
-        >
-          <div class="bg-[#00ADB5] p-2 rounded-lg">
-            <i class="fas fa-edit text-white"></i>
+  <!-- ─── Modal Form Tambah/Edit ────────────────────────────────────────────── -->
+  <div id="master-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="bg-[#222831] px-6 py-4 flex items-center gap-3 sticky top-0 rounded-t-2xl">
+        <div class="bg-[#00ADB5] p-2 rounded-lg">
+          <i class="fas fa-edit text-white"></i>
+        </div>
+        <h2 id="modal-title" class="text-lg font-bold text-white flex-1">
+          Tambah Data
+        </h2>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition p-1">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6">
+        <div id="modal-alert" class="hidden mb-4"></div>
+        <form id="master-form" onsubmit="event.preventDefault(); submitForm();">
+          <div id="modal-form-body">
+            <!-- diisi dinamis oleh master.js -->
           </div>
-          <h2 id="modal-title" class="text-lg font-bold text-white flex-1">
-            Tambah Data
-          </h2>
-          <button
-            onclick="closeModal()"
-            class="text-gray-400 hover:text-white transition p-1"
-          >
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-6">
-          <div id="modal-alert" class="hidden mb-4"></div>
-          <form
-            id="master-form"
-            onsubmit="
-              event.preventDefault();
-              submitForm();
-            "
-          >
-            <div id="modal-form-body">
-              <!-- diisi dinamis oleh master.js -->
-            </div>
-            <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100">
-              <button
-                type="submit"
-                id="modal-submit-btn"
-                class="flex-1 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm"
-              >
-                <i class="fas fa-save"></i> Simpan
-              </button>
-              <button
-                type="button"
-                onclick="closeModal()"
-                class="flex-1 bg-[#393E46] hover:bg-[#4a525c] text-white font-semibold py-2.5 rounded-xl transition text-sm"
-              >
-                <i class="fas fa-times"></i> Batal
-              </button>
-            </div>
-          </form>
-        </div>
+          <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+            <button type="submit" id="modal-submit-btn"
+              class="flex-1 bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+              <i class="fas fa-save"></i> Simpan
+            </button>
+            <button type="button" onclick="closeModal()"
+              class="flex-1 bg-[#393E46] hover:bg-[#4a525c] text-white font-semibold py-2.5 rounded-xl transition text-sm">
+              <i class="fas fa-times"></i> Batal
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <!-- ─── Confirm Delete Modal ──────────────────────────────────────────────── -->
-    <div
-      id="confirm-modal"
-      class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-60 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center"
-      >
-        <div
-          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <i class="fas fa-trash-alt text-3xl text-red-500"></i>
-        </div>
-        <h3 class="text-lg font-bold text-[#222831] mb-2">Hapus Data?</h3>
-        <p class="text-sm text-[#393E46] mb-6">
-          Tindakan ini tidak dapat dibatalkan. Data akan dihapus secara
-          permanen.
-        </p>
-        <div class="flex gap-3">
-          <button
-            id="confirm-delete-btn"
-            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition"
-          >
-            <i class="fas fa-trash mr-1"></i> Hapus
-          </button>
-          <button
-            onclick="closeConfirmModal()"
-            class="flex-1 bg-gray-100 hover:bg-gray-200 text-[#222831] font-semibold py-2.5 rounded-xl transition"
-          >
-            Batal
-          </button>
-        </div>
+  <!-- ─── Confirm Delete Modal ──────────────────────────────────────────────── -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-60 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-trash-alt text-3xl text-red-500"></i>
+      </div>
+      <h3 class="text-lg font-bold text-[#222831] mb-2">Hapus Data?</h3>
+      <p class="text-sm text-[#393E46] mb-6">
+        Tindakan ini tidak dapat dibatalkan. Data akan dihapus secara permanen.
+      </p>
+      <div class="flex gap-3">
+        <button id="confirm-delete-btn"
+          class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition">
+          <i class="fas fa-trash mr-1"></i> Hapus
+        </button>
+        <button onclick="closeConfirmModal()"
+          class="flex-1 bg-gray-100 hover:bg-gray-200 text-[#222831] font-semibold py-2.5 rounded-xl transition">
+          Batal
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- ─── Toast ─────────────────────────────────────────────────────────────── -->
-    <div id="toast" class="hidden toast toast-success"></div>
+  <!-- ─── Toast ─────────────────────────────────────────────────────────────── -->
+  <div id="toast" class="hidden toast toast-success"></div>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/master.js"></script>
-<<<<<<< HEAD
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebar-overlay').classList.toggle('open');
-        }
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebar-overlay').classList.remove('open');
-        }
-        document.addEventListener('DOMContentLoaded', function () {
-            const observer = new MutationObserver(function () {
-                const nm = document.getElementById('user-name');
-                const nmm = document.getElementById('user-name-mobile');
-                if (nm && nmm) nmm.textContent = nm.textContent;
-            });
-            const nm = document.getElementById('user-name');
-            if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
-        });
-    </script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/master.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("sidebar-overlay").classList.toggle("open");
+    }
+    function closeSidebar() {
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("sidebar-overlay").classList.remove("open");
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const observer = new MutationObserver(function () {
+        const nm = document.getElementById("user-name");
+        const nmm = document.getElementById("user-name-mobile");
+        if (nm && nmm) nmm.textContent = nm.textContent;
+      });
+      const nm = document.getElementById("user-name");
+      if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+    });
+  </script>
 </body>
 
 </html>
-=======
-  </body>
-</html>
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa

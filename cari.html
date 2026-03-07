@@ -1,66 +1,54 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cari Surat | SISURAT</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cari Surat | SISURAT</title>
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #eeeeee;
-      }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
 
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #eeeeee;
+    }
 
-      ::-webkit-scrollbar-track {
-        background: #393e46;
-      }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
 
-      ::-webkit-scrollbar-thumb {
-        background: #00adb5;
-        border-radius: 4px;
-      }
+    ::-webkit-scrollbar-track {
+      background: #393e46;
+    }
 
-      /* Rows per page select */
-      .rows-select {
-        padding: 4px 24px 4px 8px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 11px;
-        color: #393e46;
-        background: #fff;
-        outline: none;
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 6px center;
-      }
+    ::-webkit-scrollbar-thumb {
+      background: #00adb5;
+      border-radius: 4px;
+    }
 
-      .rows-select:focus {
-        border-color: #00adb5;
-      }
-    </style>
-  </head>
+    /* Rows per page select */
+    .rows-select {
+      padding: 4px 24px 4px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #393e46;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+    }
 
-<<<<<<< HEAD
     .rows-select:focus {
-      border-color: #00ADB5;
+      border-color: #00adb5;
     }
 
     /* Sidebar responsive */
@@ -99,11 +87,13 @@
 
 <body class="flex text-[#222831]">
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
   <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
-    <div class="p-6">
-      <h2 class="text-2xl font-bold tracking-wide flex items-center gap-2">
-        <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
-      </h2>
+    <div class="p-6 flex items-center">
+      <a href="cari.html" class="flex items-center gap-2">
+        <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
+        <h2 class="text-2xl font-bold">SISURAT</h2>
+      </a>
     </div>
     <nav class="flex-1 px-4">
       <ul class="space-y-2">
@@ -149,13 +139,15 @@
         <i class="fas fa-bars text-xl"></i>
       </button>
       <span class="text-lg font-bold flex items-center gap-2">
-        <i class="fas fa-folder-open text-[#00ADB5]"></i> SISURAT
+        <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8" />
+        SISURAT
       </span>
       <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
         <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
         <span id="user-name-mobile" class="font-semibold">User</span>
       </span>
     </div>
+
     <div class="p-4 sm:p-6 lg:p-8">
       <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
         <div class="flex flex-col gap-1">
@@ -185,154 +177,18 @@
               <i class="fas fa-search"></i>
             </div>
             <div>
-              <h4 class="font-semibold text-sm text-[#222831]">Pencarian Cerdas</h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Gunakan kata kunci, nomor surat, atau perihal.
-                Manfaatkan filter spesifik berdasarkan tanggal dan jenis dokumen.</p>
-            </div>
-          </div>
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-              <i class="fas fa-th-large"></i>
-            </div>
-            <div>
-              <h4 class="font-semibold text-sm text-[#222831]">Tampilan Fleksibel</h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Ubah mode tampilan ke <strong>Grid</strong> atau
-                <strong>List</strong>, serta sesuaikan jumlah data yang tampil per halamannya.
-              </p>
-            </div>
-          </div>
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-              <i class="fas fa-eye"></i>
-            </div>
-            <div>
-              <h4 class="font-semibold text-sm text-[#222831]">Pratinjau Instan</h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">Klik pratinjau data untuk melihat detail berkas
-                secara langsung dalam modal interaktif tanpa perlu berpindah halaman.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Search Bar -->
-      <div class="flex gap-3 mb-5">
-        <div class="relative flex-1">
-          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"></i>
-          <input id="search" type="text" placeholder="Cari surat, nomor, perihal..."
-            class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md" />
-        </div>
-        <button onclick="toggleFilter()"
-          class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-=======
-  <body class="flex text-[#222831]">
-    <aside
-      class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col"
-    >
-      <div class="p-6 flex items-center">
-        <a href="cari.html" class="flex items-center gap-2">
-          <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
-          <h2 class="text-2xl font-bold">SISURAT</h2>
-        </a>
-      </div>
-      <nav class="flex-1 px-4">
-        <ul class="space-y-2">
-          <li>
-            <a
-              href="dashboard.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-chart-pie w-5"></i> Dashboard
-            </a>
-          </li>
-          <li>
-            <a
-              href="cari.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md"
-            >
-              <i class="fas fa-search w-5"></i> Cari
-            </a>
-          </li>
-          <li>
-            <a
-              href="master.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-database w-5"></i> Master Data
-            </a>
-          </li>
-          <li>
-            <a
-              href="laporan.html"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200"
-            >
-              <i class="fas fa-file-export w-5"></i> Laporan
-            </a>
-          </li>
-        </ul>
-      </nav>
-      <div class="p-4 border-t border-[#393E46] mt-auto">
-        <button
-          onclick="logout()"
-          class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200"
-        >
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-      </div>
-    </aside>
-
-    <main class="flex-1 p-8 overflow-y-auto">
-      <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-        <div class="flex flex-col gap-1">
-          <h1 class="text-3xl font-bold text-[#222831] flex items-center gap-3">
-            <i class="fas fa-search text-[#00ADB5]"></i> Cari Surat
-          </h1>
-          <button
-            onclick="
-              document.getElementById('infoCari').classList.toggle('hidden')
-            "
-            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all"
-          >
-            <i class="fas fa-info-circle"></i> Info & Panduan Fitur
-          </button>
-        </div>
-        <div class="flex items-center gap-4">
-          <span
-            class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100"
-          >
-            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-            <span id="user-name" class="font-semibold">User</span>
-          </span>
-        </div>
-      </div>
-
-      <!-- Informasi Fitur (Accordion) -->
-      <div
-        id="infoCari"
-        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
-              <i class="fas fa-search"></i>
-            </div>
-            <div>
               <h4 class="font-semibold text-sm text-[#222831]">
                 Pencarian Cerdas
               </h4>
               <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Gunakan kata kunci, nomor surat, atau perihal. Manfaatkan filter
-                spesifik berdasarkan tanggal dan jenis dokumen.
+                Gunakan kata kunci, nomor surat, atau perihal. Manfaatkan
+                filter spesifik berdasarkan tanggal dan jenis dokumen.
               </p>
             </div>
           </div>
           <div class="flex gap-3 group items-start">
             <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
               <i class="fas fa-th-large"></i>
             </div>
             <div>
@@ -348,8 +204,7 @@
           </div>
           <div class="flex gap-3 group items-start">
             <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5"
-            >
+              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
               <i class="fas fa-eye"></i>
             </div>
             <div>
@@ -357,8 +212,8 @@
                 Pratinjau Instan
               </h4>
               <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Klik pratinjau data untuk melihat detail berkas secara langsung
-                dalam modal interaktif tanpa perlu berpindah halaman.
+                Klik pratinjau data untuk melihat detail berkas secara
+                langsung dalam modal interaktif tanpa perlu berpindah halaman.
               </p>
             </div>
           </div>
@@ -368,27 +223,17 @@
       <!-- Search Bar -->
       <div class="flex gap-3 mb-5">
         <div class="relative flex-1">
-          <i
-            class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"
-          ></i>
-          <input
-            id="search"
-            type="text"
-            placeholder="Cari surat, nomor, perihal..."
-            class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md"
-          />
+          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"></i>
+          <input id="search" type="text" placeholder="Cari surat, nomor, perihal..."
+            class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md" />
         </div>
-        <button
-          onclick="toggleFilter()"
-          class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2"
-        >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
+        <button onclick="toggleFilter()"
+          class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
           <i class="fas fa-sliders-h"></i> Filter
         </button>
       </div>
 
       <!-- Filter Panel -->
-<<<<<<< HEAD
       <div id="filterPanel"
         class="hidden bg-white p-5 rounded-xl shadow-lg mb-6 border-l-4 border-[#00ADB5] transition-all">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -397,21 +242,6 @@
                 class="fas fa-tag mr-1 text-[#00ADB5]"></i>Jenis</label>
             <select id="jenis"
               class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]">
-=======
-      <div
-        id="filterPanel"
-        class="hidden bg-white p-5 rounded-xl shadow-lg mb-6 border-l-4 border-[#00ADB5] transition-all"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-[#393E46] mb-1"
-              ><i class="fas fa-tag mr-1 text-[#00ADB5]"></i>Jenis</label
-            >
-            <select
-              id="jenis"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]"
-            >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
               <option value="">Semua</option>
               <option value="db_surat_masuk">Surat Masuk</option>
               <option value="db_surat_keluar">Surat Keluar</option>
@@ -419,7 +249,6 @@
             </select>
           </div>
           <div>
-<<<<<<< HEAD
             <label class="block text-sm font-medium text-[#393E46] mb-1"><i
                 class="fas fa-calendar-alt mr-1 text-[#00ADB5]"></i>Dari</label>
             <input type="date" id="from"
@@ -439,41 +268,6 @@
           </button>
           <button onclick="runSearch()"
             class="px-4 py-2 text-sm bg-[#00ADB5] hover:bg-[#00939c] text-white rounded-lg transition flex items-center gap-1">
-=======
-            <label class="block text-sm font-medium text-[#393E46] mb-1"
-              ><i class="fas fa-calendar-alt mr-1 text-[#00ADB5]"></i
-              >Dari</label
-            >
-            <input
-              type="date"
-              id="from"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#393E46] mb-1"
-              ><i class="fas fa-calendar-check mr-1 text-[#00ADB5]"></i
-              >Sampai</label
-            >
-            <input
-              type="date"
-              id="to"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]"
-            />
-          </div>
-        </div>
-        <div class="flex justify-end mt-4 gap-2">
-          <button
-            onclick="resetFilter()"
-            class="px-4 py-2 text-sm bg-[#EEEEEE] hover:bg-gray-200 rounded-lg transition flex items-center gap-1"
-          >
-            <i class="fas fa-undo-alt"></i> Reset
-          </button>
-          <button
-            onclick="runSearch()"
-            class="px-4 py-2 text-sm bg-[#00ADB5] hover:bg-[#00939c] text-white rounded-lg transition flex items-center gap-1"
-          >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
             <i class="fas fa-search"></i> Terapkan
           </button>
         </div>
@@ -489,15 +283,7 @@
           <!-- Rows per page -->
           <div class="flex items-center gap-1.5">
             <span class="text-xs text-gray-400">Per hal:</span>
-<<<<<<< HEAD
             <select id="search-page-size" onchange="setSearchPageSize(this.value)" class="rows-select">
-=======
-            <select
-              id="search-page-size"
-              onchange="setSearchPageSize(this.value)"
-              class="rows-select"
-            >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
               <option value="12">12</option>
               <option value="24">24</option>
               <option value="48">48</option>
@@ -506,27 +292,12 @@
           </div>
           <!-- View toggle -->
           <div class="flex gap-1">
-<<<<<<< HEAD
             <button id="btn-view-grid" onclick="setView('grid')"
               class="w-8 h-8 rounded bg-[#00ADB5] text-white flex items-center justify-center">
               <i class="fas fa-th"></i>
             </button>
             <button id="btn-view-list" onclick="setView('list')"
               class="w-8 h-8 rounded bg-white text-[#393E46] hover:bg-[#EEEEEE] flex items-center justify-center">
-=======
-            <button
-              id="btn-view-grid"
-              onclick="setView('grid')"
-              class="w-8 h-8 rounded bg-[#00ADB5] text-white flex items-center justify-center"
-            >
-              <i class="fas fa-th"></i>
-            </button>
-            <button
-              id="btn-view-list"
-              onclick="setView('list')"
-              class="w-8 h-8 rounded bg-white text-[#393E46] hover:bg-[#EEEEEE] flex items-center justify-center"
-            >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
               <i class="fas fa-list"></i>
             </button>
           </div>
@@ -534,14 +305,7 @@
       </div>
 
       <!-- Result Grid -->
-<<<<<<< HEAD
       <div id="result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-=======
-      <div
-        id="result"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-      >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
         <div class="col-span-full text-center py-10 text-[#393E46]">
           <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
           <p class="mt-2">Memuat data...</p>
@@ -549,8 +313,7 @@
       </div>
 
       <!-- Pagination Cari -->
-<<<<<<< HEAD
-      <div id="search-pagination" style="display:none"
+      <div id="search-pagination" style="display: none"
         class="flex flex-wrap items-center justify-between gap-2 mt-5 pt-4 border-t border-gray-200">
         <span id="search-page-info" class="text-sm text-[#393E46]"></span>
         <div class="flex items-center gap-1.5">
@@ -561,36 +324,10 @@
           <div id="search-page-numbers" class="flex items-center gap-1"></div>
           <button id="search-btn-next" onclick="nextSearchPage()" disabled
             class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
-=======
-      <div
-        id="search-pagination"
-        style="display: none"
-        class="flex flex-wrap items-center justify-between gap-2 mt-5 pt-4 border-t border-gray-200"
-      >
-        <span id="search-page-info" class="text-sm text-[#393E46]"></span>
-        <div class="flex items-center gap-1.5">
-          <button
-            id="search-btn-prev"
-            onclick="prevSearchPage()"
-            disabled
-            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
-          >
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <div id="search-page-numbers" class="flex items-center gap-1"></div>
-          <button
-            id="search-btn-next"
-            onclick="nextSearchPage()"
-            disabled
-            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
-          >
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
       </div>
-<<<<<<< HEAD
-
     </div><!-- end inner padding -->
   </main>
 
@@ -617,91 +354,34 @@
             class="text-[#00ADB5] hover:underline text-sm flex items-center gap-1">
             <i class="fas fa-download"></i> Download
           </a>
-=======
-    </main>
-
-    <!-- Modal Detail -->
-    <div
-      id="modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
-    >
-      <div
-        class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col md:flex-row relative overflow-hidden"
-      >
-        <button
-          onclick="closeModal()"
-          class="absolute top-4 right-4 text-[#393E46] hover:text-[#00ADB5] transition z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md"
-        >
-          <i class="fas fa-times text-xl"></i>
-        </button>
-
-        <div
-          class="w-full md:w-1/2 p-6 max-h-[70vh] overflow-y-auto bg-[#F9F9F9]"
-        >
-          <h2
-            class="text-2xl font-bold text-[#222831] mb-4 flex items-center gap-2"
-          >
-            <i class="fas fa-info-circle text-[#00ADB5]"></i> Detail Surat
-          </h2>
-          <div id="detail" class="space-y-3 text-sm"></div>
         </div>
-
-        <div class="w-full md:w-1/2 bg-[#222831] flex flex-col">
-          <div
-            class="p-3 bg-[#393E46] text-white flex items-center justify-between"
-          >
-            <span class="font-medium"
-              ><i class="fas fa-file-pdf mr-2"></i>Pratinjau</span
-            >
-            <a
-              id="download-link"
-              href="#"
-              target="_blank"
-              class="text-[#00ADB5] hover:underline text-sm flex items-center gap-1"
-            >
-              <i class="fas fa-download"></i> Download
-            </a>
-          </div>
-          <iframe
-            id="preview"
-            class="flex-1 w-full min-h-[400px]"
-            frameborder="0"
-          ></iframe>
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
-        </div>
+        <iframe id="preview" class="flex-1 w-full min-h-[400px]" frameborder="0"></iframe>
       </div>
     </div>
+  </div>
 
-<<<<<<< HEAD
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/search.js"></script>
   <script>
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebar-overlay').classList.toggle('open');
+      document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("sidebar-overlay").classList.toggle("open");
     }
     function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebar-overlay').classList.remove('open');
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("sidebar-overlay").classList.remove("open");
     }
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener("DOMContentLoaded", function () {
       const observer = new MutationObserver(function () {
-        const nm = document.getElementById('user-name');
-        const nmm = document.getElementById('user-name-mobile');
+        const nm = document.getElementById("user-name");
+        const nmm = document.getElementById("user-name-mobile");
         if (nm && nmm) nmm.textContent = nm.textContent;
       });
-      const nm = document.getElementById('user-name');
+      const nm = document.getElementById("user-name");
       if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
     });
   </script>
 </body>
 
 </html>
-=======
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/search.js"></script>
-  </body>
-</html>
->>>>>>> 0e34d3cf4ab98dea955e9b5a0a35edcf049b08fa
