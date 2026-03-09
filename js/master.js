@@ -89,6 +89,16 @@
         canvas: null,
         ctx: null,
         drawing: false,
+        // Trash: { piagam: [{row, id},...], masuk:[...], keluar:[...] }
+        trash: { piagam: [], masuk: [], keluar: [] },
+        // Trash UI open/closed
+        trashOpen: false,
+        // Undo timer
+        undoTimer: null,
+        undoPendingId: null,
+        // Force-delete pending row id
+        forceDeleteId: null,
+        forceDeleteIsEmpty: false, // true = kosongkan semua
     };
 
     // ─── Debounce ─────────────────────────────────────────────────────────────────
@@ -581,36 +591,146 @@
         }
     }
 
-    // ─── Delete ───────────────────────────────────────────────────────────────────
-    function confirmDelete(rowId) {
+    // ─── Soft Delete (Trash) ──────────────────────────────────────────────────────
+    function softDelete(rowId) {
+        const tab = state.activeTab;
+        // Cari row di rawData
+        const idx = state.rawData.findIndex((r) => (r.id || r.row_number) === rowId);
+        if (idx === -1) return;
+
+        const row = state.rawData[idx];
+
+        // Pindahkan ke trash
+        state.trash[tab].unshift({ row, id: rowId });
+        state.rawData.splice(idx, 1);
+        applySearch();
+        updateTrashUI();
+        renderTrashTable(); // Render ulang tabel sampah langsung (real-time)
+
+        // Toast dengan tombol Undo
+        showUndoToast("Data dipindahkan ke sampah.", () => undoDelete(rowId));
+    }
+
+    function undoDelete(rowId) {
+        const tab = state.activeTab;
+        const trashIdx = state.trash[tab].findIndex((t) => t.id === rowId);
+        if (trashIdx === -1) return;
+        const { row } = state.trash[tab][trashIdx];
+        state.trash[tab].splice(trashIdx, 1);
+        state.rawData.unshift(row);
+        applySearch();
+        updateTrashUI();
+        renderTrashTable();
+        showToast("success", "Data berhasil dikembalikan.");
+    }
+
+    function restoreFromTrash(rowId) {
+        undoDelete(rowId);
+    }
+
+    // Konfirmasi hapus permanen satu item dari trash
+    function confirmForceDelete(rowId) {
+        state.forceDeleteId = rowId;
+        state.forceDeleteIsEmpty = false;
+        openConfirmModal(
+            "Hapus Permanen?",
+            "Data ini akan dihapus <strong class='text-red-600'>secara permanen</strong> dan <strong>tidak dapat dikembalikan</strong>."
+        );
+    }
+
+    // Kosongkan semua trash tab aktif
+    function emptyTrash() {
+        const tab = state.activeTab;
+        if (state.trash[tab].length === 0) return;
+        state.forceDeleteIsEmpty = true;
+        state.forceDeleteId = null;
+        openConfirmModal(
+            "Kosongkan Sampah?",
+            `Seluruh <strong>${state.trash[tab].length} item</strong> di sampah akan dihapus <strong class='text-red-600'>secara permanen</strong> dan tidak dapat dikembalikan.`
+        );
+    }
+
+    function openConfirmModal(title, desc) {
+        document.getElementById("confirm-modal-title").textContent = title;
+        document.getElementById("confirm-modal-desc").innerHTML = desc;
+        const inp = document.getElementById("confirm-type-input");
+        inp.value = "";
+        document.getElementById("confirm-delete-btn").disabled = true;
         const modal = document.getElementById("confirm-modal");
         modal.classList.remove("hidden");
         modal.classList.add("flex");
-        document.getElementById("confirm-delete-btn").onclick = () => doDelete(rowId);
+        setTimeout(() => inp.focus(), 100);
     }
 
     function closeConfirmModal() {
         const modal = document.getElementById("confirm-modal");
         modal.classList.add("hidden");
         modal.classList.remove("flex");
+        state.forceDeleteId = null;
+        state.forceDeleteIsEmpty = false;
     }
 
-    async function doDelete(rowId) {
-        const table = TAB_TABLE[state.activeTab];
-        closeConfirmModal();
+    function checkConfirmInput() {
+        const val = document.getElementById("confirm-type-input").value.trim();
+        document.getElementById("confirm-delete-btn").disabled = val.toUpperCase() !== "HAPUS";
+    }
+
+    async function doForceDelete() {
+        const tab = state.activeTab;
+        const table = TAB_TABLE[tab];
+
+        // ⚠️ Snapshot nilai state SEBELUM closeConfirmModal()
+        // karena closeConfirmModal() mereset state.forceDeleteId = null
+        const isEmptyMode = state.forceDeleteIsEmpty;
+        const rowId = state.forceDeleteId;
+
+        closeConfirmModal(); // aman dipanggil setelah nilai sudah disimpan
+
+        if (isEmptyMode) {
+            // Hapus semua item di trash tab aktif ke API
+            const items = [...state.trash[tab]];
+            state.trash[tab] = [];
+            updateTrashUI();
+            renderTrashTable();
+            let failCount = 0;
+            for (const item of items) {
+                try {
+                    await SisuratApi.deleteRecord(table, item.id);
+                } catch (_) {
+                    failCount++;
+                }
+            }
+            SisuratApi.invalidateCache();
+            if (failCount === 0) {
+                showToast("success", `${items.length} item berhasil dihapus permanen.`);
+            } else {
+                showToast("error", `${failCount} item gagal dihapus dari server.`);
+            }
+            return;
+        }
+
+        // Hapus satu item
+        const trashIdx = state.trash[tab].findIndex((t) => t.id === rowId);
+        if (trashIdx !== -1) state.trash[tab].splice(trashIdx, 1);
+        updateTrashUI();
+        renderTrashTable();
         try {
             const result = await SisuratApi.deleteRecord(table, rowId);
             if (result && result.status === "success") {
                 SisuratApi.invalidateCache();
-                await loadTab();
-                showToast("success", "Data berhasil dihapus!");
+                showToast("success", "Data dihapus permanen.");
             } else {
                 showToast("error", (result && result.message) || "Gagal menghapus data.");
             }
         } catch (err) {
-            console.error("Gagal hapus:", err);
+            console.error("Gagal hapus permanen:", err);
             showToast("error", "Terjadi kesalahan jaringan.");
         }
+    }
+
+    // Alias untuk dipanggil dari HTML onclick
+    function confirmDelete(rowId) {
+        softDelete(rowId);
     }
 
     // ─── UI Helpers ───────────────────────────────────────────────────────────────
@@ -631,7 +751,20 @@
         toast.className = `toast ${type === "error" ? "toast-error" : "toast-success"}`;
         toast.innerHTML = `<i class="fas fa-${type === "error" ? "times-circle" : "check-circle"} mr-2"></i>${msg}`;
         toast.classList.remove("hidden");
-        setTimeout(() => toast.classList.add("hidden"), 3500);
+        if (state.undoTimer) clearTimeout(state.undoTimer);
+        state.undoTimer = setTimeout(() => toast.classList.add("hidden"), 3500);
+    }
+
+    function showUndoToast(msg, onUndo) {
+        const toast = document.getElementById("toast");
+        toast.className = "toast toast-error";
+        toast.innerHTML = `
+            <i class="fas fa-trash mr-2"></i>${msg}
+            <button class="toast-undo-btn" onclick="(${onUndo.toString()})()">Undo</button>
+        `;
+        toast.classList.remove("hidden");
+        if (state.undoTimer) clearTimeout(state.undoTimer);
+        state.undoTimer = setTimeout(() => toast.classList.add("hidden"), 5000);
     }
 
     // ─── Pagination ───────────────────────────────────────────────────────────────
@@ -676,10 +809,99 @@
         if (wasHidden) renderColTogglePanel();
     }
 
+    // ─── Trash UI ──────────────────────────────────────────────────────────────────
+    function updateTrashUI() {
+        const tab = state.activeTab;
+        const count = state.trash[tab].length;
+        const panel = document.getElementById("trash-panel");
+        const badge = document.getElementById("trash-badge");
+        const emptyBtn = document.getElementById("btn-empty-trash");
+        const wrapper = document.getElementById("trash-table-wrapper");
+        const chevron = document.getElementById("trash-chevron");
+        if (!panel) return;
+
+        badge.textContent = count;
+        panel.classList.toggle("hidden", count === 0);
+        if (emptyBtn) emptyBtn.classList.toggle("hidden", count === 0);
+
+        if (count === 0) {
+            // Trash kosong: tutup panel
+            state.trashOpen = false;
+            if (wrapper) wrapper.classList.add("hidden");
+            if (chevron) chevron.style.transform = "";
+        } else if (!state.trashOpen) {
+            // Ada item baru dan panel belum terbuka: auto-expand
+            state.trashOpen = true;
+            if (wrapper) wrapper.classList.remove("hidden");
+            if (chevron) chevron.style.transform = "rotate(180deg)";
+        }
+    }
+
+    function toggleTrashPanel() {
+        state.trashOpen = !state.trashOpen;
+        const wrapper = document.getElementById("trash-table-wrapper");
+        const chevron = document.getElementById("trash-chevron");
+        if (wrapper) wrapper.classList.toggle("hidden", !state.trashOpen);
+        if (chevron) chevron.style.transform = state.trashOpen ? "rotate(180deg)" : "";
+        if (state.trashOpen) renderTrashTable();
+    }
+
+    function renderTrashTable() {
+        const tab = state.activeTab;
+        const allCols = TABLE_COLUMNS[tab];
+        const visibleCols = allCols.filter((c) => !isColHidden(tab, c.key));
+        const items = state.trash[tab];
+
+        const thead = document.getElementById("trash-thead");
+        const tbody = document.getElementById("trash-tbody");
+        if (!thead || !tbody) return;
+
+        thead.innerHTML = `<tr>
+            <th class="th-cell w-8 text-center">#</th>
+            ${visibleCols.map((c) => `<th class="th-cell">${c.label}</th>`).join('')}
+            <th class="th-cell text-center">Aksi</th>
+        </tr>`;
+
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${visibleCols.length + 2}" class="py-10 text-center text-gray-400 text-sm">
+                <i class="fas fa-check-circle text-green-300 text-3xl block mb-2"></i>Sampah kosong
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = items.map((item, idx) => {
+            const row = item.row;
+            const rowId = item.id;
+            return `<tr class="tr-trashed">
+                <td class="td-cell text-center text-gray-300 text-xs">${idx + 1}</td>
+                ${visibleCols.map((c) => {
+                const val = row[c.key];
+                return `<td class="td-cell">${val != null && val !== '' ? val : '<span class="text-gray-200">—</span>'}</td>`;
+            }).join('')}
+                <td class="td-cell text-center">
+                    <div class="flex gap-1 justify-center">
+                        <button onclick='restoreFromTrash(${JSON.stringify(rowId)})'
+                            class="action-btn-restore" title="Pulihkan">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button onclick='confirmForceDelete(${JSON.stringify(rowId)})'
+                            class="action-btn-force-delete" title="Hapus Permanen">
+                            <i class="fas fa-fire-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
     // ─── Init ──────────────────────────────────────────────────────────────────────
     function bindEvents() {
         const debouncedSearch = debounce(applySearch, DEBOUNCE_MS);
         document.getElementById("master-search").addEventListener("input", debouncedSearch);
+
+        // Wire confirm-delete-btn ke doForceDelete
+        const confirmBtn = document.getElementById("confirm-delete-btn");
+        if (confirmBtn) confirmBtn.addEventListener("click", doForceDelete);
 
         // Close col-toggle dropdown when clicking outside
         document.addEventListener("click", (e) => {
@@ -718,6 +940,7 @@
     global.submitForm = submitForm;
     global.confirmDelete = confirmDelete;
     global.closeConfirmModal = closeConfirmModal;
+    global.checkConfirmInput = checkConfirmInput;
     global.clearModalCanvas = clearModalCanvas;
     global.prevPage = prevPage;
     global.nextPage = nextPage;
@@ -727,6 +950,11 @@
     global.toggleColumn = toggleColumn;
     global.toggleColPanel = toggleColPanel;
     global.logout = logout;
+    // Trash functions
+    global.toggleTrashPanel = toggleTrashPanel;
+    global.restoreFromTrash = restoreFromTrash;
+    global.confirmForceDelete = confirmForceDelete;
+    global.emptyTrash = emptyTrash;
 
     global.addEventListener("load", init);
 })(window);

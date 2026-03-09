@@ -41,7 +41,10 @@
 
   function isSuperAdmin() {
     const user = getStoredUser();
-    return user !== null && user.role === "super_admin";
+    if (!user || !user.role) return false;
+    // Cocokkan "Super Admin", "super_admin", "SuperAdmin", dll. (case-insensitive)
+    const role = user.role.toLowerCase().replace(/[\s_-]+/g, "");
+    return role === "superadmin";
   }
 
   function logoutToHome() {

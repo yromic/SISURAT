@@ -125,6 +125,86 @@
       box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.12);
     }
 
+    /* Soft-delete badge */
+    .badge-trashed {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fef2f2;
+      color: #dc2626;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #fecaca;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tr-trashed {
+      background: #fffbfb;
+      opacity: 0.75;
+    }
+
+    .tr-trashed .td-cell {
+      color: #9ca3af;
+      text-decoration: line-through;
+    }
+
+    /* Trash panel toggle */
+    #trash-panel {
+      border-top: 2px dashed #fecaca;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn-restore {
+      background: #f0fdf4;
+      color: #16a34a;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      transition: all 0.15s;
+      border: 1px solid #bbf7d0;
+    }
+
+    .action-btn-restore:hover {
+      background: #16a34a;
+      color: #fff;
+    }
+
+    .action-btn-force-delete {
+      background: #fff1f2;
+      color: #e11d48;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      transition: all 0.15s;
+      border: 1px solid #fda4af;
+    }
+
+    .action-btn-force-delete:hover {
+      background: #e11d48;
+      color: #fff;
+    }
+
+    /* Toast undo */
+    .toast-undo-btn {
+      margin-left: 12px;
+      padding: 3px 10px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .toast-undo-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
     .modal-alert {
       padding: 8px 12px;
       border-radius: 8px;
@@ -467,6 +547,42 @@
             </button>
           </div>
         </div>
+
+        <!-- ─── Trash Panel ──────────────────────────────────────────── -->
+        <div id="trash-panel" class="hidden">
+          <!-- Trash Header toggle -->
+          <button onclick="toggleTrashPanel()"
+            class="w-full flex items-center justify-between px-4 py-3 bg-red-50 hover:bg-red-100 transition text-left">
+            <span class="flex items-center gap-2 text-sm font-semibold text-red-600">
+              <i class="fas fa-trash-alt"></i>
+              Sampah
+              <span id="trash-badge"
+                class="ml-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </span>
+            <span class="flex items-center gap-3">
+              <button onclick="event.stopPropagation(); emptyTrash()" id="btn-empty-trash"
+                class="hidden text-xs bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded-lg transition">
+                <i class="fas fa-fire-alt mr-1"></i>Kosongkan Sampah
+              </button>
+              <i id="trash-chevron" class="fas fa-chevron-down text-red-400 text-xs transition-transform"></i>
+            </span>
+          </button>
+
+          <!-- Trash Table -->
+          <div id="trash-table-wrapper" class="hidden overflow-x-auto">
+            <table class="w-full table-auto">
+              <thead id="trash-thead"></thead>
+              <tbody id="trash-tbody">
+                <tr>
+                  <td colspan="10" class="py-10 text-center text-gray-400 text-sm">
+                    <i class="fas fa-trash text-3xl opacity-20 block mb-2"></i>
+                    Sampah kosong
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div><!-- end inner padding -->
   </main>
@@ -506,25 +622,43 @@
     </div>
   </div>
 
-  <!-- ─── Confirm Delete Modal ──────────────────────────────────────────────── -->
+  <!-- ─── Force-Delete Confirm Modal (Filament-style) ──────────────────────── -->
   <div id="confirm-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-60 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
-      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-trash-alt text-3xl text-red-500"></i>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center gap-3 bg-red-600 px-6 py-4">
+        <div class="w-9 h-9 rounded-full bg-white bg-opacity-20 flex items-center justify-center shrink-0">
+          <i class="fas fa-exclamation-triangle text-white"></i>
+        </div>
+        <h3 id="confirm-modal-title" class="text-base font-bold text-white flex-1">Hapus Permanen?</h3>
+        <button onclick="closeConfirmModal()" class="text-white opacity-60 hover:opacity-100 transition">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <h3 class="text-lg font-bold text-[#222831] mb-2">Hapus Data?</h3>
-      <p class="text-sm text-[#393E46] mb-6">
-        Tindakan ini tidak dapat dibatalkan. Data akan dihapus secara permanen.
-      </p>
-      <div class="flex gap-3">
-        <button id="confirm-delete-btn"
-          class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition">
-          <i class="fas fa-trash mr-1"></i> Hapus
-        </button>
-        <button onclick="closeConfirmModal()"
-          class="flex-1 bg-gray-100 hover:bg-gray-200 text-[#222831] font-semibold py-2.5 rounded-xl transition">
-          Batal
-        </button>
+      <!-- Body -->
+      <div class="px-6 py-5">
+        <p id="confirm-modal-desc" class="text-sm text-[#393E46] mb-5 leading-relaxed">
+          Data ini akan dihapus <strong class="text-red-600">secara permanen</strong> dari sistem
+          dan <strong>tidak dapat dikembalikan</strong>. Yakin ingin melanjutkan?
+        </p>
+        <!-- Konfirmasi ketik nama untuk hard delete -->
+        <div id="confirm-type-wrapper" class="mb-5">
+          <label class="block text-xs font-bold text-[#393E46] mb-1 uppercase tracking-wide">
+            Ketik <span class="text-red-600 font-mono">HAPUS</span> untuk mengkonfirmasi
+          </label>
+          <input id="confirm-type-input" type="text" placeholder="Ketik HAPUS" oninput="checkConfirmInput()"
+            class="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-red-400 outline-none text-sm transition font-mono tracking-widest" />
+        </div>
+        <div class="flex gap-3">
+          <button id="confirm-delete-btn" disabled
+            class="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+            <i class="fas fa-fire-alt"></i> Hapus Permanen
+          </button>
+          <button onclick="closeConfirmModal()"
+            class="flex-1 bg-gray-100 hover:bg-gray-200 text-[#222831] font-semibold py-2.5 rounded-xl transition text-sm">
+            <i class="fas fa-times mr-1"></i> Batal
+          </button>
+        </div>
       </div>
     </div>
   </div>
