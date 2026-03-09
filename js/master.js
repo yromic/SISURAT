@@ -31,16 +31,18 @@
         ],
         masuk: [
             { key: "nomor_surat", label: "Nomor Surat" },
-            { key: "asal", label: "Asal" },
+            { key: "asal_surat", label: "Asal" },
             { key: "perihal", label: "Perihal" },
-            { key: "tanggal_surat", label: "Tanggal Diterima" },
-            { key: "nama_upload", label: "Nama Upload" },
+            { key: "tanggal_surat", label: "Tanggal Surat" },
+            { key: "tanggal_terima", label: "Tanggal Diterima" },
+            { key: "nama_pengupload", label: "Nama Upload" },
         ],
         keluar: [
             { key: "nomor_surat", label: "No Surat" },
             { key: "perihal", label: "Perihal" },
-            { key: "tanggal_surat", label: "Tanggal Shared" },
-            { key: "nama_upload", label: "Nama Upload" },
+            { key: "tanggal_surat", label: "Tanggal Surat" },
+            { key: "tanggal_share", label: "Tanggal Shared" },
+            { key: "nama_pengupload", label: "Nama Upload" },
         ],
     };
 
@@ -59,16 +61,18 @@
         ],
         masuk: [
             { id: "nomor_surat", label: "Nomor Surat", type: "text", icon: "fa-hashtag", placeholder: "001/SM/2025" },
-            { id: "asal", label: "Asal Surat", type: "text", icon: "fa-building", placeholder: "Dinas Pendidikan" },
+            { id: "asal_surat", label: "Asal Surat", type: "text", icon: "fa-building", placeholder: "Dinas Pendidikan" },
             { id: "perihal", label: "Perihal", type: "text", icon: "fa-envelope", placeholder: "Undangan Rapat" },
-            { id: "tanggal_surat", label: "Tanggal Diterima", type: "date", icon: "fa-calendar-alt", placeholder: "" },
-            { id: "nama_upload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
+            { id: "tanggal_surat", label: "Tanggal Surat", type: "date", icon: "fa-calendar", placeholder: "" },
+            { id: "tanggal_terima", label: "Tanggal Diterima", type: "date", icon: "fa-calendar-alt", placeholder: "" },
+            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
         ],
         keluar: [
             { id: "nomor_surat", label: "No Surat", type: "text", icon: "fa-hashtag", placeholder: "001/SK/2025" },
             { id: "perihal", label: "Perihal", type: "text", icon: "fa-envelope", placeholder: "Permohonan Izin" },
-            { id: "tanggal_surat", label: "Tanggal Shared", type: "date", icon: "fa-calendar-alt", placeholder: "" },
-            { id: "nama_upload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
+            { id: "tanggal_surat", label: "Tanggal Surat", type: "date", icon: "fa-calendar", placeholder: "" },
+            { id: "tanggal_share", label: "Tanggal Shared", type: "date", icon: "fa-calendar-alt", placeholder: "" },
+            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
         ],
     };
 
@@ -89,6 +93,7 @@
         canvas: null,
         ctx: null,
         drawing: false,
+        canvasDirty: false, // true jika user telah menggambar TTD baru
         // Trash: { piagam: [{row, id},...], masuk:[...], keluar:[...] }
         trash: { piagam: [], masuk: [], keluar: [] },
         // Trash UI open/closed
@@ -99,7 +104,26 @@
         // Force-delete pending row id
         forceDeleteId: null,
         forceDeleteIsEmpty: false, // true = kosongkan semua
+        // URL file/TTD lama saat mode edit (untuk dihapus jika upload ulang)
+        existingFileUrl: null,
+        existingTtdUrl: null,
     };
+
+    // ─── Helper: Ekstrak Google Drive File ID dari berbagai format URL ────────────
+    // Mendukung: uc?id=..., uc?export=view&id=..., /file/d/ID/view, /thumbnail?id=...
+    function extractDriveId(url) {
+        if (!url) return '';
+        // Format: /file/d/FILE_ID/
+        let m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (m) return m[1];
+        // Format: ?id=FILE_ID atau &id=FILE_ID
+        m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (m) return m[1];
+        // Format: /d/FILE_ID (Google Slides, Docs, dll)
+        m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (m) return m[1];
+        return '';
+    }
 
     // ─── Debounce ─────────────────────────────────────────────────────────────────
     function debounce(fn, waitMs) {
@@ -389,11 +413,42 @@
 
         let ttdSection = "";
         if (tab === "piagam") {
+            // Pratinjau TTD lama jika mode edit
+            const ttdUrl = state.existingTtdUrl;
+            const ttdFileId = ttdUrl ? extractDriveId(ttdUrl) : '';
+            // Pakai thumbnail URL — tidak diblokir saat di-embed
+            const ttdEmbedUrl = ttdFileId
+                ? `https://drive.google.com/thumbnail?id=${ttdFileId}&sz=w500`
+                : (ttdUrl || '');
+            const ttdPreview = ttdUrl ? `
+            <div class="mb-2 rounded-xl border border-violet-200 overflow-hidden bg-violet-50">
+              <div class="flex items-center gap-2 px-3 py-2 bg-violet-100 border-b border-violet-200">
+                <i class="fas fa-signature text-violet-500 text-sm"></i>
+                <span class="text-xs font-semibold text-violet-700 flex-1">TTD Saat Ini</span>
+                <a href="${ttdUrl}" target="_blank"
+                  class="text-xs text-violet-500 hover:underline flex items-center gap-1">
+                  <i class="fas fa-external-link-alt text-[10px]"></i> Buka
+                </a>
+                <button type="button" onclick="toggleTtdPreview()"
+                  id="btn-toggle-ttd"
+                  class="text-xs bg-violet-500 text-white px-2 py-0.5 rounded-lg hover:bg-violet-600 transition ml-1">
+                  Tampilkan
+                </button>
+              </div>
+              <div id="ttd-preview-area" class="hidden p-3 bg-white flex justify-center items-center">
+                <img src="${ttdEmbedUrl}" alt="TTD Saat Ini"
+                  class="max-h-28 object-contain rounded-lg border border-gray-100 shadow-sm"
+                  onerror="this.src='${ttdUrl}'" />
+              </div>
+            </div>` : ``;
+
             ttdSection = `
         <div class="mt-4 col-span-2">
           <label class="block text-xs font-semibold text-[#393E46] mb-2 uppercase tracking-wide">
             <i class="fas fa-pen text-[#00ADB5] mr-1"></i>Tanda Tangan
+            ${ttdUrl ? '<span class="text-gray-400 font-normal normal-case ml-1">(gambar ulang untuk mengganti)</span>' : ''}
           </label>
+          ${ttdPreview}
           <div class="border-2 border-dashed border-[#00ADB5] rounded-xl p-1 bg-[#FAFAFA]">
             <canvas id="modal-canvas" class="w-full h-32 rounded-lg cursor-crosshair"></canvas>
           </div>
@@ -406,21 +461,84 @@
         </div>`;
         }
 
-        let uploadSection = `
+        // Preview file lama jika mode edit (visual: gambar inline, PDF iframe)
+        let existingFilePreview = ``;
+        if (state.existingFileUrl) {
+            const url = state.existingFileUrl;
+            const fileId = extractDriveId(url);
+            // Thumbnail URL: bekerja untuk gambar (JPG/PNG) dan tidak diblokir saat embed
+            const thumbUrl = fileId
+                ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`
+                : url;
+            // Preview URL untuk iframe (PDF/dokumen)
+            const previewUrl = fileId
+                ? `https://drive.google.com/file/d/${fileId}/preview`
+                : url;
+            existingFilePreview = `
+            <div class="mt-2 mb-1 rounded-xl border border-[#00ADB5]/30 overflow-hidden bg-[#f8fffe]">
+              <!-- Header pratinjau -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-[#00ADB5]/10 border-b border-[#00ADB5]/20">
+                <i class="fas fa-eye text-[#00ADB5] text-sm"></i>
+                <span class="text-xs font-semibold text-[#393E46] flex-1">Pratinjau File Saat Ini</span>
+                <a href="${url}" target="_blank"
+                  class="text-xs text-[#00ADB5] hover:underline flex items-center gap-1">
+                  <i class="fas fa-external-link-alt text-[10px]"></i> Buka
+                </a>
+                <button type="button" onclick="toggleFilePreview()"
+                  id="btn-toggle-preview"
+                  class="text-xs bg-[#00ADB5] text-white px-2 py-0.5 rounded-lg hover:bg-[#00939c] transition ml-1">
+                  Tampilkan
+                </button>
+              </div>
+              <!-- Area pratinjau: coba gambar dulu, fallback ke iframe -->
+              <div id="file-preview-area" class="hidden transition-all duration-300">
+                <img src="${thumbUrl}" alt="Pratinjau File"
+                  onerror="this.style.display='none'; document.getElementById('file-preview-iframe').classList.remove('hidden');"
+                  class="w-full max-h-64 object-contain bg-gray-50" />
+                <iframe id="file-preview-iframe"
+                  src="${previewUrl}"
+                  class="hidden w-full h-64 border-0"
+                  allow="autoplay">
+                </iframe>
+              </div>
+            </div>`;
+        }
+
+        // Panel live-preview file yang baru dipilih — selalu ada di DOM (tambah & edit)
+        const newFilePreviewPanel = `
+            <div id="new-file-preview-wrap" class="hidden rounded-xl border border-emerald-200 overflow-hidden bg-emerald-50">
+              <div class="flex items-center gap-2 px-3 py-2 bg-emerald-100 border-b border-emerald-200">
+                <i class="fas fa-file-upload text-emerald-500 text-sm"></i>
+                <span class="text-xs font-semibold text-emerald-700 flex-1">Pratinjau File Dipilih</span>
+                <button type="button" onclick="clearNewFilePreview()"
+                  class="text-xs text-red-400 hover:text-red-600 transition" title="Hapus pilihan">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="new-file-preview-content" class="flex justify-center items-center p-2 min-h-[80px]"></div>
+            </div>`;
+
+        let uploadSection = ``;
+        if (tab !== "piagam") {
+            uploadSection = `
       <div class="mt-4 col-span-2">
         <label class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide">
           <i class="fas fa-paperclip text-[#00ADB5] mr-1"></i>Upload File
-          <span class="text-gray-400 font-normal capitalize">(opsional)</span>
+          <span class="text-gray-400 font-normal capitalize">(opsional${state.existingFileUrl ? ' — biarkan kosong jika tidak ingin mengganti' : ''})</span>
         </label>
-        <div class="relative">
+        <div class="space-y-2">
+          ${existingFilePreview}
           <input type="file" id="form-file" accept=".pdf,.jpg,.jpeg,.png"
+            onchange="previewNewFile(this)"
             class="block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
               file:text-sm file:font-semibold file:bg-[#00ADB5] file:text-white
               hover:file:bg-[#00939c] file:cursor-pointer cursor-pointer"/>
-          <p class="text-xs text-gray-400 mt-1">Format: PDF, JPG, PNG</p>
+          <p class="text-xs text-gray-400">Format: PDF, JPG, PNG</p>
+          ${newFilePreviewPanel}
         </div>
       </div>`;
+        }
 
         return `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -444,6 +562,11 @@
 
     function openEditModal(rowData, rowId) {
         state.editingId = rowId;
+        // Simpan URL file lama & TTD lama sebelum buildFormHTML
+        state.existingFileUrl = rowData.upload_file || null;
+        state.existingTtdUrl = rowData.ttd_pengambil || null;
+        state.canvasDirty = false;
+
         document.getElementById("modal-title").textContent = `Edit ${getTabLabel()}`;
         document.getElementById("modal-form-body").innerHTML = buildFormHTML(state.activeTab);
 
@@ -467,6 +590,9 @@
         document.getElementById("master-modal").classList.add("hidden");
         document.getElementById("master-modal").classList.remove("flex");
         state.editingId = null;
+        state.existingFileUrl = null;
+        state.existingTtdUrl = null;
+        state.canvasDirty = false;
         state.canvas = null;
         state.ctx = null;
     }
@@ -507,6 +633,7 @@
     function canvasStart(e) {
         e.preventDefault();
         state.drawing = true;
+        state.canvasDirty = true; // user mulai menggambar TTD baru
         state.ctx.beginPath();
         const { x, y } = getCoords(e);
         state.ctx.moveTo(x, y);
@@ -535,9 +662,21 @@
         const c = state.canvas;
         if (!c || !state.ctx) return;
         state.ctx.clearRect(0, 0, c.width, c.height);
+        state.canvasDirty = false; // canvas dikosongkan, tidak ada TTD baru
     }
 
     // ─── Form Submit ──────────────────────────────────────────────────────────────
+
+    // Helper: baca file input sebagai base64 string
+    function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result); // "data:...;base64,..."
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+        });
+    }
+
     async function submitForm() {
         const tab = state.activeTab;
         const table = TAB_TABLE[tab];
@@ -558,9 +697,32 @@
             return;
         }
 
-        // TTD piagam
+        // TTD piagam — hanya kirim jika user menggambar ulang (canvasDirty)
+        // Pada mode tambah baru: kirim jika canvas ada (walaupun kosong, backend akan abaikan)
         if (tab === "piagam" && state.canvas) {
-            data.ttd_base64 = state.canvas.toDataURL("image/png");
+            if (state.editingId === null || state.canvasDirty) {
+                data.ttd_base64 = state.canvas.toDataURL("image/png");
+                // Sertakan URL TTD lama agar backend hapus dari Drive
+                if (state.canvasDirty && state.existingTtdUrl) {
+                    data.old_ttd_url = state.existingTtdUrl;
+                }
+            }
+        }
+
+        // Upload file — baca sebagai base64 jika user memilih file baru
+        const fileInput = document.getElementById("form-file");
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            try {
+                data.file_base64 = await readFileAsBase64(fileInput.files[0]);
+                data.file_name = fileInput.files[0].name;
+                // Sertakan URL file lama agar backend bisa menghapusnya
+                if (state.existingFileUrl) {
+                    data.old_file_url = state.existingFileUrl;
+                }
+            } catch (err) {
+                showModalAlert("error", "Gagal membaca file: " + err.message);
+                return;
+            }
         }
 
         submitBtn.disabled = true;
@@ -932,6 +1094,73 @@
         switchTab("piagam");
     }
 
+    // ─── File Preview Helpers ──────────────────────────────────────────────────────
+
+    // Toggle tampil/sembunyikan area pratinjau file lama
+    function toggleFilePreview() {
+        const area = document.getElementById("file-preview-area");
+        const btn = document.getElementById("btn-toggle-preview");
+        if (!area) return;
+        const isHidden = area.classList.contains("hidden");
+        area.classList.toggle("hidden", !isHidden);
+        if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
+    }
+
+    // Live preview file yang baru dipilih user (sebelum disimpan)
+    function previewNewFile(input) {
+        const wrap = document.getElementById("new-file-preview-wrap");
+        const content = document.getElementById("new-file-preview-content");
+        if (!wrap || !content) return;
+
+        if (!input.files || input.files.length === 0) {
+            wrap.classList.add("hidden");
+            content.innerHTML = "";
+            return;
+        }
+
+        const file = input.files[0];
+        const objectUrl = URL.createObjectURL(file);
+        const isImage = file.type.startsWith("image/");
+        const isPdf = file.type === "application/pdf";
+
+        wrap.classList.remove("hidden");
+
+        if (isImage) {
+            content.innerHTML = `
+                <img src="${objectUrl}" alt="Pratinjau File Baru"
+                    class="max-h-56 object-contain rounded-lg shadow-sm" />`;
+        } else if (isPdf) {
+            content.innerHTML = `
+                <iframe src="${objectUrl}" class="w-full h-56 rounded-lg border-0"></iframe>`;
+        } else {
+            content.innerHTML = `
+                <div class="flex flex-col items-center gap-2 py-4">
+                    <i class="fas fa-file text-emerald-400 text-3xl"></i>
+                    <span class="text-xs text-emerald-700">${file.name}</span>
+                    <span class="text-xs text-gray-400">${(file.size / 1024).toFixed(1)} KB</span>
+                </div>`;
+        }
+    }
+
+    // Hapus live preview file baru (dan reset input file)
+    function clearNewFilePreview() {
+        const wrap = document.getElementById("new-file-preview-wrap");
+        const content = document.getElementById("new-file-preview-content");
+        const fileInput = document.getElementById("form-file");
+        if (wrap) wrap.classList.add("hidden");
+        if (content) content.innerHTML = "";
+        if (fileInput) fileInput.value = "";
+    }
+
+    // Toggle tampil/sembunyikan pratinjau TTD lama
+    function toggleTtdPreview() {
+        const area = document.getElementById("ttd-preview-area");
+        const btn = document.getElementById("btn-toggle-ttd");
+        if (!area) return;
+        const isHidden = area.classList.contains("hidden");
+        area.classList.toggle("hidden", !isHidden);
+        if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
+    }
     // ─── Expose ke global (dipanggil dari HTML onclick) ───────────────────────────
     global.switchTab = switchTab;
     global.openAddModal = openAddModal;
@@ -955,6 +1184,11 @@
     global.restoreFromTrash = restoreFromTrash;
     global.confirmForceDelete = confirmForceDelete;
     global.emptyTrash = emptyTrash;
+    // File preview helpers
+    global.toggleFilePreview = toggleFilePreview;
+    global.previewNewFile = previewNewFile;
+    global.clearNewFilePreview = clearNewFilePreview;
+    global.toggleTtdPreview = toggleTtdPreview;
 
     global.addEventListener("load", init);
 })(window);

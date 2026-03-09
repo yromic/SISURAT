@@ -305,8 +305,13 @@
     downloadLink.href = fileUrl;
 
     if (fileUrl) {
+      // Ekstrak File ID dari berbagai format URL Google Drive:
+      // 1. https://drive.google.com/uc?export=view&id=FILE_ID
+      // 2. https://drive.google.com/file/d/FILE_ID/view
+      // 3. https://drive.google.com/d/FILE_ID
       const matchId =
-        fileUrl.match(/id=([^&]+)/) || fileUrl.match(/d\/([a-zA-Z0-9-_]+)/);
+        fileUrl.match(/[?&]id=([a-zA-Z0-9-_]+)/) ||
+        fileUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
 
       if (matchId && matchId[1]) {
         const fileId = matchId[1];

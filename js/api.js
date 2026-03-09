@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbyxDr9J5e3Oi0Svxd61ilRAj2umG_zZD1k8NuIo20Hm_gcL28eQ_3pq6U8VVEj_Rveh/exec";
+    "https://script.google.com/macros/s/AKfycbzquNlDXM0OX_pWReyPhU5SSPFU71sOGMRwKkVZ0wsiCkUOOIr_JS1BByBeuYrcvfcJ/exec";
 
   const TABLE_CONFIG = Object.freeze({
     db_surat_masuk: {
