@@ -65,14 +65,14 @@
             { id: "perihal", label: "Perihal", type: "text", icon: "fa-envelope", placeholder: "Undangan Rapat" },
             { id: "tanggal_surat", label: "Tanggal Surat", type: "date", icon: "fa-calendar", placeholder: "" },
             { id: "tanggal_terima", label: "Tanggal Diterima", type: "date", icon: "fa-calendar-alt", placeholder: "" },
-            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
+            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Terisi otomatis", readonly: true },
         ],
         keluar: [
             { id: "nomor_surat", label: "No Surat", type: "text", icon: "fa-hashtag", placeholder: "001/SK/2025" },
             { id: "perihal", label: "Perihal", type: "text", icon: "fa-envelope", placeholder: "Permohonan Izin" },
             { id: "tanggal_surat", label: "Tanggal Surat", type: "date", icon: "fa-calendar", placeholder: "" },
             { id: "tanggal_share", label: "Tanggal Shared", type: "date", icon: "fa-calendar-alt", placeholder: "" },
-            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Nama penginput" },
+            { id: "nama_pengupload", label: "Nama Upload", type: "text", icon: "fa-user", placeholder: "Terisi otomatis", readonly: true },
         ],
     };
 
@@ -400,14 +400,16 @@
       <div>
         <label class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide">
           <i class="fas ${f.icon} text-[#00ADB5] mr-1"></i>${f.label}
+          ${f.readonly ? '<span class="ml-1 text-[10px] font-normal normal-case bg-[#00ADB5]/10 text-[#00ADB5] px-1.5 py-0.5 rounded-full"><i class="fas fa-lock text-[8px] mr-0.5"></i>Otomatis</span>' : ''}
         </label>
         <input
           type="${f.type}"
           id="form-${f.id}"
           name="${f.id}"
           placeholder="${f.placeholder}"
-          class="form-input"
+          class="form-input${f.readonly ? ' bg-gray-50 text-gray-500 cursor-not-allowed' : ''}"
           ${f.type === "number" ? 'min="1900" max="2100"' : ""}
+          ${f.readonly ? 'readonly' : ''}
         />
       </div>`;
 
@@ -551,6 +553,8 @@
 
     function openAddModal() {
         state.editingId = null;
+        state.existingFileUrl = null;
+        state.existingTtdUrl = null;
         document.getElementById("modal-title").textContent = `Tambah ${getTabLabel()}`;
         document.getElementById("modal-form-body").innerHTML = buildFormHTML(state.activeTab);
         document.getElementById("master-modal").classList.remove("hidden");
@@ -558,7 +562,14 @@
         if (state.activeTab === "piagam") {
             initModalCanvas();
         }
+        // Isi field nama_pengupload readonly dengan nama user yang login
+        const elNamaPengupload = document.getElementById("form-nama_pengupload");
+        if (elNamaPengupload) {
+            const currentUser = SisuratAuth.getStoredUser();
+            elNamaPengupload.value = (currentUser && (currentUser.nama || currentUser.username)) || "";
+        }
     }
+
 
     function openEditModal(rowData, rowId) {
         state.editingId = rowId;
@@ -690,11 +701,26 @@
             data[f.id] = el ? el.value.trim() : "";
         });
 
-        // Validasi minimal: semua field wajib terisi (kecuali upload file)
-        const emptyField = fields.find((f) => !data[f.id]);
+        // Validasi minimal: semua field wajib terisi (kecuali upload file & readonly otomatis)
+        const emptyField = fields.find((f) => !f.readonly && !data[f.id]);
         if (emptyField) {
             showModalAlert("error", `Field "${emptyField.label}" harus diisi!`);
             return;
+        }
+
+        // ─── Isi otomatis Timestamp, Email Address & Nama Pengupload ─────────
+        // Hanya untuk mode tambah baru (bukan edit), agar metadata terisi dengan benar
+        if (state.editingId === null) {
+            // Timestamp: format DD/MM/YYYY HH:MM:SS (sesuai format Google Form)
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            data.timestamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            // Email Address & Nama Upload: ambil dari sesi login yang tersimpan
+            const currentUser = SisuratAuth.getStoredUser();
+            data.email_address = (currentUser && (currentUser.email || currentUser.username)) || "";
+            // nama_pengupload: tampilkan nama lengkap jika ada, fallback ke username
+            data.nama_pengupload = (currentUser && (currentUser.nama || currentUser.username)) || "";
         }
 
         // TTD piagam — hanya kirim jika user menggambar ulang (canvasDirty)

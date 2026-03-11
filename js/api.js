@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbwAvxXJZiBIQc1Ex_GJs2vfU2A9-psQ_KMe5TLK5ymsWXo5nsFnDhsgFP4OdgMLZbHi/exec";
+    "https://script.google.com/macros/s/AKfycbyVmQxsNOc81FfIzQC1OL9c5ckb7FLTCy4LXXunCQLlSc_UXAxs4wYTU9FjDDgGjBKb/exec";
 
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
