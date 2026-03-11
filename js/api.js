@@ -2,7 +2,15 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbzquNlDXM0OX_pWReyPhU5SSPFU71sOGMRwKkVZ0wsiCkUOOIr_JS1BByBeuYrcvfcJ/exec";
+    "https://script.google.com/macros/s/AKfycbwAvxXJZiBIQc1Ex_GJs2vfU2A9-psQ_KMe5TLK5ymsWXo5nsFnDhsgFP4OdgMLZbHi/exec";
+
+  // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
+  // Setiap kategori memiliki folder upload tersendiri di Google Drive
+  const DRIVE_FOLDERS = Object.freeze({
+    db_surat_masuk: "18hTuZTOgGuB1bfaEq-5VK8n-7g04Ku6KwKEx5DZ5X5HPbGsexHgx-6Tu-Lj93jQKD6rMdYIO",
+    db_surat_keluar: "1V190s7wG2iJE4v5JDe5uvhMkziYOnTzJRQlpY23VVr4GWA92RPwI21vp8E8m9znHsXD5qsXj",
+    db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG",   // folder khusus TTD piagam
+  });
 
   const TABLE_CONFIG = Object.freeze({
     db_surat_masuk: {
@@ -132,12 +140,40 @@
 
   // ─── Master Data CRUD ────────────────────────────────────────────────────────
 
+  /**
+   * Kembalikan folder_id Drive yang sesuai untuk upload file.
+   * @param {string} table   - nama tabel (db_surat_masuk / db_surat_keluar / db_piagam)
+   * @param {boolean} isTtd  - true jika upload adalah TTD piagam
+   */
+  function getFolderId(table, isTtd = false) {
+    if (isTtd) return DRIVE_FOLDERS.db_piagam_ttd;
+    return DRIVE_FOLDERS[table] || null;
+  }
+
   function saveRecord(table, data) {
-    return postAction("simpan_record", { table, data });
+    // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
+    const payload = { ...data };
+    if (payload.file_base64 && !payload.folder_id) {
+      payload.folder_id = getFolderId(table, false);
+    }
+    if (payload.ttd_base64 && !payload.ttd_folder_id) {
+      payload.ttd_folder_id = getFolderId(table, true);
+    }
+    // Struktur: { action, data: { table, data: payload } } — sesuai backend (params.data.table)
+    return postAction("simpan_record", { table, data: payload });
   }
 
   function updateRecord(table, id, data) {
-    return postAction("update_record", { table, id, data });
+    // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
+    const payload = { ...data };
+    if (payload.file_base64 && !payload.folder_id) {
+      payload.folder_id = getFolderId(table, false);
+    }
+    if (payload.ttd_base64 && !payload.ttd_folder_id) {
+      payload.ttd_folder_id = getFolderId(table, true);
+    }
+    // Struktur: { action, data: { table, id, data: payload } } — sesuai backend (params.data.table)
+    return postAction("update_record", { table, id, data: payload });
   }
 
   function deleteRecord(table, id) {
@@ -195,7 +231,9 @@
   global.SisuratApi = {
     BASE_URL,
     TABLE_CONFIG,
+    DRIVE_FOLDERS,
     getTables,
+    getFolderId,
     parseDate,
     normalizeRecord,
     fetchTable,
