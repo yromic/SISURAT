@@ -6,9 +6,15 @@
     <title>Upload Piagam | SISURAT Premium</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
       body {
@@ -47,7 +53,17 @@
         inset: 0;
         z-index: -1;
         background-color: #f1f5f9;
-        background-image: radial-gradient(at 0% 0%, hsla(183, 100%, 35%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 100%, hsla(210, 18%, 26%, 0.4) 0px, transparent 50%);
+        background-image:
+          radial-gradient(
+            at 0% 0%,
+            hsla(183, 100%, 35%, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 100% 100%,
+            hsla(210, 18%, 26%, 0.4) 0px,
+            transparent 50%
+          );
         animation: breath-mesh 15s ease-in-out infinite alternate;
       }
       @keyframes breath-mesh {
@@ -191,28 +207,53 @@
       }
     </style>
   </head>
-  <body class="min-h-screen py-10 px-4 flex justify-center lg:items-center relative">
+  <body
+    class="min-h-screen py-10 px-4 flex justify-center lg:items-center relative"
+  >
     <!-- Mesh background -->
     <div class="bg-mesh"></div>
 
     <!-- Decorative Blobs -->
-    <div class="fixed top-20 left-10 w-64 h-64 bg-[#00ADB5] rounded-full filter blur-[100px] opacity-40 mix-blend-multiply animate-pulse"></div>
-    <div class="fixed bottom-20 right-10 w-96 h-96 bg-[#222831] rounded-full filter blur-[120px] opacity-20 mix-blend-multiply animate-pulse" style="animation-duration: 4s"></div>
+    <div
+      class="fixed top-20 left-10 w-64 h-64 bg-[#00ADB5] rounded-full filter blur-[100px] opacity-40 mix-blend-multiply animate-pulse"
+    ></div>
+    <div
+      class="fixed bottom-20 right-10 w-96 h-96 bg-[#222831] rounded-full filter blur-[120px] opacity-20 mix-blend-multiply animate-pulse"
+      style="animation-duration: 4s"
+    ></div>
 
     <!-- Main Container -->
-    <div class="w-full max-w-4xl bg-white/90 backdrop-blur-3xl border border-white/60 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden relative z-10 animate-entry">
+    <div
+      class="w-full max-w-4xl bg-white/90 backdrop-blur-3xl border border-white/60 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden relative z-10 animate-entry"
+    >
       <!-- Header -->
-      <div class="bg-gradient-to-r from-[#222831] to-[#393E46] p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+      <div
+        class="bg-gradient-to-r from-[#222831] to-[#393E46] p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden"
+      >
         <!-- Glow effect internal -->
-        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#00ADB5] mix-blend-overlay filter blur-[60px] opacity-70 rounded-full"></div>
+        <div
+          class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#00ADB5] mix-blend-overlay filter blur-[60px] opacity-70 rounded-full"
+        ></div>
 
         <div class="flex items-center gap-5 relative z-10">
-          <div class="w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#00ADB5] to-[#7fffd4] flex items-center justify-center shadow-[0_10px_25px_rgba(0,173,181,0.4)] border border-white/20 transform -rotate-6">
-            <i class="fas fa-trophy text-white text-3xl transform rotate-6 drop-shadow-md"></i>
+          <div
+            class="w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#00ADB5] to-[#7fffd4] flex items-center justify-center shadow-[0_10px_25px_rgba(0,173,181,0.4)] border border-white/20 transform -rotate-6"
+          >
+            <i
+              class="fas fa-trophy text-white text-3xl transform rotate-6 drop-shadow-md"
+            ></i>
           </div>
           <div>
-            <h1 class="text-3xl font-extrabold font-outfit text-white tracking-wide">Penerimaan Piagam</h1>
-            <p class="text-[#00ADB5] mt-1 font-medium font-outfit uppercase tracking-widest text-xs">Arsip Entitas Eksternal</p>
+            <h1
+              class="text-3xl font-extrabold font-outfit text-white tracking-wide"
+            >
+              Penerimaan Piagam
+            </h1>
+            <p
+              class="text-[#00ADB5] mt-1 font-medium font-outfit uppercase tracking-widest text-xs"
+            >
+              Arsip Entitas Eksternal
+            </p>
           </div>
         </div>
 
@@ -237,53 +278,139 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
             <!-- Column 1 -->
             <div class="space-y-6">
-              <h3 class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative">
-                <span class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"></span>
+              <h3
+                class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative"
+              >
+                <span
+                  class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"
+                ></span>
                 Informasi Pengambil
               </h3>
 
               <div class="group-input">
-                <label class="label-premium"><i class="fas fa-user text-gray-400 mr-2"></i>Nama Pengambil</label>
-                <input type="text" id="nama_pengambil" placeholder="Misal: Bapak Gunawan Setiadi" class="input-premium" required />
+                <label class="label-premium"
+                  ><i class="fas fa-user text-gray-400 mr-2"></i>Nama
+                  Pengambil</label
+                >
+                <input
+                  type="text"
+                  id="nama_pengambil"
+                  placeholder="Misal: Bapak Gunawan Setiadi"
+                  class="input-premium"
+                  required
+                />
               </div>
 
               <div class="group-input">
-                <label class="label-premium"><i class="fas fa-id-badge text-gray-400 mr-2"></i>Posisi / Jabatan</label>
-                <input type="text" id="jabatan" placeholder="Misal: Kepala Sekolah, Guru Bidang..." class="input-premium" required />
+                <label class="label-premium"
+                  ><i class="fas fa-id-badge text-gray-400 mr-2"></i>Posisi /
+                  Jabatan</label
+                >
+                <input
+                  type="text"
+                  id="jabatan"
+                  placeholder="Misal: Kepala Sekolah, Guru Bidang..."
+                  class="input-premium"
+                  required
+                />
               </div>
 
               <div class="group-input relative" id="unit_kerja_container">
-                <label class="label-premium"><i class="fas fa-building text-gray-400 mr-2"></i>Unit Kerja</label>
-                <input type="text" id="unit_kerja" class="input-premium pr-10" placeholder="Ketik untuk mencari sekolah..." autocomplete="off" required />
+                <label class="label-premium"
+                  ><i class="fas fa-building text-gray-400 mr-2"></i>Unit
+                  Kerja</label
+                >
+                <input
+                  type="text"
+                  id="unit_kerja"
+                  class="input-premium pr-10"
+                  placeholder="Ketik untuk mencari sekolah..."
+                  autocomplete="off"
+                  required
+                />
 
-                <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="unit_kerja_icon">
+                <div
+                  class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300"
+                  id="unit_kerja_icon"
+                >
                   <i class="fas fa-chevron-down"></i>
                 </div>
 
-                <ul id="unit_kerja_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"></ul>
+                <ul
+                  id="unit_kerja_list"
+                  class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                ></ul>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div class="group-input">
-                  <label class="label-premium"><i class="fas fa-hashtag text-gray-400 mr-2"></i>Nomor Publik (NPSN)</label>
-                  <input type="text" id="npsn" placeholder="Nomor resmi instansi" class="input-premium" required />
+                  <label class="label-premium"
+                    ><i class="fas fa-hashtag text-gray-400 mr-2"></i>Nomor
+                    Publik (NPSN)</label
+                  >
+                  <input
+                    type="text"
+                    id="npsn"
+                    placeholder="Nomor resmi instansi"
+                    class="input-premium"
+                    required
+                  />
                 </div>
                 <div class="group-input relative" id="pengambilan_container">
-                  <label class="label-premium"><i class="fas fa-gifts text-gray-400 mr-2"></i>Jenis Pengambilan</label>
-                  <input type="text" id="pengambilan_select" class="input-premium pr-10 cursor-pointer" placeholder="Pilih jenis..." readonly required />
+                  <label class="label-premium"
+                    ><i class="fas fa-gifts text-gray-400 mr-2"></i>Jenis
+                    Pengambilan</label
+                  >
+                  <input
+                    type="text"
+                    id="pengambilan_select"
+                    class="input-premium pr-10 cursor-pointer"
+                    placeholder="Pilih jenis..."
+                    readonly
+                    required
+                  />
 
-                  <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="pengambilan_icon">
+                  <div
+                    class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300"
+                    id="pengambilan_icon"
+                  >
                     <i class="fas fa-chevron-down"></i>
                   </div>
 
-                  <ul id="pengambilan_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2">
-                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Piagam">Piagam</li>
-                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Piala">Piala</li>
-                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Other">Lainnya (Isi Manual)</li>
+                  <ul
+                    id="pengambilan_list"
+                    class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                  >
+                    <li
+                      class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                      data-value="Piagam"
+                    >
+                      Piagam
+                    </li>
+                    <li
+                      class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                      data-value="Piala"
+                    >
+                      Piala
+                    </li>
+                    <li
+                      class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                      data-value="Other"
+                    >
+                      Lainnya (Isi Manual)
+                    </li>
                   </ul>
 
-                  <div id="pengambilan_other_container" class="hidden mt-3 animate-fadeIn">
-                    <input type="text" id="pengambilan_other" placeholder="Sebutkan jenis pengambilan..." class="input-premium" />
+                  <div
+                    id="pengambilan_other_container"
+                    class="hidden mt-3 animate-fadeIn"
+                  >
+                    <input
+                      type="text"
+                      id="pengambilan_other"
+                      placeholder="Sebutkan jenis pengambilan..."
+                      class="input-premium"
+                    />
                   </div>
                 </div>
               </div>
@@ -291,47 +418,137 @@
 
             <!-- Column 2 -->
             <div class="space-y-6">
-              <h3 class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative">
-                <span class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"></span>
+              <h3
+                class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative"
+              >
+                <span
+                  class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"
+                ></span>
                 Atribut Kejuaraan
               </h3>
 
               <div class="group-input relative" id="jenis_perlombaan_container">
-                <label class="label-premium"><i class="fas fa-medal text-gray-400 mr-2"></i>Kelas Kompetisi</label>
-                <input type="text" id="jenis_perlombaan_select" class="input-premium pr-10 cursor-pointer" placeholder="Pilih kompetisi..." readonly required />
+                <label class="label-premium"
+                  ><i class="fas fa-medal text-gray-400 mr-2"></i>Kelas
+                  Kompetisi</label
+                >
+                <input
+                  type="text"
+                  id="jenis_perlombaan_select"
+                  class="input-premium pr-10 cursor-pointer"
+                  placeholder="Pilih kompetisi..."
+                  readonly
+                  required
+                />
 
-                <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="jenis_perlombaan_icon">
+                <div
+                  class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300"
+                  id="jenis_perlombaan_icon"
+                >
                   <i class="fas fa-chevron-down"></i>
                 </div>
 
-                <ul id="jenis_perlombaan_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2">
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="O2SN/KOSN">O2SN/KOSN</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="FLS2N-FTBI">FLS2N-FTBI</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="MAPSI">MAPSI</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="OPSI">OPSI</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="OSN/KSN">OSN/KSN</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="LDK">LDK</li>
-                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Other">Lainnya (Isi Manual)</li>
+                <ul
+                  id="jenis_perlombaan_list"
+                  class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                >
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="O2SN/KOSN"
+                  >
+                    O2SN/KOSN
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="FLS2N-FTBI"
+                  >
+                    FLS2N-FTBI
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="MAPSI"
+                  >
+                    MAPSI
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="OPSI"
+                  >
+                    OPSI
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="OSN/KSN"
+                  >
+                    OSN/KSN
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="LDK"
+                  >
+                    LDK
+                  </li>
+                  <li
+                    class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium"
+                    data-value="Other"
+                  >
+                    Lainnya (Isi Manual)
+                  </li>
                 </ul>
 
-                <div id="jenis_perlombaan_other_container" class="hidden mt-3 animate-fadeIn">
-                  <input type="text" id="jenis_perlombaan_other" placeholder="Nama kompetisi lainnya..." class="input-premium" />
+                <div
+                  id="jenis_perlombaan_other_container"
+                  class="hidden mt-3 animate-fadeIn"
+                >
+                  <input
+                    type="text"
+                    id="jenis_perlombaan_other"
+                    placeholder="Nama kompetisi lainnya..."
+                    class="input-premium"
+                  />
                 </div>
               </div>
 
               <div class="group-input">
-                <label class="label-premium"><i class="fas fa-hourglass-half text-gray-400 mr-2"></i>Tahun Acara</label>
-                <input type="number" id="tahun_perlombaan" placeholder="Misal: 2026" class="input-premium" required />
+                <label class="label-premium"
+                  ><i class="fas fa-hourglass-half text-gray-400 mr-2"></i>Tahun
+                  Acara</label
+                >
+                <input
+                  type="number"
+                  id="tahun_perlombaan"
+                  placeholder="Misal: 2026"
+                  class="input-premium"
+                  required
+                />
               </div>
 
               <div class="group-input">
-                <label class="label-premium"><i class="fas fa-user-graduate text-gray-400 mr-2"></i>Kandidat Prestasi (Siswa)</label>
-                <input type="text" id="nama_siswa" placeholder="Misal: Budi Santoso" class="input-premium" required />
+                <label class="label-premium"
+                  ><i class="fas fa-user-graduate text-gray-400 mr-2"></i
+                  >Kandidat Prestasi (Siswa)</label
+                >
+                <input
+                  type="text"
+                  id="nama_siswa"
+                  placeholder="Misal: Budi Santoso"
+                  class="input-premium"
+                  required
+                />
               </div>
 
               <div class="group-input">
-                <label class="label-premium"><i class="fas fa-school text-gray-400 mr-2"></i>Asal Institusi Kandidat</label>
-                <input type="text" id="asal_sekolah" placeholder="Misal: SMP Merdeka Belajar" class="input-premium" required />
+                <label class="label-premium"
+                  ><i class="fas fa-school text-gray-400 mr-2"></i>Asal
+                  Institusi Kandidat</label
+                >
+                <input
+                  type="text"
+                  id="asal_sekolah"
+                  placeholder="Misal: SMP Merdeka Belajar"
+                  class="input-premium"
+                  required
+                />
               </div>
             </div>
           </div>
@@ -339,16 +556,28 @@
           <!-- Signature Pad full width -->
           <div class="mt-12 pt-8 border-t border-gray-200">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-outfit font-extrabold text-[#222831] text-lg">Validasi Otentikasi (Tanda Tangan)</h3>
-              <button type="button" onclick="clearCanvas()" class="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#222831] font-bold text-xs uppercase tracking-widest font-outfit transition-colors flex items-center gap-2">
+              <h3 class="font-outfit font-extrabold text-[#222831] text-lg">
+                Validasi Otentikasi (Tanda Tangan)
+              </h3>
+              <button
+                type="button"
+                onclick="clearCanvas()"
+                class="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#222831] font-bold text-xs uppercase tracking-widest font-outfit transition-colors flex items-center gap-2"
+              >
                 <i class="fas fa-eraser"></i> Hapus Kanvas
               </button>
             </div>
 
             <div class="canvas-container shadow-md">
-              <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                <span class="text-gray-200 font-extrabold text-3xl font-outfit tracking-[0.3em] uppercase opacity-50 text-center px-4"
-                  >Guratan Validasi<br /><span class="text-sm font-medium tracking-normal text-gray-300">Tanda tangani di area ini</span></span
+              <div
+                class="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+              >
+                <span
+                  class="text-gray-200 font-extrabold text-3xl font-outfit tracking-[0.3em] uppercase opacity-50 text-center px-4"
+                  >Guratan Validasi<br /><span
+                    class="text-sm font-medium tracking-normal text-gray-300"
+                    >Tanda tangani di area ini</span
+                  ></span
                 >
               </div>
               <canvas id="canvas" class="w-full h-48 relative z-10"></canvas>
@@ -356,7 +585,10 @@
           </div>
 
           <!-- Dynamic Message -->
-          <div id="msg" class="hidden mt-6 p-4 rounded-xl flex items-center gap-3 text-sm font-bold opacity-0 transition-opacity"></div>
+          <div
+            id="msg"
+            class="hidden mt-6 p-4 rounded-xl flex items-center gap-3 text-sm font-bold opacity-0 transition-opacity"
+          ></div>
 
           <!-- Submit Action -->
           <div class="mt-10 pt-8 border-t border-gray-100">

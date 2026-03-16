@@ -88,7 +88,10 @@
 
   function updateMonthlyChart(allData) {
     const withDate = allData
-      .map((item) => ({ ...item, _parsedDate: SisuratApi.parseDate(item.tanggal) }))
+      .map((item) => ({
+        ...item,
+        _parsedDate: SisuratApi.parseDate(item.tanggal),
+      }))
       .filter((item) => item._parsedDate);
 
     const monthCounter = {};

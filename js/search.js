@@ -17,7 +17,7 @@
     allResults: [],
     currentPage: 1,
     pageSize: 12,
-    viewMode: 'grid', // 'grid' | 'list'
+    viewMode: "grid", // 'grid' | 'list'
   };
 
   function debounce(fn, waitMs) {
@@ -72,7 +72,8 @@
     countSpan.innerText = data.length;
 
     if (data.length === 0) {
-      container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5";
+      container.className =
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5";
       container.innerHTML = `
           <div class="col-span-full text-center py-12">
             <i class="fas fa-folder-open text-5xl text-[#00ADB5] opacity-30 mb-3"></i>
@@ -95,10 +96,11 @@
     const pageData = data.slice(start, end);
 
     // Set layout class berdasar view mode
-    if (state.viewMode === 'list') {
+    if (state.viewMode === "list") {
       container.className = "flex flex-col gap-3";
     } else {
-      container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5";
+      container.className =
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5";
     }
 
     container.innerHTML = pageData
@@ -112,7 +114,7 @@
         const nomor = item.nomor_surat || "-";
         const tanggal = item.tanggal || "-";
 
-        if (state.viewMode === 'list') {
+        if (state.viewMode === "list") {
           return `
           <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-4 border-l-4 border-[#00ADB5] flex items-center gap-4">
             <div class="bg-[#00ADB5] bg-opacity-10 p-2.5 rounded-full flex-shrink-0">
@@ -174,7 +176,8 @@
     if (pager) {
       pager.style.display = totalPages > 1 ? "flex" : "none";
       const infoEl = document.getElementById("search-page-info");
-      if (infoEl) infoEl.textContent = `${start + 1}–${end} dari ${total} hasil`;
+      if (infoEl)
+        infoEl.textContent = `${start + 1}–${end} dari ${total} hasil`;
       document.getElementById("search-btn-prev").disabled = page <= 1;
       document.getElementById("search-btn-next").disabled = page >= totalPages;
       const numbersEl = document.getElementById("search-page-numbers");
@@ -182,16 +185,25 @@
         let html = "";
         const delta = 2;
         let pages = new Set([1, totalPages]);
-        for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) pages.add(i);
-        [...pages].sort((a, b) => a - b).forEach((p, i, arr) => {
-          if (i > 0 && p - arr[i - 1] > 1) html += `<span class="text-gray-400 text-xs px-1">…</span>`;
-          const active = p === page;
-          html += `<button onclick="goSearchPage(${p})"
-            class="w-7 h-7 rounded-xl text-xs font-semibold shadow-sm transition ${active
-              ? 'bg-[#00ADB5] text-white'
-              : 'bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white'
+        for (
+          let i = Math.max(1, page - delta);
+          i <= Math.min(totalPages, page + delta);
+          i++
+        )
+          pages.add(i);
+        [...pages]
+          .sort((a, b) => a - b)
+          .forEach((p, i, arr) => {
+            if (i > 0 && p - arr[i - 1] > 1)
+              html += `<span class="text-gray-400 text-xs px-1">…</span>`;
+            const active = p === page;
+            html += `<button onclick="goSearchPage(${p})"
+            class="w-7 h-7 rounded-xl text-xs font-semibold shadow-sm transition ${
+              active
+                ? "bg-[#00ADB5] text-white"
+                : "bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white"
             }">${p}</button>`;
-        });
+          });
         numbersEl.innerHTML = html;
       }
     }
@@ -199,12 +211,18 @@
 
   // Pagination controls
   function prevSearchPage() {
-    if (state.currentPage > 1) { state.currentPage--; _renderPage(); }
+    if (state.currentPage > 1) {
+      state.currentPage--;
+      _renderPage();
+    }
   }
 
   function nextSearchPage() {
     const totalPages = Math.ceil(state.allResults.length / state.pageSize);
-    if (state.currentPage < totalPages) { state.currentPage++; _renderPage(); }
+    if (state.currentPage < totalPages) {
+      state.currentPage++;
+      _renderPage();
+    }
   }
 
   function goSearchPage(p) {
@@ -224,10 +242,16 @@
     const gridBtn = document.getElementById("btn-view-grid");
     const listBtn = document.getElementById("btn-view-list");
     if (gridBtn && listBtn) {
-      gridBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${mode === 'grid' ? 'bg-[#00ADB5] text-white' : 'bg-white text-[#393E46] hover:bg-[#EEEEEE]'
-        }`;
-      listBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${mode === 'list' ? 'bg-[#00ADB5] text-white' : 'bg-white text-[#393E46] hover:bg-[#EEEEEE]'
-        }`;
+      gridBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${
+        mode === "grid"
+          ? "bg-[#00ADB5] text-white"
+          : "bg-white text-[#393E46] hover:bg-[#EEEEEE]"
+      }`;
+      listBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${
+        mode === "list"
+          ? "bg-[#00ADB5] text-white"
+          : "bg-white text-[#393E46] hover:bg-[#EEEEEE]"
+      }`;
     }
     _renderPage();
   }
@@ -348,9 +372,15 @@
 
   function bindEvents() {
     const debouncedSearch = debounce(() => runSearch(), 300);
-    document.getElementById("search").addEventListener("input", debouncedSearch);
-    document.getElementById("jenis").addEventListener("change", () => runSearch());
-    document.getElementById("from").addEventListener("change", () => runSearch());
+    document
+      .getElementById("search")
+      .addEventListener("input", debouncedSearch);
+    document
+      .getElementById("jenis")
+      .addEventListener("change", () => runSearch());
+    document
+      .getElementById("from")
+      .addEventListener("change", () => runSearch());
     document.getElementById("to").addEventListener("change", () => runSearch());
   }
 

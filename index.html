@@ -6,9 +6,15 @@
     <title>SISURAT - Platform Manajemen Modern</title>
     <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <!-- Fonts: Outfit for Heading, Inter for Body -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -29,9 +35,29 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.5);
       }
 
-      .blob { position: fixed; filter: blur(80px); z-index: -10; opacity: 0.3; animation: float 10s infinite alternate; pointer-events: none; border-radius: 50%; }
-      .blob-1 { top: -5%; left: -5%; width: 400px; height: 400px; background: #00ADB5; }
-      .blob-2 { bottom: -5%; right: -5%; width: 500px; height: 500px; background: #393E46; }
+      .blob {
+        position: fixed;
+        filter: blur(80px);
+        z-index: -10;
+        opacity: 0.3;
+        animation: float 10s infinite alternate;
+        pointer-events: none;
+        border-radius: 50%;
+      }
+      .blob-1 {
+        top: -5%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: #00adb5;
+      }
+      .blob-2 {
+        bottom: -5%;
+        right: -5%;
+        width: 500px;
+        height: 500px;
+        background: #393e46;
+      }
 
       @keyframes float {
         0% {
@@ -74,61 +100,143 @@
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
-    <nav class="glass-nav sticky top-0 z-50 py-4 px-6 md:px-12 flex justify-between items-center">
+    <nav
+      class="glass-nav sticky top-0 z-50 py-4 px-6 md:px-12 flex justify-between items-center"
+    >
       <a href="index.html" class="flex items-center gap-3 group">
-        <div class="p-2 bg-white rounded-xl shadow-sm group-hover:shadow-md transition">
-          <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+        <div
+          class="p-2 bg-white rounded-xl shadow-sm group-hover:shadow-md transition"
+        >
+          <img
+            src="assets/icon/Logo.ico"
+            alt="Logo"
+            class="w-8 h-8 transform group-hover:scale-110 transition duration-300"
+          />
         </div>
-        <span class="text-2xl font-extrabold tracking-tight text-[#222831] font-outfit">SISURAT</span>
+        <span
+          class="text-2xl font-extrabold tracking-tight text-[#222831] font-outfit"
+          >SISURAT</span
+        >
       </a>
 
       <!-- Desktop nav -->
       <div class="hidden md:flex items-center space-x-8">
-        <a href="#fitur" class="text-[#393E46] hover:text-[#00ADB5] font-medium transition duration-200">Fitur Cerdas</a>
-        <a href="#tentang" class="text-[#393E46] hover:text-[#00ADB5] font-medium transition duration-200">Tentang</a>
+        <a
+          href="#fitur"
+          class="text-[#393E46] hover:text-[#00ADB5] font-medium transition duration-200"
+          >Fitur Cerdas</a
+        >
+        <a
+          href="#tentang"
+          class="text-[#393E46] hover:text-[#00ADB5] font-medium transition duration-200"
+          >Tentang</a
+        >
         <div class="flex items-center gap-3">
-          <a href="piagam.html" class="px-5 py-2.5 rounded-full border-2 border-[#00ADB5] text-[#00ADB5] font-semibold hover:bg-[#00ADB5] hover:text-white transition-all duration-300"> Upload Piagam </a>
-          <a href="login.html" class="px-6 py-2.5 rounded-full bg-[#222831] text-white font-semibold shadow-lg shadow-[#222831]/30 hover:bg-[#00ADB5] hover:shadow-[#00ADB5]/40 transition-all duration-300"> Login </a>
+          <a
+            href="piagam.html"
+            class="px-5 py-2.5 rounded-full border-2 border-[#00ADB5] text-[#00ADB5] font-semibold hover:bg-[#00ADB5] hover:text-white transition-all duration-300"
+          >
+            Upload Piagam
+          </a>
+          <a
+            href="login.html"
+            class="px-6 py-2.5 rounded-full bg-[#222831] text-white font-semibold shadow-lg shadow-[#222831]/30 hover:bg-[#00ADB5] hover:shadow-[#00ADB5]/40 transition-all duration-300"
+          >
+            Login
+          </a>
         </div>
       </div>
 
       <!-- Hamburger button (mobile) -->
-      <button id="nav-hamburger" onclick="document.getElementById('mobile-menu').classList.toggle('open')" class="md:hidden flex items-center text-[#222831] p-2 hover:bg-gray-100 rounded-lg transition" aria-label="Toggle menu">
+      <button
+        id="nav-hamburger"
+        onclick="
+          document.getElementById('mobile-menu').classList.toggle('open')
+        "
+        class="md:hidden flex items-center text-[#222831] p-2 hover:bg-gray-100 rounded-lg transition"
+        aria-label="Toggle menu"
+      >
         <i class="fas fa-bars text-2xl"></i>
       </button>
     </nav>
 
     <!-- Mobile dropdown menu -->
-    <div id="mobile-menu" class="md:hidden bg-white/90 backdrop-blur-lg absolute w-full shadow-lg z-40 px-6 border-b border-gray-100">
+    <div
+      id="mobile-menu"
+      class="md:hidden bg-white/90 backdrop-blur-lg absolute w-full shadow-lg z-40 px-6 border-b border-gray-100"
+    >
       <div class="py-4 flex flex-col gap-3">
-        <a href="#fitur" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="text-[#393E46] font-medium py-2">Fitur Cerdas</a>
-        <a href="#tentang" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="text-[#393E46] font-medium py-2">Tentang</a>
+        <a
+          href="#fitur"
+          onclick="
+            document.getElementById('mobile-menu').classList.remove('open')
+          "
+          class="text-[#393E46] font-medium py-2"
+          >Fitur Cerdas</a
+        >
+        <a
+          href="#tentang"
+          onclick="
+            document.getElementById('mobile-menu').classList.remove('open')
+          "
+          class="text-[#393E46] font-medium py-2"
+          >Tentang</a
+        >
         <div class="h-px bg-gray-200 my-1"></div>
-        <a href="piagam.html" class="text-[#00ADB5] font-semibold py-2">Upload Piagam</a>
-        <a href="login.html" class="text-[#222831] font-bold py-2">Login ke Dashboard</a>
+        <a href="piagam.html" class="text-[#00ADB5] font-semibold py-2"
+          >Upload Piagam</a
+        >
+        <a href="login.html" class="text-[#222831] font-bold py-2"
+          >Login ke Dashboard</a
+        >
       </div>
     </div>
 
-    <section class="max-w-7xl mx-auto px-6 py-20 md:py-32 flex flex-col lg:flex-row items-center gap-16 relative z-10">
+    <section
+      class="max-w-7xl mx-auto px-6 py-20 md:py-32 flex flex-col lg:flex-row items-center gap-16 relative z-10"
+    >
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-gray-200 text-sm font-semibold text-[#00ADB5] mb-6 shadow-sm">
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-gray-200 text-sm font-semibold text-[#00ADB5] mb-6 shadow-sm"
+        >
           <span class="w-2 h-2 rounded-full bg-[#00ADB5] animate-pulse"></span>
           Sistem Manajemen Surat v2.0
         </div>
-        <h1 class="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6 text-[#222831]">
+        <h1
+          class="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6 text-[#222831]"
+        >
           Kelola Arsip,<br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#393E46]">Lebih Estetik.</span>
+          <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#393E46]"
+            >Lebih Estetik.</span
+          >
         </h1>
-        <p class="text-lg text-[#393E46] mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-          Tinggalkan cara lama. SISURAT membawakan pengalaman visual premium untuk mencatat, mencari, dan mengarsipkan surat serta piagam dalam satu ekosistem canggih.
+        <p
+          class="text-lg text-[#393E46] mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+        >
+          Tinggalkan cara lama. SISURAT membawakan pengalaman visual premium
+          untuk mencatat, mencari, dan mengarsipkan surat serta piagam dalam
+          satu ekosistem canggih.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-          <a href="login.html" class="group relative inline-flex items-center justify-center gap-3 bg-[#00ADB5] text-white font-bold px-8 py-4 rounded-2xl overflow-hidden hover-lift">
-            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-            <span class="relative flex items-center gap-2">Masuk Ruang Kerja <i class="fas fa-arrow-right text-sm"></i></span>
+        <div
+          class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+        >
+          <a
+            href="login.html"
+            class="group relative inline-flex items-center justify-center gap-3 bg-[#00ADB5] text-white font-bold px-8 py-4 rounded-2xl overflow-hidden hover-lift"
+          >
+            <div
+              class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+            ></div>
+            <span class="relative flex items-center gap-2"
+              >Masuk Ruang Kerja <i class="fas fa-arrow-right text-sm"></i
+            ></span>
           </a>
-          <a href="piagam.html" class="inline-flex items-center justify-center gap-3 bg-white text-[#222831] font-bold px-8 py-4 rounded-2xl shadow-lg border border-gray-100 hover:border-[#00ADB5] transition-all duration-300">
+          <a
+            href="piagam.html"
+            class="inline-flex items-center justify-center gap-3 bg-white text-[#222831] font-bold px-8 py-4 rounded-2xl shadow-lg border border-gray-100 hover:border-[#00ADB5] transition-all duration-300"
+          >
             <i class="fas fa-cloud-upload-alt text-[#00ADB5]"></i> Upload Piagam
           </a>
         </div>
@@ -153,9 +261,15 @@
 
       <!-- Hero Illustration Component -->
       <div class="flex-1 relative w-full max-w-lg">
-        <div class="absolute inset-0 bg-gradient-to-tr from-[#00ADB5]/20 to-[#393E46]/10 rounded-full blur-3xl transform -rotate-6"></div>
-        <div class="relative card-glass p-8 rounded-[2rem] shadow-2xl transform rotate-3 hover:rotate-0 transition duration-700">
-          <div class="flex items-center justify-between mb-8 border-b border-gray-200 pb-4">
+        <div
+          class="absolute inset-0 bg-gradient-to-tr from-[#00ADB5]/20 to-[#393E46]/10 rounded-full blur-3xl transform -rotate-6"
+        ></div>
+        <div
+          class="relative card-glass p-8 rounded-[2rem] shadow-2xl transform rotate-3 hover:rotate-0 transition duration-700"
+        >
+          <div
+            class="flex items-center justify-between mb-8 border-b border-gray-200 pb-4"
+          >
             <div class="flex gap-2">
               <div class="w-3 h-3 rounded-full bg-red-400"></div>
               <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
@@ -164,23 +278,46 @@
             <p class="text-xs font-semibold text-gray-400">Dashboard Preview</p>
           </div>
           <div class="space-y-4">
-            <div class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse">
-              <div class="w-8 h-8 rounded-lg bg-[#00ADB5]/20 flex justify-center items-center"><i class="fas fa-envelope text-[#00ADB5] text-xs"></i></div>
+            <div
+              class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse"
+            >
+              <div
+                class="w-8 h-8 rounded-lg bg-[#00ADB5]/20 flex justify-center items-center"
+              >
+                <i class="fas fa-envelope text-[#00ADB5] text-xs"></i>
+              </div>
               <div class="h-3 bg-gray-200 rounded-full w-1/2"></div>
             </div>
-            <div class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse delay-75">
-              <div class="w-8 h-8 rounded-lg bg-orange-100 flex justify-center items-center"><i class="fas fa-paper-plane text-orange-500 text-xs"></i></div>
+            <div
+              class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse delay-75"
+            >
+              <div
+                class="w-8 h-8 rounded-lg bg-orange-100 flex justify-center items-center"
+              >
+                <i class="fas fa-paper-plane text-orange-500 text-xs"></i>
+              </div>
               <div class="h-3 bg-gray-200 rounded-full w-2/3"></div>
             </div>
-            <div class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse delay-150">
-              <div class="w-8 h-8 rounded-lg bg-purple-100 flex justify-center items-center"><i class="fas fa-award text-purple-500 text-xs"></i></div>
+            <div
+              class="h-12 bg-white rounded-xl shadow-sm flex items-center px-4 gap-4 animate-pulse delay-150"
+            >
+              <div
+                class="w-8 h-8 rounded-lg bg-purple-100 flex justify-center items-center"
+              >
+                <i class="fas fa-award text-purple-500 text-xs"></i>
+              </div>
               <div class="h-3 bg-gray-200 rounded-full w-1/3"></div>
             </div>
           </div>
 
           <!-- Floating badge -->
-          <div class="absolute -right-6 -bottom-6 bg-[#222831] text-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce" style="animation-duration: 3s">
-            <div class="bg-[#00ADB5] p-2 rounded-full"><i class="fas fa-check"></i></div>
+          <div
+            class="absolute -right-6 -bottom-6 bg-[#222831] text-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce"
+            style="animation-duration: 3s"
+          >
+            <div class="bg-[#00ADB5] p-2 rounded-full">
+              <i class="fas fa-check"></i>
+            </div>
             <div>
               <p class="text-sm font-bold">Sinkronisasi Real-time</p>
               <p class="text-xs text-gray-400">Selalu terbarui</p>
@@ -192,130 +329,263 @@
 
     <section id="fitur" class="max-w-7xl mx-auto px-6 py-20 relative z-10">
       <div class="text-center mb-16">
-        <h2 class="text-sm font-black text-[#00ADB5] uppercase tracking-[0.2em] mb-3">Kemampuan Sistem</h2>
-        <h3 class="text-4xl md:text-5xl font-extrabold text-[#222831] font-outfit">Ekosistem Fitur Cerdas</h3>
-        <p class="text-gray-500 mt-4 max-w-2xl mx-auto font-medium">Bukan sekadar tempat penyimpanan. SISURAT dilengkapi dengan modul-modul mutakhir untuk mempercepat alur kerja administratif Anda.</p>
+        <h2
+          class="text-sm font-black text-[#00ADB5] uppercase tracking-[0.2em] mb-3"
+        >
+          Kemampuan Sistem
+        </h2>
+        <h3
+          class="text-4xl md:text-5xl font-extrabold text-[#222831] font-outfit"
+        >
+          Ekosistem Fitur Cerdas
+        </h3>
+        <p class="text-gray-500 mt-4 max-w-2xl mx-auto font-medium">
+          Bukan sekadar tempat penyimpanan. SISURAT dilengkapi dengan
+          modul-modul mutakhir untuk mempercepat alur kerja administratif Anda.
+        </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-[#00ADB5] opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-[#00939c] text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-[#00ADB5]/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-[#00ADB5] opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-[#00939c] text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-[#00ADB5]/30"
+          >
             <i class="fas fa-search"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Pencarian Pintar & Spesifik</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Sistem filter dinamis berdasarkan kategori, rentang tanggal, dan kata kunci. Temukan arsip Anda secepat Anda memikirkannya dengan pratinjau optik virtual.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Pencarian Pintar & Spesifik
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Sistem filter dinamis berdasarkan kategori, rentang tanggal, dan
+            kata kunci. Temukan arsip Anda secepat Anda memikirkannya dengan
+            pratinjau optik virtual.
+          </p>
         </div>
 
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-purple-500/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-purple-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-purple-500/30"
+          >
             <i class="fas fa-chart-pie"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Dashboard Analitik Visual</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Pantau lalu lintas arsip melalui grafik interaktif (Bar, Line, Pie), tren bulanan, serta rekam jejak aktivitas (Log) secara real-time.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Dashboard Analitik Visual
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Pantau lalu lintas arsip melalui grafik interaktif (Bar, Line, Pie),
+            tren bulanan, serta rekam jejak aktivitas (Log) secara real-time.
+          </p>
         </div>
 
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-[#222831] opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#222831] to-[#393E46] text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-[#222831]/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-[#222831] opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#222831] to-[#393E46] text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-[#222831]/30"
+          >
             <i class="fas fa-database"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Manajemen Master Data</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Tabel dinamis dengan navigasi tab instan (Piagam, Masuk, Keluar) tanpa reload, dilengkapi penyesuaian visibilitas kolom sesuka Anda.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Manajemen Master Data
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Tabel dinamis dengan navigasi tab instan (Piagam, Masuk, Keluar)
+            tanpa reload, dilengkapi penyesuaian visibilitas kolom sesuka Anda.
+          </p>
         </div>
 
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-red-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-red-500/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-red-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-red-500/30"
+          >
             <i class="fas fa-shield-alt"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Keamanan Data (Recovery Bin)</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Sistem proteksi "Soft-Delete". Arsip yang terhapus akan masuk ke keranjang sampah terlebih dahulu sebelum Anda putuskan untuk menghapusnya permanen.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Keamanan Data (Recovery Bin)
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Sistem proteksi "Soft-Delete". Arsip yang terhapus akan masuk ke
+            keranjang sampah terlebih dahulu sebelum Anda putuskan untuk
+            menghapusnya permanen.
+          </p>
         </div>
 
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-emerald-500/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-emerald-500/30"
+          >
             <i class="fas fa-file-export"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Ekspor Laporan Multiformat</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Ekstraksi data arsip dalam sekali klik. Unduh sebagai PDF yang rapi, data mentah CSV, atau langsung relay melalui Email internal.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Ekspor Laporan Multiformat
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Ekstraksi data arsip dalam sekali klik. Unduh sebagai PDF yang rapi,
+            data mentah CSV, atau langsung relay melalui Email internal.
+          </p>
         </div>
 
-        <div class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group">
-          <div class="absolute -right-10 -top-10 w-32 h-32 bg-yellow-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-yellow-500/30">
+        <div
+          class="card-glass p-8 rounded-3xl hover-lift border border-white/50 relative overflow-hidden group"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-32 h-32 bg-yellow-500 opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"
+          ></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-yellow-500/30"
+          >
             <i class="fas fa-pen-nib"></i>
           </div>
-          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">Otentikasi Digital Tanda Tangan</h4>
-          <p class="text-sm text-gray-500 leading-relaxed font-medium">Validasi penerimaan piagam secara mutakhir menggunakan guratan digital (Canvas Signature) langsung dari layar sentuh atau kursor.</p>
+          <h4 class="text-xl font-bold text-[#222831] font-outfit mb-3">
+            Otentikasi Digital Tanda Tangan
+          </h4>
+          <p class="text-sm text-gray-500 leading-relaxed font-medium">
+            Validasi penerimaan piagam secara mutakhir menggunakan guratan
+            digital (Canvas Signature) langsung dari layar sentuh atau kursor.
+          </p>
         </div>
       </div>
     </section>
 
     <section id="tentang" class="py-24 relative z-10 overflow-hidden mt-10">
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-transparent backdrop-blur-sm"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-transparent backdrop-blur-sm"
+      ></div>
 
       <div class="max-w-7xl mx-auto px-6 relative z-10">
-        <div class="bg-gradient-to-br from-[#222831] to-[#393E46] rounded-[3rem] p-10 lg:p-16 shadow-2xl overflow-hidden flex flex-col lg:flex-row items-center gap-12 relative border border-white/10">
-          <div class="absolute top-0 right-0 w-96 h-96 bg-[#00ADB5]/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+        <div
+          class="bg-gradient-to-br from-[#222831] to-[#393E46] rounded-[3rem] p-10 lg:p-16 shadow-2xl overflow-hidden flex flex-col lg:flex-row items-center gap-12 relative border border-white/10"
+        >
+          <div
+            class="absolute top-0 right-0 w-96 h-96 bg-[#00ADB5]/20 rounded-full mix-blend-screen filter blur-[80px]"
+          ></div>
 
           <div class="flex-1 text-white relative z-10">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white mb-6 tracking-widest uppercase">
+            <div
+              class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white mb-6 tracking-widest uppercase"
+            >
               <i class="fas fa-info-circle text-[#00ADB5]"></i> Tentang Platform
             </div>
-            <h2 class="text-4xl md:text-5xl font-extrabold font-outfit mb-6 leading-tight">
+            <h2
+              class="text-4xl md:text-5xl font-extrabold font-outfit mb-6 leading-tight"
+            >
               Transformasi Digital<br />
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#7fffd4]">Administrasi Sekolah.</span>
+              <span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#7fffd4]"
+                >Administrasi Sekolah.</span
+              >
             </h2>
-            <p class="text-gray-300 leading-relaxed mb-6 font-medium text-sm md:text-base">
-              Berawal dari kebutuhan untuk menggantikan tumpukan kertas dan buku agenda manual yang rentan rusak atau hilang. <b>SISURAT (Sistem Manajemen Surat)</b> lahir sebagai solusi arsip digital komprehensif yang dirancang khusus
-              untuk instansi pendidikan.
+            <p
+              class="text-gray-300 leading-relaxed mb-6 font-medium text-sm md:text-base"
+            >
+              Berawal dari kebutuhan untuk menggantikan tumpukan kertas dan buku
+              agenda manual yang rentan rusak atau hilang.
+              <b>SISURAT (Sistem Manajemen Surat)</b> lahir sebagai solusi arsip
+              digital komprehensif yang dirancang khusus untuk instansi
+              pendidikan.
             </p>
-            <p class="text-gray-300 leading-relaxed mb-8 font-medium text-sm md:text-base">
-              Kami mengusung pendekatan antarmuka <i>"Premium Aesthetic"</i> untuk membuktikan bahwa aplikasi administratif tidak harus membosankan. Melalui sinkronisasi data <i>real-time</i>, keamanan lapis ganda, dan kemudahan pencarian
-              dokumen, kami membantu lembaga pendidikan beralih sepenuhnya menuju era paperless.
+            <p
+              class="text-gray-300 leading-relaxed mb-8 font-medium text-sm md:text-base"
+            >
+              Kami mengusung pendekatan antarmuka
+              <i>"Premium Aesthetic"</i> untuk membuktikan bahwa aplikasi
+              administratif tidak harus membosankan. Melalui sinkronisasi data
+              <i>real-time</i>, keamanan lapis ganda, dan kemudahan pencarian
+              dokumen, kami membantu lembaga pendidikan beralih sepenuhnya
+              menuju era paperless.
             </p>
 
             <div class="flex items-center gap-6">
               <div class="flex flex-col">
-                <span class="text-3xl font-black font-outfit text-white">100%</span>
-                <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Digitalisasi</span>
+                <span class="text-3xl font-black font-outfit text-white"
+                  >100%</span
+                >
+                <span
+                  class="text-xs text-gray-400 font-bold uppercase tracking-widest"
+                  >Digitalisasi</span
+                >
               </div>
               <div class="w-px h-10 bg-white/20"></div>
               <div class="flex flex-col">
-                <span class="text-3xl font-black font-outfit text-white">24/7</span>
-                <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Aksesibilitas</span>
+                <span class="text-3xl font-black font-outfit text-white"
+                  >24/7</span
+                >
+                <span
+                  class="text-xs text-gray-400 font-bold uppercase tracking-widest"
+                  >Aksesibilitas</span
+                >
               </div>
             </div>
           </div>
 
           <div class="lg:w-[40%] relative z-10 w-full max-w-sm mx-auto">
-            <div class="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-[2rem] shadow-xl relative transform rotate-3 hover:rotate-0 transition-transform duration-500">
+            <div
+              class="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-[2rem] shadow-xl relative transform rotate-3 hover:rotate-0 transition-transform duration-500"
+            >
               <div class="flex justify-between items-center mb-6">
-                <div class="w-12 h-12 bg-gradient-to-br from-[#00ADB5] to-[#00939c] rounded-xl flex items-center justify-center text-white shadow-lg">
+                <div
+                  class="w-12 h-12 bg-gradient-to-br from-[#00ADB5] to-[#00939c] rounded-xl flex items-center justify-center text-white shadow-lg"
+                >
                   <i class="fas fa-fingerprint text-xl"></i>
                 </div>
-                <span class="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">Secure</span>
+                <span
+                  class="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30"
+                  >Secure</span
+                >
               </div>
               <div class="space-y-4">
                 <div class="h-3 w-3/4 bg-white/20 rounded-full"></div>
                 <div class="h-3 w-full bg-white/20 rounded-full"></div>
                 <div class="h-3 w-5/6 bg-white/20 rounded-full"></div>
               </div>
-              <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+              <div
+                class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between"
+              >
                 <div class="flex -space-x-3">
-                  <div class="w-8 h-8 rounded-full bg-gray-400 border border-[#222831]"></div>
-                  <div class="w-8 h-8 rounded-full bg-gray-300 border border-[#222831]"></div>
-                  <div class="w-8 h-8 rounded-full bg-white border border-[#222831]"></div>
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-400 border border-[#222831]"
+                  ></div>
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-300 border border-[#222831]"
+                  ></div>
+                  <div
+                    class="w-8 h-8 rounded-full bg-white border border-[#222831]"
+                  ></div>
                 </div>
                 <p class="text-xs text-white/50 font-bold">Terintegrasi</p>
               </div>
             </div>
-            <div class="absolute -bottom-8 -left-8 bg-white p-4 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 4s">
+            <div
+              class="absolute -bottom-8 -left-8 bg-white p-4 rounded-2xl shadow-xl animate-bounce"
+              style="animation-duration: 4s"
+            >
               <div class="flex items-center gap-3">
-                <div class="text-[#00ADB5] text-2xl"><i class="fas fa-check-circle"></i></div>
+                <div class="text-[#00ADB5] text-2xl">
+                  <i class="fas fa-check-circle"></i>
+                </div>
                 <div class="text-left">
                   <p class="text-sm font-bold text-[#222831]">Sistem Aktif</p>
                   <p class="text-xs text-gray-500">No Downtime</p>
@@ -327,13 +597,23 @@
       </div>
     </section>
 
-    <footer class="bg-[#222831] py-8 text-center relative z-10 border-t border-white/10 mt-auto">
+    <footer
+      class="bg-[#222831] py-8 text-center relative z-10 border-t border-white/10 mt-auto"
+    >
       <div class="flex items-center justify-center gap-2 mb-4">
-        <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6 grayscale opacity-50" />
-        <span class="text-gray-400 font-extrabold font-outfit tracking-widest text-lg">SISURAT</span>
+        <img
+          src="assets/icon/Logo.ico"
+          alt="Logo"
+          class="w-6 h-6 grayscale opacity-50"
+        />
+        <span
+          class="text-gray-400 font-extrabold font-outfit tracking-widest text-lg"
+          >SISURAT</span
+        >
       </div>
       <p class="text-gray-500 text-sm font-medium">
-        &copy; 2026 SISURAT Premium. All rights reserved. <br class="md:hidden" />
+        &copy; 2026 SISURAT Premium. All rights reserved.
+        <br class="md:hidden" />
         Designed for modern administration.
       </p>
     </footer>

@@ -6,9 +6,15 @@
     <title>Master Data | SISURAT Premium</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
       body {
@@ -86,7 +92,9 @@
         font-size: 13px;
         font-weight: 600;
         color: #393e46;
-        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E") no-repeat right 12px center;
+        background: #fff
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E")
+          no-repeat right 12px center;
         appearance: none;
         cursor: pointer;
         transition: all 0.2s;
@@ -280,7 +288,13 @@
         border: 1px solid rgba(239, 68, 68, 0.2);
       }
       .tr-trashed {
-        background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.02) 10px, rgba(239, 68, 68, 0.02) 20px) !important;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 10px,
+          rgba(239, 68, 68, 0.02) 10px,
+          rgba(239, 68, 68, 0.02) 20px
+        ) !important;
         opacity: 0.8;
       }
       .tr-trashed .td-cell {
@@ -341,11 +355,19 @@
         backdrop-filter: blur(10px);
       }
       .toast-success {
-        background: linear-gradient(135deg, rgba(0, 173, 181, 0.95), rgba(0, 147, 156, 0.95));
+        background: linear-gradient(
+          135deg,
+          rgba(0, 173, 181, 0.95),
+          rgba(0, 147, 156, 0.95)
+        );
         color: #fff;
       }
       .toast-error {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+        background: linear-gradient(
+          135deg,
+          rgba(239, 68, 68, 0.95),
+          rgba(185, 28, 28, 0.95)
+        );
         color: #fff;
       }
       .toast-undo-btn {
@@ -439,55 +461,101 @@
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
     <!-- Sidebar Modern -->
-    <aside id="sidebar" class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4">
+    <aside
+      id="sidebar"
+      class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4"
+    >
       <div class="px-4 py-6 mb-4">
         <a href="master.html" class="flex items-center gap-3 group">
-          <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300">
-            <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+          <div
+            class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300"
+          >
+            <img
+              src="assets/icon/Logo.ico"
+              alt="Logo"
+              class="w-8 h-8 transform group-hover:scale-110 transition duration-300"
+            />
           </div>
-          <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">SISURAT</h2>
+          <h2
+            class="text-2xl font-extrabold tracking-wide font-outfit text-white"
+          >
+            SISURAT
+          </h2>
         </a>
       </div>
 
       <!-- Navigation -->
       <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
-        <a href="dashboard.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-          <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <a
+          href="dashboard.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+        >
+          <i
+            class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Overview</span>
         </a>
 
-        <a href="cari.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-          <i class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <a
+          href="cari.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+        >
+          <i
+            class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Pencarian Pintar</span>
         </a>
 
-        <a href="master.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1">
+        <a
+          href="master.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1"
+        >
           <i class="fas fa-database w-6 text-center text-lg"></i>
           <span>Master Data</span>
         </a>
 
-        <a href="laporan.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-          <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <a
+          href="laporan.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+        >
+          <i
+            class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Ekspor & Laporan</span>
         </a>
       </nav>
 
       <!-- Bottom Actions -->
       <div class="pt-6 border-t border-white/10 mt-auto">
-        <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
-            <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+        <div
+          class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5"
+        >
+          <div
+            class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]"
+          >
+            <div
+              class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center"
+            >
               <i class="fas fa-user text-white text-xs"></i>
             </div>
           </div>
           <div class="flex-1 overflow-hidden">
             <p class="text-xs text-gray-400 font-medium">Logged in as</p>
-            <p id="user-name" class="text-sm font-bold text-white truncate w-full">Administrator</p>
+            <p
+              id="user-name"
+              class="text-sm font-bold text-white truncate w-full"
+            >
+              Administrator
+            </p>
           </div>
         </div>
 
-        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group">
-          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate Session
+        <button
+          onclick="logout()"
+          class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group"
+        >
+          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate
+          Session
         </button>
       </div>
     </aside>
@@ -495,89 +563,188 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto min-h-screen relative">
       <!-- Mobile Header -->
-      <div class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+      <div
+        class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm"
+      >
         <div class="flex items-center gap-3">
-          <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+          <button
+            onclick="toggleSidebar()"
+            class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg"
+          >
             <i class="fas fa-bars text-xl"></i>
           </button>
           <div class="flex items-center gap-2">
             <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
           </div>
         </div>
-        <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+        <span
+          class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]"
+        >
           <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
         </span>
       </div>
 
       <!-- Header Banner -->
-      <div class="h-56 bg-gradient-to-br from-[#222831] to-[#393E46] relative overflow-hidden flex items-end pb-10 px-8 lg:px-12">
+      <div
+        class="h-64 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl"
+      >
         <div
           class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"
         ></div>
-        <div class="absolute -top-32 -right-32 w-96 h-96 bg-[#00ADB5]/30 rounded-full blur-[80px]"></div>
 
-        <div class="relative z-10 w-full flex flex-col md:flex-row justify-between items-end gap-4">
+        <div
+          class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"
+        ></div>
+        <div
+          class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"
+        ></div>
+
+        <div
+          class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6"
+        >
           <div>
-            <h1 class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wide drop-shadow-lg mb-2">Pusat <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#7fffd4]">Master Data</span></h1>
-            <p class="text-gray-300 font-medium text-sm md:text-base">Kelola arsip Piagam, Surat Masuk, dan Keluar dalam manajemen terpadu.</p>
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm"
+            >
+              <i class="fas fa-database text-[#00ADB5]"></i> Sentral Master Data
+            </div>
+            <h1
+              class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight"
+            >
+              Kelola Arsip,<br /><span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-white"
+                >Manajemen Terpadu.</span
+              >
+            </h1>
           </div>
+
           <button
-            onclick="document.getElementById('infoMaster').classList.toggle('hidden')"
-            class="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-xl text-white font-bold text-sm transition-all flex items-center gap-2"
+            onclick="
+              document.getElementById('infoMaster').classList.toggle('hidden')
+            "
+            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
           >
-            <i class="fas fa-lightbulb text-yellow-300"></i> Panduan
+            <i
+              class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"
+            ></i>
+            Panduan Sistem
           </button>
         </div>
       </div>
 
       <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16 space-y-8">
         <!-- Info Accordion -->
-        <div id="infoMaster" class="hidden bg-white/80 backdrop-blur-xl border border-[#00ADB5]/20 rounded-3xl p-6 md:p-8 shadow-xl">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="flex gap-4 items-start">
-              <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-[#00ADB5] to-[#00939c] flex items-center justify-center shrink-0 shadow-lg shadow-[#00ADB5]/30 text-white mt-1">
-                <i class="fas fa-layer-group text-xl"></i>
+        <div
+          id="infoMaster"
+          class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-[#00ADB5]/10 border border-[#00ADB5]/20"
+        >
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            <div
+              class="hidden md:block absolute top-[2.5rem] left-[15%] w-[70%] h-px bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent opacity-20 z-0"
+            ></div>
+
+            <div
+              class="bg-gray-50 rounded-2xl p-6 text-center relative z-10 border border-gray-100 shadow-sm transform transition hover:-translate-y-2"
+            >
+              <div
+                class="w-14 h-14 mx-auto bg-white rounded-full flex items-center justify-center text-[#00ADB5] shadow-[0_4px_15px_rgba(0,173,181,0.2)] mb-4 text-2xl"
+              >
+                <i class="fas fa-layer-group"></i>
               </div>
-              <div>
-                <h4 class="font-bold text-base text-[#222831] font-outfit uppercase tracking-wide">Pengajuan Terpusat</h4>
-                <p class="text-sm text-gray-500 mt-2 font-medium">Pindah antar tab (Piagam, Masuk, Keluar) instan dalam satu area kerja canggih tanpa memuat ulang halaman.</p>
-              </div>
+              <h4
+                class="font-bold font-outfit text-base text-[#222831] uppercase tracking-wide"
+              >
+                Pengajuan Terpusat
+              </h4>
+              <p class="text-xs text-gray-500 mt-2 font-medium leading-relaxed">
+                Pindah antar tab (Piagam, Masuk, Keluar) instan dalam satu area
+                kerja canggih tanpa memuat ulang halaman.
+              </p>
             </div>
-            <div class="flex gap-4 items-start">
-              <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-[#222831] to-[#393E46] flex items-center justify-center shrink-0 shadow-lg text-white mt-1">
-                <i class="fas fa-columns text-xl"></i>
+
+            <div
+              class="bg-gray-50 rounded-2xl p-6 text-center relative z-10 border border-gray-100 shadow-sm transform transition hover:-translate-y-2"
+            >
+              <div
+                class="w-14 h-14 mx-auto bg-white rounded-full flex items-center justify-center text-[#00ADB5] shadow-[0_4px_15px_rgba(0,173,181,0.2)] mb-4 text-2xl"
+              >
+                <i class="fas fa-columns"></i>
               </div>
-              <div>
-                <h4 class="font-bold text-base text-[#222831] font-outfit uppercase tracking-wide">Tabel Dinamis</h4>
-                <p class="text-sm text-gray-500 mt-2 font-medium">Manajemen visibilitas kolom dan fitur pengurutan data real-time pada setiap klik heading.</p>
-              </div>
+              <h4
+                class="font-bold font-outfit text-base text-[#222831] uppercase tracking-wide"
+              >
+                Tabel Dinamis
+              </h4>
+              <p class="text-xs text-gray-500 mt-2 font-medium leading-relaxed">
+                Manajemen visibilitas kolom dan fitur pengurutan data real-time
+                pada setiap klik heading.
+              </p>
             </div>
-            <div class="flex gap-4 items-start">
-              <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-white mt-1">
-                <i class="fas fa-shield-alt text-xl"></i>
+
+            <div
+              class="bg-gray-50 rounded-2xl p-6 text-center relative z-10 border border-gray-100 shadow-sm transform transition hover:-translate-y-2"
+            >
+              <div
+                class="w-14 h-14 mx-auto bg-white rounded-full flex items-center justify-center text-[#00ADB5] shadow-[0_4px_15px_rgba(0,173,181,0.2)] mb-4 text-2xl"
+              >
+                <i class="fas fa-shield-alt"></i>
               </div>
-              <div>
-                <h4 class="font-bold text-base text-[#222831] font-outfit uppercase tracking-wide">Aman Berjaga</h4>
-                <p class="text-sm text-gray-500 mt-2 font-medium">Sistem Soft-Delete menyelamatkan data ke dalam panel Sampah sebelum penghapusan permanen (Two-Step Deletion).</p>
-              </div>
+              <h4
+                class="font-bold font-outfit text-base text-[#222831] uppercase tracking-wide"
+              >
+                Aman Berjaga
+              </h4>
+              <p class="text-xs text-gray-500 mt-2 font-medium leading-relaxed">
+                Sistem Soft-Delete menyelamatkan data ke dalam panel Sampah
+                sebelum penghapusan permanen (Two-Step Deletion).
+              </p>
             </div>
           </div>
         </div>
 
         <!-- Main Database Interface -->
-        <div class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-visible relative border border-gray-100 flex flex-col">
+        <div
+          class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-visible relative border border-gray-100 flex flex-col"
+        >
           <!-- Tab Navigation (Absolute float look) -->
           <div class="flex flex-wrap gap-3 px-6 pt-6 pb-2">
-            <button id="tab-piagam" data-tab="piagam" onclick="switchTab('piagam')" class="tab-active flex items-center gap-2"><i class="fas fa-award text-lg"></i> Piagam</button>
-            <button id="tab-masuk" data-tab="masuk" onclick="switchTab('masuk')" class="tab-inactive flex items-center gap-2"><i class="fas fa-inbox text-lg"></i> Surat Masuk</button>
-            <button id="tab-keluar" data-tab="keluar" onclick="switchTab('keluar')" class="tab-inactive flex items-center gap-2"><i class="fas fa-paper-plane text-lg"></i> Surat Keluar</button>
+            <button
+              id="tab-piagam"
+              data-tab="piagam"
+              onclick="switchTab('piagam')"
+              class="tab-active flex items-center gap-2"
+            >
+              <i class="fas fa-award text-lg"></i> Piagam
+            </button>
+            <button
+              id="tab-masuk"
+              data-tab="masuk"
+              onclick="switchTab('masuk')"
+              class="tab-inactive flex items-center gap-2"
+            >
+              <i class="fas fa-inbox text-lg"></i> Surat Masuk
+            </button>
+            <button
+              id="tab-keluar"
+              data-tab="keluar"
+              onclick="switchTab('keluar')"
+              class="tab-inactive flex items-center gap-2"
+            >
+              <i class="fas fa-paper-plane text-lg"></i> Surat Keluar
+            </button>
           </div>
 
           <!-- Utility Toolbar -->
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2">
+          <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2"
+          >
             <div class="relative w-full md:w-96 group z-10">
-              <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <i class="fas fa-search text-gray-400 group-focus-within:text-[#00ADB5] transition-colors"></i>
+              <div
+                class="absolute inset-y-0 left-4 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas fa-search text-gray-400 group-focus-within:text-[#00ADB5] transition-colors"
+                ></i>
               </div>
               <input
                 id="master-search"
@@ -588,9 +755,18 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-              <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Tampil:</span>
-                <select id="rows-per-page" onchange="setPageSize(this.value)" class="rows-select border-0 pl-2 pr-8 focus:ring-0 shadow-none bg-transparent py-1">
+              <div
+                class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm"
+              >
+                <span
+                  class="text-xs font-bold text-gray-400 uppercase tracking-widest"
+                  >Tampil:</span
+                >
+                <select
+                  id="rows-per-page"
+                  onchange="setPageSize(this.value)"
+                  class="rows-select border-0 pl-2 pr-8 focus:ring-0 shadow-none bg-transparent py-1"
+                >
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
@@ -600,11 +776,19 @@
 
               <!-- Columns Dropdown -->
               <div class="relative flex-shrink-0 z-20" id="col-toggle-wrapper">
-                <button onclick="toggleColPanel()" class="flex items-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm">
-                  <i class="fas fa-columns"></i> Kolom <i class="fas fa-caret-down text-xs ml-1"></i>
+                <button
+                  onclick="toggleColPanel()"
+                  class="flex items-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm"
+                >
+                  <i class="fas fa-columns"></i> Kolom
+                  <i class="fas fa-caret-down text-xs ml-1"></i>
                 </button>
                 <div id="col-toggle-panel" class="col-toggle-dropdown hidden">
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Visibilitas Kolom</p>
+                  <p
+                    class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-100"
+                  >
+                    Visibilitas Kolom
+                  </p>
                   <!-- JS injeksi kesini -->
                 </div>
               </div>
@@ -628,8 +812,13 @@
                 <tr>
                   <td colspan="10" class="py-24 text-center">
                     <div class="flex flex-col items-center justify-center">
-                      <div class="w-16 h-16 border-4 border-[#00ADB5]/20 border-t-[#00ADB5] rounded-full animate-spin mb-4"></div>
-                      <span class="text-gray-400 font-bold font-outfit text-lg tracking-wide">Inisialisasi Master Data...</span>
+                      <div
+                        class="w-16 h-16 border-4 border-[#00ADB5]/20 border-t-[#00ADB5] rounded-full animate-spin mb-4"
+                      ></div>
+                      <span
+                        class="text-gray-400 font-bold font-outfit text-lg tracking-wide"
+                        >Inisialisasi Master Data...</span
+                      >
                     </div>
                   </td>
                 </tr>
@@ -638,8 +827,14 @@
           </div>
 
           <!-- Pagination Bar -->
-          <div class="flex flex-wrap items-center justify-between gap-4 px-8 py-5 border-t border-gray-100 bg-gray-50/50 rounded-b-[2rem] z-0">
-            <span id="page-info" class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white px-4 py-2 border border-gray-200 rounded-lg shadow-sm">—</span>
+          <div
+            class="flex flex-wrap items-center justify-between gap-4 px-8 py-5 border-t border-gray-100 bg-gray-50/50 rounded-b-[2rem] z-0"
+          >
+            <span
+              id="page-info"
+              class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white px-4 py-2 border border-gray-200 rounded-lg shadow-sm"
+              >—</span
+            >
             <div class="flex items-center gap-2 font-bold font-outfit">
               <button
                 id="btn-prev"
@@ -662,18 +857,34 @@
           </div>
 
           <!-- Trash Module (Hides normally) -->
-          <div id="trash-panel" class="hidden overflow-hidden mt-2 relative z-10">
-            <button onclick="toggleTrashPanel()" class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-50 to-red-50 hover:to-red-100 transition-all border-y border-red-100 group">
+          <div
+            id="trash-panel"
+            class="hidden overflow-hidden mt-2 relative z-10"
+          >
+            <button
+              onclick="toggleTrashPanel()"
+              class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-50 to-red-50 hover:to-red-100 transition-all border-y border-red-100 group"
+            >
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition shrink-0">
+                <div
+                  class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition shrink-0"
+                >
                   <i class="fas fa-dumpster"></i>
                 </div>
                 <div class="text-left">
-                  <p class="font-bold text-red-600 font-outfit text-lg flex items-center gap-2">
+                  <p
+                    class="font-bold text-red-600 font-outfit text-lg flex items-center gap-2"
+                  >
                     Recovery Bin
-                    <span id="trash-badge" class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block transform -translate-y-px">0</span>
+                    <span
+                      id="trash-badge"
+                      class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block transform -translate-y-px"
+                      >0</span
+                    >
                   </p>
-                  <p class="text-[11px] text-red-400 font-medium tracking-wide">Akses Soft-deleted Data</p>
+                  <p class="text-[11px] text-red-400 font-medium tracking-wide">
+                    Akses Soft-deleted Data
+                  </p>
                 </div>
               </div>
 
@@ -688,20 +899,36 @@
                 >
                   <i class="fas fa-fire-alt mr-1"></i> Kosongkan
                 </button>
-                <div class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center border border-red-100">
-                  <i id="trash-chevron" class="fas fa-chevron-down text-red-400 text-sm transition-transform duration-300 group-hover:text-red-600"></i>
+                <div
+                  class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center border border-red-100"
+                >
+                  <i
+                    id="trash-chevron"
+                    class="fas fa-chevron-down text-red-400 text-sm transition-transform duration-300 group-hover:text-red-600"
+                  ></i>
                 </div>
               </div>
             </button>
 
-            <div id="trash-table-wrapper" class="hidden overflow-x-auto bg-[#fafafa] p-4">
-              <table class="w-full table-auto border-separate border-spacing-y-1">
+            <div
+              id="trash-table-wrapper"
+              class="hidden overflow-x-auto bg-[#fafafa] p-4"
+            >
+              <table
+                class="w-full table-auto border-separate border-spacing-y-1"
+              >
                 <thead id="trash-thead"></thead>
                 <tbody id="trash-tbody">
                   <tr>
                     <td colspan="10" class="py-16 text-center text-gray-400">
-                      <i class="fas fa-dumpster text-4xl opacity-20 block mb-4"></i>
-                      <p class="font-black font-outfit tracking-wider uppercase">Tidak ada sampah</p>
+                      <i
+                        class="fas fa-dumpster text-4xl opacity-20 block mb-4"
+                      ></i>
+                      <p
+                        class="font-black font-outfit tracking-wider uppercase"
+                      >
+                        Tidak ada sampah
+                      </p>
                     </td>
                   </tr>
                 </tbody>
@@ -713,24 +940,46 @@
     </main>
 
     <!-- FORM MODAL Edit/Save - SUPER PREMIUM DESIGN -->
-    <div id="master-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4">
+    <div
+      id="master-modal"
+      class="hidden fixed inset-0 z-[100] items-center justify-center p-4"
+    >
       <!-- Backdrop blur absolute -->
-      <div class="absolute inset-0 bg-[#222831]/60 backdrop-blur-md" onclick="closeModal()"></div>
+      <div
+        class="absolute inset-0 bg-[#222831]/60 backdrop-blur-md"
+        onclick="closeModal()"
+      ></div>
 
-      <div class="relative bg-white rounded-[2rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/50 transform transition-all">
+      <div
+        class="relative bg-white rounded-[2rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/50 transform transition-all"
+      >
         <!-- Header Gradient -->
-        <div class="bg-gradient-to-r from-[#222831] to-[#393E46] px-8 py-5 flex items-center gap-4 shrink-0">
-          <div class="bg-white/10 p-2.5 rounded-xl border border-white/10 shadow-inner">
+        <div
+          class="bg-gradient-to-r from-[#222831] to-[#393E46] px-8 py-5 flex items-center gap-4 shrink-0"
+        >
+          <div
+            class="bg-white/10 p-2.5 rounded-xl border border-white/10 shadow-inner"
+          >
             <i class="fas fa-pen-nib text-white text-lg"></i>
           </div>
-          <h2 id="modal-title" class="text-xl font-extrabold font-outfit text-white flex-1 tracking-wide">Konfigurasi Basis Data</h2>
-          <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors">
+          <h2
+            id="modal-title"
+            class="text-xl font-extrabold font-outfit text-white flex-1 tracking-wide"
+          >
+            Konfigurasi Basis Data
+          </h2>
+          <button
+            onclick="closeModal()"
+            class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors"
+          >
             <i class="fas fa-times"></i>
           </button>
         </div>
 
         <!-- Scrollable content -->
-        <div class="p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30">
+        <div
+          class="p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30"
+        >
           <div id="modal-alert" class="hidden mb-6"></div>
           <form
             id="master-form"
@@ -745,7 +994,9 @@
             </div>
             <div class="mt-10 mb-2 border-t border-gray-200"></div>
 
-            <div class="flex gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4">
+            <div
+              class="flex gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4"
+            >
               <button
                 type="submit"
                 id="modal-submit-btn"
@@ -753,7 +1004,11 @@
               >
                 <i class="fas fa-save"></i> Terapkan Pembaruan
               </button>
-              <button type="button" onclick="closeModal()" class="px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300">
+              <button
+                type="button"
+                onclick="closeModal()"
+                class="px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300"
+              >
                 Batal
               </button>
             </div>
@@ -763,22 +1018,50 @@
     </div>
 
     <!-- DELETE CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/70 backdrop-blur-lg" onclick="closeConfirmModal()"></div>
+    <div
+      id="confirm-modal"
+      class="hidden fixed inset-0 z-[100] items-center justify-center p-4"
+    >
+      <div
+        class="absolute inset-0 bg-black/70 backdrop-blur-lg"
+        onclick="closeConfirmModal()"
+      ></div>
 
-      <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center transform scale-95 transition-transform duration-300">
+      <div
+        class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center transform scale-95 transition-transform duration-300"
+      >
         <div class="bg-red-600 h-2 w-full"></div>
         <div class="p-8 pb-6">
-          <div class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center border-8 border-white shadow-[0_0_0_4px_rgba(220,38,38,0.1)] mb-4 shrink-0 relative mt-[-40px]">
+          <div
+            class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center border-8 border-white shadow-[0_0_0_4px_rgba(220,38,38,0.1)] mb-4 shrink-0 relative mt-[-40px]"
+          >
             <i class="fas fa-biohazard text-4xl text-red-500"></i>
           </div>
-          <h3 id="confirm-modal-title" class="text-2xl font-extrabold font-outfit text-[#222831] mb-2 tracking-tight">Kritis! Hapus Permanen.</h3>
-          <p id="confirm-modal-desc" class="text-xs font-semibold text-gray-500 mb-6 px-2 leading-relaxed bg-gray-50 border border-gray-100 p-3 rounded-xl inline-block">
+          <h3
+            id="confirm-modal-title"
+            class="text-2xl font-extrabold font-outfit text-[#222831] mb-2 tracking-tight"
+          >
+            Kritis! Hapus Permanen.
+          </h3>
+          <p
+            id="confirm-modal-desc"
+            class="text-xs font-semibold text-gray-500 mb-6 px-2 leading-relaxed bg-gray-50 border border-gray-100 p-3 rounded-xl inline-block"
+          >
             Entitas tidak dapat ditarik kembali setelah aksi eksekusi dilakukan.
           </p>
 
-          <div id="confirm-type-wrapper" class="text-left mb-6 pb-6 border-b border-gray-100 bg-red-50/50 p-4 rounded-2xl border border-red-100/50">
-            <label class="block text-[10px] font-black font-outfit text-red-800 mb-2 uppercase tracking-widest"> Ketik persetujuan: <span class="text-white bg-red-500 px-2 py-0.5 rounded ml-1">HAPUS</span> </label>
+          <div
+            id="confirm-type-wrapper"
+            class="text-left mb-6 pb-6 border-b border-gray-100 bg-red-50/50 p-4 rounded-2xl border border-red-100/50"
+          >
+            <label
+              class="block text-[10px] font-black font-outfit text-red-800 mb-2 uppercase tracking-widest"
+            >
+              Ketik persetujuan:
+              <span class="text-white bg-red-500 px-2 py-0.5 rounded ml-1"
+                >HAPUS</span
+              >
+            </label>
             <input
               id="confirm-type-input"
               type="text"
@@ -794,9 +1077,15 @@
               disabled
               class="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed disabled:shadow-none text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-red-600/40 text-sm font-outfit tracking-widest group disabled:hover:-translate-y-0 hover:-translate-y-1"
             >
-              <i class="fas fa-skull-crossbones mr-2 group-disabled:hidden"></i> EKSEKUSI
+              <i class="fas fa-skull-crossbones mr-2 group-disabled:hidden"></i>
+              EKSEKUSI
             </button>
-            <button onclick="closeConfirmModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-[#393E46] font-bold py-3 rounded-xl transition-all text-sm uppercase tracking-wide">Abort</button>
+            <button
+              onclick="closeConfirmModal()"
+              class="w-full bg-gray-100 hover:bg-gray-200 text-[#393E46] font-bold py-3 rounded-xl transition-all text-sm uppercase tracking-wide"
+            >
+              Abort
+            </button>
           </div>
         </div>
       </div>
@@ -824,7 +1113,12 @@
           if (nm && nmm) nmm.textContent = nm.textContent;
         });
         const nm = document.getElementById("user-name");
-        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+        if (nm)
+          observer.observe(nm, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+          });
       });
     </script>
   </body>
