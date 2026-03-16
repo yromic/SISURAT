@@ -8,11 +8,7 @@
     return;
   }
 
-  async function login(event) {
-    if (event) {
-      event.preventDefault();
-    }
-
+  async function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
     const msgDiv = document.getElementById("msg");
@@ -20,13 +16,13 @@
 
     if (!username || !password) {
       msgDiv.classList.remove("hidden");
+      msgDiv.style.display = "flex";
       msgSpan.innerText = "Username dan password harus diisi!";
       return;
     }
 
-    const loginBtn =
-      (event && event.currentTarget) ||
-      document.querySelector("button[onclick='login()']");
+    // Cari tombol login secara andal menggunakan ID
+    const loginBtn = document.getElementById("login-btn");
 
     const originalText = loginBtn.innerHTML;
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
@@ -40,12 +36,14 @@
         window.location.href = "dashboard.html";
       } else {
         msgDiv.classList.remove("hidden");
+        msgDiv.style.display = "flex";
         msgSpan.innerText =
           result.message || "Login gagal. Periksa kembali username/password.";
       }
     } catch (error) {
       console.error("Detail Error:", error);
       msgDiv.classList.remove("hidden");
+      msgDiv.style.display = "flex";
       msgSpan.innerText = "Terjadi kesalahan jaringan.";
     } finally {
       loginBtn.innerHTML = originalText;
@@ -54,7 +52,9 @@
   }
 
   function hideMessage() {
-    document.getElementById("msg").classList.add("hidden");
+    const msgDiv = document.getElementById("msg");
+    msgDiv.classList.add("hidden");
+    msgDiv.style.display = "";
   }
 
   function init() {

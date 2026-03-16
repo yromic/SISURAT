@@ -550,9 +550,6 @@
         const user = SisuratAuth.requireAuth();
         if (!user) return;
 
-        const userNameEl = document.getElementById("user-name");
-        if (userNameEl) userNameEl.textContent = user.username || "User";
-
         bindEvents();
         applyFilter();
     }

@@ -3,30 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Input Piagam | SISURAT</title>
+    <title>Upload Piagam | SISURAT Premium</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
     <style>
       body {
         font-family: "Inter", sans-serif;
-        background-color: #eeeeee;
+        background-color: #222831;
+        overflow-x: hidden;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      .font-outfit {
+        font-family: "Outfit", sans-serif;
       }
 
-      @keyframes fadeIn {
+      @keyframes fadeInSlideUp {
         from {
           opacity: 0;
-          transform: translateY(10px);
+          transform: translateY(30px);
         }
         to {
           opacity: 1;
@@ -34,192 +37,335 @@
         }
       }
 
-      .animate-fade-in {
-        animation: fadeIn 0.4s ease-out forwards;
+      .animate-entry {
+        animation: fadeInSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
+      /* Moving background textures */
+      .bg-mesh {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-color: #f1f5f9;
+        background-image: radial-gradient(at 0% 0%, hsla(183, 100%, 35%, 0.3) 0px, transparent 50%), radial-gradient(at 100% 100%, hsla(210, 18%, 26%, 0.4) 0px, transparent 50%);
+        animation: breath-mesh 15s ease-in-out infinite alternate;
+      }
+      @keyframes breath-mesh {
+        0% {
+          background-position: 0% 0%;
+        }
+        100% {
+          background-position: 100% 100%;
+        }
+      }
+
+      /* Custom Form elements */
+      .input-premium {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 14px 20px;
+        font-weight: 500;
+        color: #334155;
+        transition:
+          border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.3s,
+          transform 0.3s;
+        width: 100%;
+        outline: none;
+      }
+      .input-premium:focus {
+        background: #fff;
+        border-color: #00adb5;
+        box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .label-premium {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        font-family: "Outfit";
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+        transition: color 0.3s;
+      }
+
+      .group-input:focus-within .label-premium {
+        color: #00adb5;
+      }
+      .group-input:focus-within i {
+        color: #00adb5;
+      }
+
+      /* Canvas styling */
       canvas {
         touch-action: none;
+        background-color: transparent;
+      }
+      .canvas-container {
+        position: relative;
+        background: #fff;
+        border: 2px dashed #cbd5e1;
+        border-radius: 20px;
+        transition: all 0.3s;
+        overflow: hidden;
+      }
+      .canvas-container:hover {
+        border-color: #00adb5;
+        border-style: solid;
+        box-shadow: 0 0 20px rgba(0, 173, 181, 0.1) inset;
+        cursor: crosshair;
+      }
+
+      /* Button Premium */
+      .btn-submit {
+        background: linear-gradient(135deg, #00adb5, #00939c);
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .btn-submit::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #393e46, #222831);
+        z-index: -1;
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .btn-submit:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -10px rgba(0, 173, 181, 0.5);
+        border-color: transparent;
+      }
+      .btn-submit:hover::before {
+        transform: scaleY(1);
+      }
+
+      /* Menambahkan ikon panah kustom pada select agar tidak kaku */
+      select.input-premium {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+
+      /* Custom Scrollbar untuk Dropdown Search */
+      #unit_kerja_list::-webkit-scrollbar {
+        width: 6px;
+      }
+      #unit_kerja_list::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #unit_kerja_list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      #unit_kerja_list::-webkit-scrollbar-thumb:hover {
+        background: #00adb5;
       }
     </style>
   </head>
-  <body class="min-h-screen flex items-center justify-center p-4">
-    <div
-      class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in"
-    >
-      <div class="bg-[#222831] px-6 py-4 flex items-center gap-3">
-        <div class="bg-[#00ADB5] p-2 rounded-lg">
-          <i class="fas fa-award text-white text-xl"></i>
+  <body class="min-h-screen py-10 px-4 flex justify-center lg:items-center relative">
+    <!-- Mesh background -->
+    <div class="bg-mesh"></div>
+
+    <!-- Decorative Blobs -->
+    <div class="fixed top-20 left-10 w-64 h-64 bg-[#00ADB5] rounded-full filter blur-[100px] opacity-40 mix-blend-multiply animate-pulse"></div>
+    <div class="fixed bottom-20 right-10 w-96 h-96 bg-[#222831] rounded-full filter blur-[120px] opacity-20 mix-blend-multiply animate-pulse" style="animation-duration: 4s"></div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-4xl bg-white/90 backdrop-blur-3xl border border-white/60 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden relative z-10 animate-entry">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-[#222831] to-[#393E46] p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <!-- Glow effect internal -->
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#00ADB5] mix-blend-overlay filter blur-[60px] opacity-70 rounded-full"></div>
+
+        <div class="flex items-center gap-5 relative z-10">
+          <div class="w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#00ADB5] to-[#7fffd4] flex items-center justify-center shadow-[0_10px_25px_rgba(0,173,181,0.4)] border border-white/20 transform -rotate-6">
+            <i class="fas fa-trophy text-white text-3xl transform rotate-6 drop-shadow-md"></i>
+          </div>
+          <div>
+            <h1 class="text-3xl font-extrabold font-outfit text-white tracking-wide">Penerimaan Piagam</h1>
+            <p class="text-[#00ADB5] mt-1 font-medium font-outfit uppercase tracking-widest text-xs">Arsip Entitas Eksternal</p>
+          </div>
         </div>
-        <h1 class="text-xl font-bold text-white">Input Piagam Baru</h1>
-        <div class="ml-auto">
-          <a
-            href="index.html"
-            class="text-white hover:text-[#00ADB5] transition flex items-center gap-1 text-sm bg-[#393E46] px-3 py-1.5 rounded-lg"
-          >
-            <i class="fas fa-arrow-left"></i> Home
-          </a>
-        </div>
+
+        <a
+          href="index.html"
+          class="relative z-10 shrink-0 bg-white/10 hover:bg-white text-white hover:text-[#222831] border border-white/20 font-bold font-outfit px-6 py-3 rounded-2xl transition-all duration-300 shadow-sm flex items-center gap-2"
+        >
+          <i class="fas fa-home"></i> Kembali ke Home
+        </a>
       </div>
 
-      <div class="p-6 md:p-8">
+      <!-- Form Section -->
+      <div class="p-8 md:p-12 relative">
         <form
           id="piagamForm"
           onsubmit="
             event.preventDefault();
             submitData();
           "
+          class="flex flex-col h-full"
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-user text-[#00ADB5] mr-1"></i> Nama Pengambil
-                </label>
-                <input
-                  type="text"
-                  id="nama_pengambil"
-                  placeholder="Contoh: Ahmad Fauzi"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+            <!-- Column 1 -->
+            <div class="space-y-6">
+              <h3 class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative">
+                <span class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"></span>
+                Informasi Pengambil
+              </h3>
+
+              <div class="group-input">
+                <label class="label-premium"><i class="fas fa-user text-gray-400 mr-2"></i>Nama Pengambil</label>
+                <input type="text" id="nama_pengambil" placeholder="Misal: Bapak Gunawan Setiadi" class="input-premium" required />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-briefcase text-[#00ADB5] mr-1"></i> Jabatan
-                </label>
-                <input
-                  type="text"
-                  id="jabatan"
-                  placeholder="Contoh: Kepala Sekolah"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="group-input">
+                <label class="label-premium"><i class="fas fa-id-badge text-gray-400 mr-2"></i>Posisi / Jabatan</label>
+                <input type="text" id="jabatan" placeholder="Misal: Kepala Sekolah, Guru Bidang..." class="input-premium" required />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-building text-[#00ADB5] mr-1"></i> Unit Kerja
-                </label>
-                <input
-                  type="text"
-                  id="unit_kerja"
-                  placeholder="Contoh: SMPN 1 Jakarta"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="group-input relative" id="unit_kerja_container">
+                <label class="label-premium"><i class="fas fa-building text-gray-400 mr-2"></i>Unit Kerja</label>
+                <input type="text" id="unit_kerja" class="input-premium pr-10" placeholder="Ketik untuk mencari sekolah..." autocomplete="off" required />
+
+                <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="unit_kerja_icon">
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+
+                <ul id="unit_kerja_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"></ul>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-hashtag text-[#00ADB5] mr-1"></i> NPSN
-                </label>
-                <input
-                  type="text"
-                  id="npsn"
-                  placeholder="Nomor Pokok Sekolah"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-calendar-alt text-[#00ADB5] mr-1"></i>
-                  Pengambilan (Tanggal)
-                </label>
-                <input
-                  type="date"
-                  id="pengambilan"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="group-input">
+                  <label class="label-premium"><i class="fas fa-hashtag text-gray-400 mr-2"></i>Nomor Publik (NPSN)</label>
+                  <input type="text" id="npsn" placeholder="Nomor resmi instansi" class="input-premium" required />
+                </div>
+                <div class="group-input relative" id="pengambilan_container">
+                  <label class="label-premium"><i class="fas fa-gifts text-gray-400 mr-2"></i>Jenis Pengambilan</label>
+                  <input type="text" id="pengambilan_select" class="input-premium pr-10 cursor-pointer" placeholder="Pilih jenis..." readonly required />
+
+                  <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="pengambilan_icon">
+                    <i class="fas fa-chevron-down"></i>
+                  </div>
+
+                  <ul id="pengambilan_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2">
+                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Piagam">Piagam</li>
+                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Piala">Piala</li>
+                    <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Other">Lainnya (Isi Manual)</li>
+                  </ul>
+
+                  <div id="pengambilan_other_container" class="hidden mt-3 animate-fadeIn">
+                    <input type="text" id="pengambilan_other" placeholder="Sebutkan jenis pengambilan..." class="input-premium" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-trophy text-[#00ADB5] mr-1"></i> Jenis
-                  Perlombaan
-                </label>
-                <input
-                  type="text"
-                  id="jenis_perlombaan"
-                  placeholder="Contoh: OSN Matematika"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+            <!-- Column 2 -->
+            <div class="space-y-6">
+              <h3 class="font-outfit font-extrabold text-[#222831] text-lg border-b-2 border-gray-100 pb-3 mb-6 relative">
+                <span class="absolute bottom-[-2px] left-0 w-12 h-1 bg-[#00ADB5]"></span>
+                Atribut Kejuaraan
+              </h3>
+
+              <div class="group-input relative" id="jenis_perlombaan_container">
+                <label class="label-premium"><i class="fas fa-medal text-gray-400 mr-2"></i>Kelas Kompetisi</label>
+                <input type="text" id="jenis_perlombaan_select" class="input-premium pr-10 cursor-pointer" placeholder="Pilih kompetisi..." readonly required />
+
+                <div class="absolute right-4 top-[42px] text-gray-400 pointer-events-none transition-transform duration-300" id="jenis_perlombaan_icon">
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+
+                <ul id="jenis_perlombaan_list" class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2">
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="O2SN/KOSN">O2SN/KOSN</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="FLS2N-FTBI">FLS2N-FTBI</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="MAPSI">MAPSI</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="OPSI">OPSI</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="OSN/KSN">OSN/KSN</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="LDK">LDK</li>
+                  <li class="px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium" data-value="Other">Lainnya (Isi Manual)</li>
+                </ul>
+
+                <div id="jenis_perlombaan_other_container" class="hidden mt-3 animate-fadeIn">
+                  <input type="text" id="jenis_perlombaan_other" placeholder="Nama kompetisi lainnya..." class="input-premium" />
+                </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-calendar text-[#00ADB5] mr-1"></i> Tahun
-                  Perlombaan
-                </label>
-                <input
-                  type="number"
-                  id="tahun_perlombaan"
-                  placeholder="2025"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="group-input">
+                <label class="label-premium"><i class="fas fa-hourglass-half text-gray-400 mr-2"></i>Tahun Acara</label>
+                <input type="number" id="tahun_perlombaan" placeholder="Misal: 2026" class="input-premium" required />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-graduation-cap text-[#00ADB5] mr-1"></i> Nama
-                  Siswa
-                </label>
-                <input
-                  type="text"
-                  id="nama_siswa"
-                  placeholder="Contoh: Siti Aisyah"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="group-input">
+                <label class="label-premium"><i class="fas fa-user-graduate text-gray-400 mr-2"></i>Kandidat Prestasi (Siswa)</label>
+                <input type="text" id="nama_siswa" placeholder="Misal: Budi Santoso" class="input-premium" required />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-[#393E46] mb-1">
-                  <i class="fas fa-school text-[#00ADB5] mr-1"></i> Asal Sekolah
-                </label>
-                <input
-                  type="text"
-                  id="asal_sekolah"
-                  placeholder="Contoh: SMPN 1 Bandung"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#00ADB5] focus:ring-2 focus:ring-[#00ADB5] focus:ring-opacity-20 outline-none transition"
-                />
+
+              <div class="group-input">
+                <label class="label-premium"><i class="fas fa-school text-gray-400 mr-2"></i>Asal Institusi Kandidat</label>
+                <input type="text" id="asal_sekolah" placeholder="Misal: SMP Merdeka Belajar" class="input-premium" required />
               </div>
             </div>
           </div>
 
-          <div class="mt-6">
-            <label class="block text-sm font-medium text-[#393E46] mb-2">
-              <i class="fas fa-pen text-[#00ADB5] mr-1"></i> Tanda Tangan
-              (Gambar dengan mouse/sentuh)
-            </label>
-            <div
-              class="border-2 border-dashed border-[#00ADB5] rounded-xl p-1 bg-[#FAFAFA]"
-            >
-              <canvas
-                id="canvas"
-                class="w-full h-40 rounded-lg cursor-crosshair"
-              ></canvas>
-            </div>
-            <div class="flex justify-end mt-2 gap-2">
-              <button
-                type="button"
-                onclick="clearCanvas()"
-                class="text-sm bg-[#393E46] hover:bg-[#4a525c] text-white px-4 py-2 rounded-lg transition flex items-center gap-1"
-              >
-                <i class="fas fa-eraser"></i> Hapus
+          <!-- Signature Pad full width -->
+          <div class="mt-12 pt-8 border-t border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-outfit font-extrabold text-[#222831] text-lg">Validasi Otentikasi (Tanda Tangan)</h3>
+              <button type="button" onclick="clearCanvas()" class="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#222831] font-bold text-xs uppercase tracking-widest font-outfit transition-colors flex items-center gap-2">
+                <i class="fas fa-eraser"></i> Hapus Kanvas
               </button>
             </div>
-            <p class="text-xs text-[#393E46] mt-1">
-              <i class="fas fa-info-circle text-[#00ADB5] mr-1"></i> Tanda
-              tangani di atas area ini.
-            </p>
+
+            <div class="canvas-container shadow-md">
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                <span class="text-gray-200 font-extrabold text-3xl font-outfit tracking-[0.3em] uppercase opacity-50 text-center px-4"
+                  >Guratan Validasi<br /><span class="text-sm font-medium tracking-normal text-gray-300">Tanda tangani di area ini</span></span
+                >
+              </div>
+              <canvas id="canvas" class="w-full h-48 relative z-10"></canvas>
+            </div>
           </div>
 
-          <div
-            id="msg"
-            class="hidden mt-4 p-3 rounded-lg flex items-center gap-2 text-sm"
-          ></div>
+          <!-- Dynamic Message -->
+          <div id="msg" class="hidden mt-6 p-4 rounded-xl flex items-center gap-3 text-sm font-bold opacity-0 transition-opacity"></div>
 
-          <div class="mt-6">
+          <!-- Submit Action -->
+          <div class="mt-10 pt-8 border-t border-gray-100">
             <button
               type="submit"
               id="submitBtn"
-              class="w-full bg-[#00ADB5] hover:bg-[#00939c] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+              class="btn-submit w-full font-outfit font-black text-xl tracking-wider py-5 rounded-[1.5rem] border-2 border-transparent shadow-[0_10px_20px_rgba(0,173,181,0.2)] flex items-center justify-center gap-3"
             >
-              <i class="fas fa-save"></i> Simpan Piagam
+              <i class="fas fa-lock"></i> SIMPAN OTENTIKASI PIAGAM
             </button>
           </div>
         </form>

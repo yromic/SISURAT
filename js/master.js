@@ -1105,10 +1105,6 @@
         const user = SisuratAuth.requireAuth();
         if (!user) return;
 
-        // Atur nama user di header
-        const userNameEl = document.getElementById("user-name");
-        if (userNameEl) userNameEl.textContent = user.username || "User";
-
         bindEvents();
 
         // Register cache invalidation handler dari search.js jika ada

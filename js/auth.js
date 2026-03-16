@@ -33,7 +33,7 @@
 
     const userNameEl = document.querySelector(userNameSelector);
     if (userNameEl) {
-      userNameEl.innerText = user.username || "User";
+      userNameEl.innerText = user.nama || user.username || "User";
     }
 
     return user;

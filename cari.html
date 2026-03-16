@@ -1,387 +1,445 @@
 <!doctype html>
 <html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pencarian | SISURAT Premium</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cari Surat | SISURAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f1f5f9;
+        overflow-x: hidden;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      .font-outfit {
+        font-family: "Outfit", sans-serif;
+      }
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #00adb5;
+        border-radius: 10px;
+      }
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-      background-color: #eeeeee;
-    }
+      .glass-sidebar {
+        background: rgba(34, 40, 49, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .glass-modal {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+      }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #393e46;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #00adb5;
-      border-radius: 4px;
-    }
-
-    /* Rows per page select */
-    .rows-select {
-      padding: 4px 24px 4px 8px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 11px;
-      color: #393e46;
-      background: #fff;
-      outline: none;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 6px center;
-    }
-
-    .rows-select:focus {
-      border-color: #00adb5;
-    }
-
-    /* Sidebar responsive */
-    #sidebar {
-      transition: transform 0.3s ease;
-      z-index: 40;
-    }
-
-    @media (max-width: 1023px) {
+      /* Layout Transitions */
       #sidebar {
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 50;
+      }
+
+      @media (max-width: 1023px) {
+        #sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          height: 100vh;
+          transform: translateX(-100%);
+        }
+        #sidebar.open {
+          transform: translateX(0);
+          box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      #sidebar-overlay {
+        display: none;
         position: fixed;
-        left: 0;
-        top: 0;
-        height: 100vh;
-        transform: translateX(-100%);
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 40;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+      }
+      #sidebar-overlay.open {
+        display: block;
+        opacity: 1;
       }
 
-      #sidebar.open {
-        transform: translateX(0);
+      /* Custom select style */
+      .rows-select {
+        padding: 8px 32px 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #393e46;
+        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E") no-repeat right 12px center;
+        appearance: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
       }
-    }
+      .rows-select:focus {
+        border-color: #00adb5;
+        box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.15);
+        outline: none;
+      }
 
-    #sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 30;
-    }
+      .float-card {
+        transition: all 0.3s ease;
+      }
+      .float-card:hover {
+        transform: translateY(-5px);
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+    </style>
+  </head>
+  <body class="flex text-[#222831]">
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-    #sidebar-overlay.open {
-      display: block;
-    }
-  </style>
-</head>
-
-<body class="flex text-[#222831]">
-  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-  <aside id="sidebar" class="w-64 h-screen bg-[#222831] text-[#EEEEEE] shadow-lg sticky top-0 flex flex-col">
-    <div class="p-6 flex items-center">
-      <a href="cari.html" class="flex items-center gap-2">
-        <img src="assets/icon/Logo.ico" alt="Logo" class="w-12 h-12" />
-        <h2 class="text-2xl font-bold">SISURAT</h2>
-      </a>
-    </div>
-    <nav class="flex-1 px-4">
-      <ul class="space-y-2">
-        <li>
-          <a href="dashboard.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-chart-pie w-5"></i> Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="cari.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#00ADB5] text-white font-semibold shadow-md">
-            <i class="fas fa-search w-5"></i> Cari
-          </a>
-        </li>
-        <li>
-          <a href="master.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-database w-5"></i> Master Data
-          </a>
-        </li>
-        <li>
-          <a href="laporan.html"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#393E46] hover:text-white transition-all duration-200">
-            <i class="fas fa-file-export w-5"></i> Laporan
-          </a>
-        </li>
-      </ul>
-    </nav>
-    <div class="p-4 border-t border-[#393E46] mt-auto">
-      <button onclick="logout()"
-        class="w-full flex items-center justify-center gap-2 bg-[#393E46] hover:bg-[#00ADB5] text-white px-4 py-2 rounded-lg transition-colors duration-200">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
-  </aside>
-
-  <main class="flex-1 overflow-y-auto min-h-screen">
-    <!-- Top bar mobile -->
-    <div
-      class="lg:hidden flex items-center justify-between bg-[#222831] text-white px-4 py-3 sticky top-0 z-20 shadow-md">
-      <button onclick="toggleSidebar()" class="text-white focus:outline-none">
-        <i class="fas fa-bars text-xl"></i>
-      </button>
-      <span class="text-lg font-bold flex items-center gap-2">
-        <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8" />
-        SISURAT
-      </span>
-      <span class="text-sm bg-[#393E46] px-3 py-1 rounded-full">
-        <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-        <span id="user-name-mobile" class="font-semibold">User</span>
-      </span>
-    </div>
-
-    <div class="p-4 sm:p-6 lg:p-8">
-      <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
-        <div class="flex flex-col gap-1">
-          <h1 class="text-2xl lg:text-3xl font-bold text-[#222831] flex items-center gap-3">
-            <i class="fas fa-search text-[#00ADB5]"></i> Cari Surat
-          </h1>
-          <button onclick="document.getElementById('infoCari').classList.toggle('hidden')"
-            class="text-sm text-[#00ADB5] hover:underline flex items-center gap-1 w-fit mt-1 font-medium transition-all">
-            <i class="fas fa-info-circle"></i> Info &amp; Panduan Fitur
-          </button>
-        </div>
-        <div class="hidden lg:flex items-center gap-4">
-          <span class="text-sm text-[#393E46] bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-            <i class="fas fa-user-circle text-[#00ADB5] mr-1"></i>
-            <span id="user-name" class="font-semibold">User</span>
-          </span>
-        </div>
+    <!-- Sidebar Modern -->
+    <aside id="sidebar" class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4">
+      <!-- Brand -->
+      <div class="px-4 py-6 mb-4">
+        <a href="cari.html" class="flex items-center gap-3 group">
+          <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300">
+            <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+          </div>
+          <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">SISURAT</h2>
+        </a>
       </div>
 
-      <!-- Informasi Fitur (Accordion) -->
-      <div id="infoCari"
-        class="hidden mb-6 bg-gradient-to-br from-[#e0f7fa] to-white rounded-xl shadow-sm border border-[#b2ebf2] p-5 transition-all">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-              <i class="fas fa-search"></i>
-            </div>
-            <div>
-              <h4 class="font-semibold text-sm text-[#222831]">
-                Pencarian Cerdas
-              </h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Gunakan kata kunci, nomor surat, atau perihal. Manfaatkan
-                filter spesifik berdasarkan tanggal dan jenis dokumen.
-              </p>
-            </div>
-          </div>
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-              <i class="fas fa-th-large"></i>
-            </div>
-            <div>
-              <h4 class="font-semibold text-sm text-[#222831]">
-                Tampilan Fleksibel
-              </h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Ubah mode tampilan ke <strong>Grid</strong> atau
-                <strong>List</strong>, serta sesuaikan jumlah data yang tampil
-                per halamannya.
-              </p>
-            </div>
-          </div>
-          <div class="flex gap-3 group items-start">
-            <div
-              class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0 group-hover:bg-[#00ADB5] group-hover:text-white transition-all text-[#00ADB5] mt-0.5">
-              <i class="fas fa-eye"></i>
-            </div>
-            <div>
-              <h4 class="font-semibold text-sm text-[#222831]">
-                Pratinjau Instan
-              </h4>
-              <p class="text-xs text-[#393E46] mt-1 leading-relaxed">
-                Klik pratinjau data untuk melihat detail berkas secara
-                langsung dalam modal interaktif tanpa perlu berpindah halaman.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Navigation -->
+      <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
+        <a href="dashboard.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Overview</span>
+        </a>
 
-      <!-- Search Bar -->
-      <div class="flex gap-3 mb-5">
-        <div class="relative flex-1">
-          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#393E46]"></i>
-          <input id="search" type="text" placeholder="Cari surat, nomor, perihal..."
-            class="w-full pl-12 pr-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-[#00ADB5] bg-white shadow-md" />
+        <a href="cari.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1">
+          <i class="fas fa-search w-6 text-center text-lg"></i>
+          <span>Pencarian Pintar</span>
+        </a>
+
+        <a href="master.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-database w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Master Data</span>
+        </a>
+
+        <a href="laporan.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Ekspor & Laporan</span>
+        </a>
+      </nav>
+
+      <!-- Bottom Actions -->
+      <div class="pt-6 border-t border-white/10 mt-auto">
+        <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
+            <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+              <i class="fas fa-user text-white text-xs"></i>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <p class="text-xs text-gray-400 font-medium">Logged in as</p>
+            <p id="user-name" class="text-sm font-bold text-white truncate w-full">Administrator</p>
+          </div>
         </div>
-        <button onclick="toggleFilter()"
-          class="bg-[#393E46] hover:bg-[#4a525c] text-white px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-          <i class="fas fa-sliders-h"></i> Filter
+
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group">
+          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate Session
         </button>
       </div>
+    </aside>
 
-      <!-- Filter Panel -->
-      <div id="filterPanel"
-        class="hidden bg-white p-5 rounded-xl shadow-lg mb-6 border-l-4 border-[#00ADB5] transition-all">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-                class="fas fa-tag mr-1 text-[#00ADB5]"></i>Jenis</label>
-            <select id="jenis"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]">
-              <option value="">Semua</option>
-              <option value="db_surat_masuk">Surat Masuk</option>
-              <option value="db_surat_keluar">Surat Keluar</option>
-              <option value="db_piagam">Piagam</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-                class="fas fa-calendar-alt mr-1 text-[#00ADB5]"></i>Dari</label>
-            <input type="date" id="from"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#393E46] mb-1"><i
-                class="fas fa-calendar-check mr-1 text-[#00ADB5]"></i>Sampai</label>
-            <input type="date" id="to"
-              class="w-full border border-[#DDD] rounded-lg p-2 focus:border-[#00ADB5] focus:ring-1 focus:ring-[#00ADB5]" />
-          </div>
-        </div>
-        <div class="flex justify-end mt-4 gap-2">
-          <button onclick="resetFilter()"
-            class="px-4 py-2 text-sm bg-[#EEEEEE] hover:bg-gray-200 rounded-lg transition flex items-center gap-1">
-            <i class="fas fa-undo-alt"></i> Reset
-          </button>
-          <button onclick="runSearch()"
-            class="px-4 py-2 text-sm bg-[#00ADB5] hover:bg-[#00939c] text-white rounded-lg transition flex items-center gap-1">
-            <i class="fas fa-search"></i> Terapkan
-          </button>
-        </div>
-      </div>
-
-      <!-- Info Bar & Controls -->
-      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <p class="text-sm text-[#393E46]">
-          <i class="fas fa-file-alt mr-1"></i>
-          <span id="result-count">0</span> hasil ditemukan
-        </p>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto min-h-screen relative bg-[#f1f5f9]">
+      <!-- Mobile Header -->
+      <div class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-3">
-          <!-- Rows per page -->
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs text-gray-400">Per hal:</span>
-            <select id="search-page-size" onchange="setSearchPageSize(this.value)" class="rows-select">
-              <option value="12">12</option>
-              <option value="24">24</option>
-              <option value="48">48</option>
-              <option value="96">96</option>
-            </select>
-          </div>
-          <!-- View toggle -->
-          <div class="flex gap-1">
-            <button id="btn-view-grid" onclick="setView('grid')"
-              class="w-8 h-8 rounded bg-[#00ADB5] text-white flex items-center justify-center">
-              <i class="fas fa-th"></i>
-            </button>
-            <button id="btn-view-list" onclick="setView('list')"
-              class="w-8 h-8 rounded bg-white text-[#393E46] hover:bg-[#EEEEEE] flex items-center justify-center">
-              <i class="fas fa-list"></i>
-            </button>
+          <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <div class="flex items-center gap-2">
+            <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
           </div>
         </div>
+        <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+          <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
+        </span>
       </div>
 
-      <!-- Result Grid -->
-      <div id="result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div class="col-span-full text-center py-10 text-[#393E46]">
-          <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
-          <p class="mt-2">Memuat data...</p>
+      <!-- Top Banner Aesthetic -->
+      <div class="h-64 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex items-center justify-center">
+        <div
+          class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4xNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')] opacity-50"
+        ></div>
+        <div class="absolute w-96 h-96 bg-[#00ADB5] rounded-full mix-blend-overlay filter blur-[100px] opacity-60 translate-x-1/2"></div>
+
+        <div class="relative z-10 text-center px-6">
+          <h1 class="text-4xl md:text-5xl font-extrabold text-white font-outfit tracking-wide mb-4 drop-shadow-lg">Eksplorasi Arsip Digital</h1>
+          <p class="text-gray-300 font-medium max-w-lg mx-auto text-sm md:text-base bg-black/20 p-3 rounded-2xl backdrop-blur-sm border border-white/5">
+            Sistem deteksi cerdas yang didesain untuk menemukan dokumen Anda secepat memikirkan kata kuncinya.
+          </p>
         </div>
       </div>
 
-      <!-- Pagination Cari -->
-      <div id="search-pagination" style="display: none"
-        class="flex flex-wrap items-center justify-between gap-2 mt-5 pt-4 border-t border-gray-200">
-        <span id="search-page-info" class="text-sm text-[#393E46]"></span>
-        <div class="flex items-center gap-1.5">
-          <button id="search-btn-prev" onclick="prevSearchPage()" disabled
-            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
-            <i class="fas fa-chevron-left"></i>
+      <div class="px-6 lg:px-12 -mt-10 lg:-mt-14 relative z-20 pb-16">
+        <!-- Search Bar Giant -->
+        <div class="bg-white rounded-[2rem] shadow-2xl p-4 md:p-6 mb-8 border border-gray-100/50 flex flex-col md:flex-row gap-4 items-center">
+          <div class="relative flex-1 w-full group">
+            <div class="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+              <i class="fas fa-search text-2xl text-gray-300 group-focus-within:text-[#00ADB5] transition-colors"></i>
+            </div>
+            <input
+              id="search"
+              type="text"
+              placeholder="Ketik kata kunci: nomor surat, perihal, rujukan..."
+              class="w-full pl-16 pr-6 py-5 rounded-3xl bg-gray-50 border-2 border-transparent focus:border-[#00ADB5]/30 focus:bg-white text-[#222831] text-lg font-medium outline-none transition-all duration-300 shadow-inner group-focus-within:shadow-[0_0_25px_rgba(0,173,181,0.15)] placeholder-gray-400"
+            />
+          </div>
+
+          <button
+            onclick="toggleFilter()"
+            class="w-full md:w-auto px-8 py-5 rounded-3xl bg-[#222831] hover:bg-[#393E46] text-white font-bold tracking-wide transition-all duration-300 shadow-[0_8px_20px_rgba(34,40,49,0.2)] hover:shadow-[0_12px_25px_rgba(34,40,49,0.3)] flex items-center justify-center gap-3"
+          >
+            <i class="fas fa-sliders-h text-lg text-[#00ADB5]"></i> Opsi Filter
           </button>
-          <div id="search-page-numbers" class="flex items-center gap-1"></div>
-          <button id="search-btn-next" onclick="nextSearchPage()" disabled
-            class="flex items-center px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
-            <i class="fas fa-chevron-right"></i>
-          </button>
+        </div>
+
+        <!-- Expandable Filter Panel -->
+        <div id="filterPanel" class="hidden bg-white rounded-3xl p-6 md:p-8 mb-8 shadow-xl border-t-8 border-[#00ADB5] transform origin-top transition-all float-card">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-full bg-[#00ADB5]/10 flex justify-center items-center">
+              <i class="fas fa-filter text-[#00ADB5]"></i>
+            </div>
+            <h3 class="text-xl font-bold font-outfit text-[#222831]">Filter Spesifik</h3>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="group">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-[#00ADB5] transition">Kategori Dokumen</label>
+              <div class="relative">
+                <select
+                  id="jenis"
+                  class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[#222831] font-medium outline-none focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Semua Kategori</option>
+                  <option value="db_surat_masuk">📥 Surat Masuk</option>
+                  <option value="db_surat_keluar">📤 Surat Keluar</option>
+                  <option value="db_piagam">🏆 Piagam Penghargaan</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
+            </div>
+
+            <div class="group">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-[#00ADB5] transition">Batas Awal</label>
+              <input type="date" id="from" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[#222831] font-medium outline-none focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 transition-all" />
+            </div>
+
+            <div class="group">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-[#00ADB5] transition">Batas Akhir</label>
+              <input type="date" id="to" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[#222831] font-medium outline-none focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 transition-all" />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
+            <button onclick="resetFilter()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:text-[#222831] hover:bg-gray-100 transition-colors flex items-center gap-2"><i class="fas fa-undo-alt"></i> Reset Parameter</button>
+            <button
+              onclick="runSearch()"
+              class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#00ADB5] to-[#00939c] shadow-[0_8px_15px_rgba(0,173,181,0.25)] hover:shadow-[0_12px_20px_rgba(0,173,181,0.35)] hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            >
+              <i class="fas fa-search-location"></i> Lakukan Pencarian
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls & Summary Row -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <i class="fas fa-check text-green-500"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-[#222831] line-clamp-1">Hasil Ditemukan</h4>
+              <p class="text-sm font-medium text-gray-500"><span id="result-count" class="text-[#00ADB5] font-black text-base">0</span> rekam</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 bg-gray-50 p-2 rounded-xl">
+            <div class="flex items-center gap-2 pr-4 border-r border-gray-200">
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Per Hal:</span>
+              <select id="search-page-size" onchange="setSearchPageSize(this.value)" class="rows-select bg-white">
+                <option value="12">12</option>
+                <option value="24">24</option>
+                <option value="48">48</option>
+                <option value="96">96</option>
+              </select>
+            </div>
+
+            <div class="flex gap-1.5 shrink-0">
+              <button id="btn-view-grid" onclick="setView('grid')" class="w-10 h-10 rounded-xl bg-[#00ADB5] text-white shadow-md flex items-center justify-center transition-all hover:-translate-y-0.5" title="Grid View">
+                <i class="fas fa-layer-group text-lg"></i>
+              </button>
+              <button
+                id="btn-view-list"
+                onclick="setView('list')"
+                class="w-10 h-10 rounded-xl bg-white text-gray-400 hover:text-[#00ADB5] border border-gray-200 shadow-sm flex items-center justify-center transition-all hover:-translate-y-0.5 hover:border-[#00ADB5]"
+                title="List View"
+              >
+                <i class="fas fa-bars text-lg"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULT CONTAINER -->
+        <div id="result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
+          <div class="col-span-full h-64 flex flex-col items-center justify-center text-center">
+            <div class="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center animate-bounce mb-4 border-2 border-[#00ADB5]/20">
+              <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
+            </div>
+            <h3 class="text-xl font-outfit font-bold text-[#222831]">Memuat Data</h3>
+            <p class="font-medium text-gray-400 mt-1 animate-pulse">Menghubungkan ke basis data...</p>
+          </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div id="search-pagination" style="display: none" class="mt-10 bg-white shadow-lg rounded-2xl p-4 md:p-6 flex flex-wrap items-center justify-between gap-4 border border-gray-100">
+          <span id="search-page-info" class="text-sm font-bold text-gray-500 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"></span>
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              id="search-btn-prev"
+              onclick="prevSearchPage()"
+              disabled
+              class="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-gray-50 disabled:hover:text-[#393E46] disabled:hover:border-gray-200 disabled:cursor-not-allowed shadow-sm transition-all font-bold"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div id="search-page-numbers" class="flex items-center gap-1.5 font-bold"></div>
+            <button
+              id="search-btn-next"
+              onclick="nextSearchPage()"
+              disabled
+              class="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-gray-50 disabled:hover:text-[#393E46] disabled:hover:border-gray-200 disabled:cursor-not-allowed shadow-sm transition-all font-bold"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div><!-- end inner padding -->
-  </main>
+    </main>
 
-  <!-- Modal Detail -->
-  <div id="modal"
-    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col md:flex-row relative overflow-hidden">
-      <button onclick="closeModal()"
-        class="absolute top-4 right-4 text-[#393E46] hover:text-[#00ADB5] transition z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+    <!-- Premium Modal Pratinjau -->
+    <div id="modal" class="hidden fixed inset-0 bg-[#222831]/70 backdrop-blur-xl flex items-center justify-center z-50 p-4 xl:p-8 opacity-0 transition-opacity duration-300" style="opacity: 1">
+      <div
+        class="glass-modal w-full max-w-6xl rounded-[2rem] shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex flex-col lg:flex-row relative overflow-hidden h-[90vh] border-0 transform scale-95 transition-transform duration-300"
+        style="transform: scale(1)"
+      >
+        <!-- Close Button Absolute -->
+        <button
+          onclick="closeModal()"
+          class="absolute top-4 right-4 text-gray-400 hover:text-red-500 bg-white/10 hover:bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg backdrop-blur-md transition-all z-50 border border-white/20 hover:border-white"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
 
-      <div class="w-full md:w-1/2 p-6 max-h-[70vh] overflow-y-auto bg-[#F9F9F9]">
-        <h2 class="text-2xl font-bold text-[#222831] mb-4 flex items-center gap-2">
-          <i class="fas fa-info-circle text-[#00ADB5]"></i> Detail Surat
-        </h2>
-        <div id="detail" class="space-y-3 text-sm"></div>
-      </div>
+        <!-- Details Panel -->
+        <div class="w-full lg:w-2/5 md:max-w-lg p-8 md:p-10 flex flex-col bg-white overflow-y-auto custom-scrollbar relative">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-[#00ADB5]/5 rounded-bl-[100px]"></div>
+          <div class="flex items-center gap-4 mb-8">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-[#00939c] flex items-center justify-center shadow-[0_10px_20px_rgba(0,173,181,0.3)] shrink-0">
+              <i class="fas fa-fingerprint text-white text-3xl"></i>
+            </div>
+            <div>
+              <h2 class="text-2xl font-extrabold font-outfit text-[#222831] leading-tight">Detail Dokumen</h2>
+              <p class="text-sm font-medium text-[#00ADB5]">Identifikasi Unik Sistem</p>
+            </div>
+          </div>
 
-      <div class="w-full md:w-1/2 bg-[#222831] flex flex-col">
-        <div class="p-3 bg-[#393E46] text-white flex items-center justify-between">
-          <span class="font-medium"><i class="fas fa-file-pdf mr-2"></i>Pratinjau</span>
-          <a id="download-link" href="#" target="_blank"
-            class="text-[#00ADB5] hover:underline text-sm flex items-center gap-1">
-            <i class="fas fa-download"></i> Download
-          </a>
+          <div id="detail" class="space-y-4 text-sm relative z-10 font-medium">
+            <!-- Diisi JS -->
+          </div>
+
+          <div class="mt-auto pt-8 flex">
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 w-full text-center">
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest"><i class="fas fa-shield-alt text-[#00ADB5] mr-1"></i> Verifikasi</p>
+              <p class="text-[10px] text-gray-400 mt-2 font-mono">HASH: 3F9E2A8B • S-2026</p>
+            </div>
+          </div>
         </div>
-        <iframe id="preview" class="flex-1 w-full min-h-[400px]" frameborder="0"></iframe>
+
+        <!-- Preview Panel -->
+        <div class="w-full lg:flex-1 bg-[#1e2329] flex flex-col relative border-l border-white/10">
+          <div class="p-4 bg-black/40 backdrop-blur-md text-white flex items-center justify-between border-b border-white/10 sticky top-0 z-10 shadow-md">
+            <div class="flex items-center gap-3">
+              <div class="bg-red-500/20 text-red-400 p-2 rounded-lg">
+                <i class="fas fa-file-pdf"></i>
+              </div>
+              <span class="font-bold tracking-wide">Pratinjau Optik Virtual</span>
+            </div>
+            <a
+              id="download-link"
+              href="#"
+              target="_blank"
+              class="bg-white/10 hover:bg-[#00ADB5] font-bold text-sm px-5 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 border border-white/20 hover:border-transparent hover:shadow-[0_0_15px_rgba(0,173,181,0.5)]"
+            >
+              <i class="fas fa-cloud-download-alt"></i> Unduh Asli
+            </a>
+          </div>
+          <div class="flex-1 w-full bg-[#111] overflow-hidden relative">
+            <!-- placeholder when loading -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-white/30">
+              <i class="fas fa-circle-notch fa-spin text-5xl"></i>
+            </div>
+            <iframe id="preview" class="w-full h-full relative z-10 border-0" onsubmit="event.preventDefault()" src=""></iframe>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/search.js"></script>
-  <script>
-    function toggleSidebar() {
-      document.getElementById("sidebar").classList.toggle("open");
-      document.getElementById("sidebar-overlay").classList.toggle("open");
-    }
-    function closeSidebar() {
-      document.getElementById("sidebar").classList.remove("open");
-      document.getElementById("sidebar-overlay").classList.remove("open");
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-      const observer = new MutationObserver(function () {
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/search.js"></script>
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebar-overlay").classList.toggle("open");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebar-overlay").classList.remove("open");
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        const observer = new MutationObserver(function () {
+          const nm = document.getElementById("user-name");
+          const nmm = document.getElementById("user-name-mobile");
+          if (nm && nmm) nmm.textContent = nm.textContent;
+        });
         const nm = document.getElementById("user-name");
-        const nmm = document.getElementById("user-name-mobile");
-        if (nm && nmm) nmm.textContent = nm.textContent;
+        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
       });
-      const nm = document.getElementById("user-name");
-      if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
-    });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
