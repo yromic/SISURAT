@@ -90,6 +90,7 @@
         type: "date",
         icon: "fa-calendar-alt",
         placeholder: "",
+        optional: true,
       },
       {
         id: "nama_pengambil",
@@ -97,6 +98,7 @@
         type: "text",
         icon: "fa-user",
         placeholder: "Ahmad Fauzi",
+        optional: true,
       },
       {
         id: "jabatan",
@@ -104,6 +106,7 @@
         type: "text",
         icon: "fa-briefcase",
         placeholder: "Kepala Sekolah",
+        optional: true,
       },
       {
         id: "asal_sekolah",
@@ -111,6 +114,7 @@
         type: "text",
         icon: "fa-school",
         placeholder: "SMPN 1 Bandung",
+        optional: true,
       },
     ],
     masuk: [
@@ -853,8 +857,9 @@
       data[f.id] = el ? el.value.trim() : "";
     });
 
-    // Validasi minimal: semua field wajib terisi (kecuali upload file & readonly otomatis)
-    const emptyField = fields.find((f) => !f.readonly && !data[f.id]);
+    // Validasi minimal: semua field wajib terisi
+    // Kecuali: field readonly (otomatis), field optional, dan field upload file
+    const emptyField = fields.find((f) => !f.readonly && !f.optional && !data[f.id]);
     if (emptyField) {
       showModalAlert("error", `Field "${emptyField.label}" harus diisi!`);
       return;

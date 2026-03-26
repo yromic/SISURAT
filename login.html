@@ -15,10 +15,14 @@
     />
     <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
     <style>
+      html {
+        height: 100%;
+      }
       body {
         font-family: "Inter", sans-serif;
         background: #222831;
-        overflow: hidden;
+        overflow-y: auto;
+        min-height: 100svh;
       }
       h1,
       h2,
@@ -105,7 +109,7 @@
       }
     </style>
   </head>
-  <body class="min-h-screen flex items-center justify-center p-4 relative">
+  <body class="min-h-screen flex items-center justify-center py-6 px-4 relative">
     <!-- Dynamic Mesh Background -->
     <div class="mesh-bg"></div>
 

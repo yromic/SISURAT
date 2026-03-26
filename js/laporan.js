@@ -545,7 +545,7 @@
     const count = filteredResult.all.length;
 
     if (count === 0) {
-      alert("Tidak ada data untuk dikirim. Silakan filter terlebih dahulu.");
+      showToast("error", "Tidak ada data untuk dikirim. Silakan filter terlebih dahulu.");
       return;
     }
 
@@ -586,13 +586,88 @@
 
     // ── 3. Buka Gmail Compose di tab baru ────────────────────────────────
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-    global.open(gmailUrl, "_blank");
+    const opened = global.open(gmailUrl, "_blank");
+
+    // ── 4. Tampilkan toast sukses ─────────────────────────────────────────
+    if (opened) {
+      showToast(
+        "success",
+        `📧 Gmail dibuka! CSV (${count} data) sudah terunduh — lampirkan sebelum kirim.`,
+        6000,
+      );
+    } else {
+      showToast(
+        "error",
+        "Pop-up diblokir browser. Izinkan pop-up untuk membuka Gmail.",
+      );
+    }
+  }
+
+  // ─── Toast Notification ───────────────────────────────────────────────────────
+  function showToast(type, message, duration = 4000) {
+    // Hapus toast lama jika ada
+    const oldToast = document.getElementById("laporan-toast");
+    if (oldToast) oldToast.remove();
+
+    const isSuccess = type === "success";
+    const toast = document.createElement("div");
+    toast.id = "laporan-toast";
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 300px;
+      max-width: 420px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: ${isSuccess ? "#16A34A" : "#EF4444"};
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      transform: translateX(120px);
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+      cursor: pointer;
+    `;
+    toast.innerHTML = `
+      <i class="fas ${isSuccess ? "fa-check-circle" : "fa-exclamation-circle"}" style="font-size:18px;flex-shrink:0;"></i>
+      <span style="flex:1;line-height:1.4;">${message}</span>
+      <i class="fas fa-times" style="font-size:12px;opacity:0.7;flex-shrink:0;"></i>
+    `;
+    toast.addEventListener("click", () => {
+      clearTimeout(toast._timer);
+      removeToast(toast);
+    });
+    document.body.appendChild(toast);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        toast.style.transform = "translateX(0)";
+        toast.style.opacity = "1";
+      });
+    });
+
+    // Auto remove
+    toast._timer = setTimeout(() => removeToast(toast), duration);
+  }
+
+  function removeToast(toast) {
+    toast.style.transform = "translateX(120px)";
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 350);
   }
 
   // ─── Utils ────────────────────────────────────────────────────────────────────
   function today() {
     return new Date().toISOString().slice(0, 10);
   }
+
 
   // ─── Logout ───────────────────────────────────────────────────────────────────
   function logout() {

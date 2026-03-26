@@ -188,8 +188,8 @@
         const judul = item.perihal || item.jenis_perlombaan || item.nama || "-";
 
         return `
-          <div class="flex items-start gap-3 p-3 bg-[#EEEEEE] rounded-lg hover:bg-gray-200 transition">
-            <div class="bg-[#00ADB5] bg-opacity-10 p-2 rounded-full">
+          <a href="cari.html" class="flex items-start gap-3 p-3 bg-[#EEEEEE] rounded-lg hover:bg-gray-200 transition cursor-pointer no-underline">
+            <div class="bg-[#00ADB5] bg-opacity-10 p-2 rounded-full flex-shrink-0">
               <i class="fas ${icon} text-[#00ADB5]"></i>
             </div>
             <div class="flex-1 min-w-0">
@@ -197,9 +197,10 @@
               <div class="flex items-center gap-2 text-xs text-[#393E46] mt-1">
                 <span class="bg-white px-2 py-0.5 rounded-full">${item.jenis}</span>
                 <span><i class="far fa-calendar-alt mr-1"></i>${tanggalStr}</span>
+                <span class="ml-auto text-[#00ADB5]"><i class="fas fa-arrow-right text-[10px]"></i></span>
               </div>
             </div>
-          </div>
+          </a>
         `;
       })
       .join("");
