@@ -2,7 +2,17 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbyVmQxsNOc81FfIzQC1OL9c5ckb7FLTCy4LXXunCQLlSc_UXAxs4wYTU9FjDDgGjBKb/exec";
+    "https://script.google.com/macros/s/AKfycbwExFT-HGWi4GW5BQ1vgC4V4goQfBT7VOFPICJkoHTr4ZqOtFsKnBbX97KQxOtLoZE/exec";
+
+  // ─── Batas ukuran file upload ─────────────────────────────────────────────────
+  // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
+  // namun browser mulai tidak stabil saat encode Base64 file >10MB.
+  // Kita batasi di 20MB dan kompres gambar otomatis jika >1MB.
+  const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+  const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
+  // PENTING: PropertiesService GAS memiliki batas 500 KB per nilai properti.
+  // Base64 overhead +33%, jadi chunk 350 KB raw → ~467 KB Base64 → aman di bawah 500 KB.
+  const CHUNK_SIZE_BYTES = 350 * 1024; // 350 KB per chunk (Base64 ≈ 467 KB < 500 KB limit)
 
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
@@ -190,6 +200,167 @@
     return response.json();
   }
 
+  // ─── Validasi ukuran file ─────────────────────────────────────────────────────
+  /**
+   * Periksa apakah file melebihi batas maksimum.
+   * @param {File} file
+   * @returns {{ valid: boolean, message?: string }}
+   */
+  function validateFileSize(file) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      const limitMB = (MAX_FILE_SIZE_BYTES / 1024 / 1024).toFixed(0);
+      return {
+        valid: false,
+        message: `File "${file.name}" (${sizeMB} MB) melebihi batas ${limitMB} MB. Kompres file terlebih dahulu atau gunakan format yang lebih kecil.`,
+      };
+    }
+    return { valid: true };
+  }
+
+  // ─── Kompresi gambar via Canvas ───────────────────────────────────────────────
+  /**
+   * Kompres file gambar (JPEG/PNG/WebP) via Canvas API.
+   * Jika file ≤ threshold atau bukan gambar, kembalikan file asli.
+   * @param {File} file
+   * @param {number} [quality=0.82]  JPEG quality (0–1)
+   * @param {number} [maxDimension=1920]  Maksimum lebar/tinggi piksel
+   * @returns {Promise<File>}  File terkompresi (atau file asli jika tidak perlu)
+   */
+  function compressImage(file, quality = 0.82, maxDimension = 1920) {
+    return new Promise((resolve) => {
+      // Hanya kompres gambar yang > threshold
+      if (!file.type.startsWith("image/") || file.size <= IMAGE_COMPRESS_THRESHOLD) {
+        return resolve(file);
+      }
+
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+
+        // Hitung dimensi baru dengan mempertahankan aspek rasio
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Gunakan JPEG untuk semua gambar (kecuali PNG transparan) agar lebih kecil
+        const outputMime = file.type === "image/png" ? "image/png" : "image/jpeg";
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file); // fallback ke file asli
+            const compressed = new File([blob], file.name, { type: outputMime });
+            // Jika kompresi justru lebih besar (jarang), pakai asli
+            resolve(compressed.size < file.size ? compressed : file);
+          },
+          outputMime,
+          quality,
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file); // fallback ke file asli
+      };
+
+      img.src = objectUrl;
+    });
+  }
+
+  // ─── Chunked File Upload ──────────────────────────────────────────────────────
+  /**
+   * Upload file ke Google Drive via Apps Script dalam potongan (chunks).
+   * Setiap chunk dikirim sebagai Base64 string 1MB.
+   * Apps Script mengumpulkan chunk di Properties Service, lalu menggabungkan
+   * dan menyimpannya ke Drive saat finalize.
+   *
+   * @param {File} file              - File yang akan diupload
+   * @param {string} folderId        - ID folder Google Drive tujuan
+   * @param {function} [onProgress]  - Callback progress(persen: number)
+   * @returns {Promise<string>}      - URL publik file di Google Drive
+   */
+  async function uploadFileChunked(file, folderId, onProgress) {
+    // 1. Validasi ukuran
+    const validation = validateFileSize(file);
+    if (!validation.valid) throw new Error(validation.message);
+
+    // 2. Kompres gambar jika perlu
+    const processedFile = await compressImage(file);
+
+    // 3. Konversi ke ArrayBuffer → Base64 (split per chunk)
+    const arrayBuffer = await processedFile.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const totalBytes = bytes.length;
+    const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE_BYTES);
+
+    // Buat session ID unik untuk upload ini
+    const uploadId = `upload_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    // 4. Kirim semua chunk
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE_BYTES;
+      const end = Math.min(start + CHUNK_SIZE_BYTES, totalBytes);
+      const chunk = bytes.slice(start, end);
+
+      // Konversi Uint8Array chunk → Base64 string
+      let binary = "";
+      for (let j = 0; j < chunk.length; j++) {
+        binary += String.fromCharCode(chunk[j]);
+      }
+      const chunkBase64 = btoa(binary);
+
+      const res = await postAction("upload_chunk", {
+        uploadId,
+        chunkIndex: i,
+        totalChunks,
+        chunkBase64,
+      });
+
+      if (!res || res.status !== "success") {
+        throw new Error(
+          (res && res.message) || `Gagal mengirim chunk ${i + 1}/${totalChunks}`,
+        );
+      }
+
+      if (typeof onProgress === "function") {
+        onProgress(Math.round(((i + 1) / totalChunks) * 90)); // maks 90% saat chunk selesai
+      }
+    }
+
+    // 5. Finalize: gabungkan chunk + simpan ke Drive
+    const finalRes = await postAction("finalize_upload", {
+      uploadId,
+      totalChunks,
+      fileName: processedFile.name,
+      mimeType: processedFile.type || "application/octet-stream",
+      folderId,
+    });
+
+    if (!finalRes || finalRes.status !== "success") {
+      throw new Error(
+        (finalRes && finalRes.message) || "Gagal menyelesaikan upload file.",
+      );
+    }
+
+    if (typeof onProgress === "function") onProgress(100);
+
+    return finalRes.fileUrl; // URL publik Google Drive
+  }
+
   // ─── Export Helpers ───────────────────────────────────────────────────────────
 
   function exportCsv(rows, filename) {
@@ -234,6 +405,7 @@
     BASE_URL,
     TABLE_CONFIG,
     DRIVE_FOLDERS,
+    MAX_FILE_SIZE_BYTES,
     getTables,
     getFolderId,
     parseDate,
@@ -246,6 +418,9 @@
     updateRecord,
     deleteRecord,
     uploadFile,
+    validateFileSize,
+    compressImage,
+    uploadFileChunked,
     exportCsv,
     onCacheInvalidate,
     invalidateCache,

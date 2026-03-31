@@ -1,7 +1,670 @@
-.card {
-  background: white;
-  padding: 16px;
+/* ============================================================
+   SISURAT Premium — Global Stylesheet
+   Consolidated from: dashboard.html, cari.html,
+                      master.html, laporan.html
+   ============================================================ */
+
+/* ─── 1. Base / Reset ───────────────────────────────────────── */
+html,
+body {
+  height: 100%;
+  height: 100dvh;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #eeeeee;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-outfit {
+  font-family: "Outfit", sans-serif;
+}
+
+/* ─── 2. Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #00adb5;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ─── 3. Glass Effects ──────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.glass-sidebar {
+  background: rgba(34, 40, 49, 0.95);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-modal {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ─── 4. Sidebar Layout & Mobile Transitions ────────────────── */
+#sidebar {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1023px) {
+  #sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    transform: translateX(-100%);
+    overflow-y: auto;
+  }
+  #sidebar.open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+  }
+  main {
+    overflow-x: hidden;
+  }
+}
+
+/* ─── 5. Sidebar Overlay ────────────────────────────────────── */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 40;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+#sidebar-overlay.open {
+  display: block;
+  opacity: 1;
+}
+
+/* ─── 6. Hover / Utility ────────────────────────────────────── */
+.hover-scale {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-scale:hover {
+  transform: scale(1.02) translateY(-4px);
+}
+
+.float-card {
+  transition: all 0.3s ease;
+}
+.float-card:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ─── 7. Dashboard — Stat Card ──────────────────────────────── */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 173, 181, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  z-index: 0;
+}
+.stat-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── 8. Custom Select (shared: cari, master, laporan) ──────── */
+.rows-select {
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #393e46;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+.rows-select:focus {
+  border-color: #00adb5;
+  box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.15);
+  outline: none;
+}
+
+/* ─── 9. Laporan — Filter Inputs ────────────────────────────── */
+.filter-input {
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 20px;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) inset;
+}
+.filter-input:focus {
+  background: #fff;
+  border-color: #00adb5;
+  box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.15);
+  transform: translateY(-2px);
+}
+
+/* ─── 10. Master — Tab Styles ───────────────────────────────── */
+.tab-active {
+  background: linear-gradient(135deg, #00adb5, #00939c);
+  color: #fff;
+  font-weight: 700;
+  font-family: "Outfit";
+  letter-spacing: 0.05em;
+  box-shadow: 0 8px 15px -3px rgba(0, 173, 181, 0.4);
+  transform: translateY(-2px);
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.3s;
+}
+.tab-inactive {
+  background: #fff;
+  color: #64748b;
+  font-weight: 600;
+  font-family: "Outfit";
+  letter-spacing: 0.05em;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.3s;
+  border: 1px solid #e2e8f0;
+}
+.tab-inactive:hover {
+  background: #f8fafc;
+  color: #00adb5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── 11. Master — Table Styles ─────────────────────────────── */
+.th-cell {
+  padding: 14px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: #f8fafc;
+  color: #94a3b8;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.th-cell:hover {
+  color: #00adb5;
+  background: #f1f5f9;
+}
+.td-cell {
+  padding: 14px 20px;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.tr-row {
+  transition: all 0.2s ease;
+}
+.tr-row:hover {
+  background: #f8fafc;
+  transform: scale(1.001);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.02) inset;
+}
+.tr-row:hover .td-cell {
+  color: #00adb5;
+}
+
+.th-cell .fa-sort-up,
+.th-cell .fa-sort-down {
+  color: #00adb5;
+  margin-left: 6px;
+}
+
+/* ─── 12. Master — Action Buttons ───────────────────────────── */
+.action-btn-edit {
+  background: rgba(0, 173, 181, 0.1);
+  color: #00adb5;
   border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.25s;
+  border: 1px solid transparent;
+}
+.action-btn-edit:hover {
+  background: #00adb5;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 173, 181, 0.2);
+}
+
+.action-btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.25s;
+  border: 1px solid transparent;
+}
+.action-btn-delete:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+.action-btn-restore {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.25s;
+  border: 1px solid transparent;
+}
+.action-btn-restore:hover {
+  background: #16a34a;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2);
+}
+
+.action-btn-force-delete {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.25s;
+  border: 1px solid transparent;
+}
+.action-btn-force-delete:hover {
+  background: #e11d48;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(225, 29, 72, 0.2);
+}
+
+/* ─── 13. Master — Form Input ───────────────────────────────── */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: #f8fafc;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) inset;
+}
+.form-input:focus {
+  background: #fff;
+  border-color: #00adb5;
+  box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.15);
+}
+.form-input:hover:not(:focus) {
+  background: #f1f5f9;
+}
+
+label[for^="input-"] {
+  font-family: "Outfit";
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ─── 14. Master — Trash Panel ──────────────────────────────── */
+.badge-trashed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.tr-trashed {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(239, 68, 68, 0.02) 10px,
+    rgba(239, 68, 68, 0.02) 20px
+  ) !important;
+  opacity: 0.8;
+}
+.tr-trashed .td-cell {
+  color: #94a3b8;
+  text-decoration: line-through;
+  text-decoration-color: rgba(239, 68, 68, 0.4);
+}
+
+#trash-panel {
+  background: #fff;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-top: 1px solid #f1f5f9;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+
+/* ─── 15. Master — Column Toggle Dropdown ───────────────────── */
+.col-toggle-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  min-width: 220px;
+  z-index: 100;
+  transform-origin: top right;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── 16. Master — Alerts & Toasts ──────────────────────────── */
+.modal-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.modal-alert-success {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+  padding: 16px 24px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Outfit";
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  min-width: 300px;
+  max-width: 400px;
+  animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+.toast-success {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 173, 181, 0.95),
+    rgba(0, 147, 156, 0.95)
+  );
+  color: #fff;
+}
+.toast-error {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.95),
+    rgba(185, 28, 28, 0.95)
+  );
+  color: #fff;
+}
+.toast-undo-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Inter";
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.toast-undo-btn:hover {
+  background: #fff;
+  color: #00adb5;
+  transform: scale(1.05);
+}
+
+/* ─── 17. Laporan — Table Styles ────────────────────────────── */
+.th-preview {
+  padding: 16px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(248, 250, 252, 0.8);
+  color: #64748b;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+}
+.th-preview:hover {
+  color: #00adb5;
+  background: #fff;
+}
+.td-preview {
+  padding: 16px 20px;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.tr-preview {
+  transition: all 0.2s ease;
+}
+.tr-preview:hover {
+  background: #f8fafc;
+  transform: scale(1.002);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+.tr-preview:hover .td-preview {
+  color: #00adb5;
+  font-weight: 600;
+}
+
+/* ─── 18. Laporan — Export Buttons ──────────────────────────── */
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+  font-family: "Outfit";
+  letter-spacing: 0.05em;
+  font-size: 14px;
+  padding: 14px 28px;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+.btn-export::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+  z-index: -1;
+}
+.btn-export:hover {
+  transform: translateY(-4px);
+}
+
+.btn-csv {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+  border: 1px solid #059669;
+}
+.btn-csv:hover {
+  box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.6);
+}
+
+.btn-pdf {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 10px 20px -5px rgba(239, 68, 68, 0.4);
+  border: 1px solid #dc2626;
+}
+.btn-pdf:hover {
+  box-shadow: 0 15px 30px -5px rgba(239, 68, 68, 0.6);
+}
+
+.btn-email {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.4);
+  border: 1px solid #7c3aed;
+}
+.btn-email:hover {
+  box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.6);
+}
+
+/* ─── 19. Laporan — Loading Overlay ─────────────────────────── */
+#loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2rem;
+  z-index: 20;
+  transition: opacity 0.3s;
+}
+
+/* ─── 20. Laporan — Font Awesome Select ─────────────────────── */
+.fa-select {
+  font-family: "Inter", "Font Awesome 6 Free", sans-serif;
+  font-weight: 900;
+}
+.fa-select option {
+  font-weight: 500;
+}
+
+/* ─── 21. Keyframe Animations ───────────────────────────────── */
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100px) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes slideDown {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

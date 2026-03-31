@@ -669,6 +669,7 @@
 
     let uploadSection = ``;
     if (tab !== "piagam") {
+      const maxMB = Math.round(SisuratApi.MAX_FILE_SIZE_BYTES / 1024 / 1024);
       uploadSection = `
       <div class="mt-4 col-span-2">
         <label class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide">
@@ -683,11 +684,28 @@
               file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
               file:text-sm file:font-semibold file:bg-[#00ADB5] file:text-white
               hover:file:bg-[#00939c] file:cursor-pointer cursor-pointer"/>
-          <p class="text-xs text-gray-400">Format: PDF, JPG, PNG</p>
+          <p class="text-xs text-gray-400">
+            <i class="fas fa-info-circle mr-1 text-[#00ADB5]"></i>
+            Format: PDF, JPG, PNG &bull; Maks. <strong>${maxMB} MB</strong>
+            &bull; Gambar dikompres otomatis
+          </p>
+          <!-- Progress bar chunked upload -->
+          <div id="upload-progress-wrap" class="hidden mt-2 rounded-xl border border-[#00ADB5]/30 bg-[#f0fdfe] p-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span id="upload-progress-label" class="text-xs font-semibold text-[#00ADB5]">Mengupload file...</span>
+              <span id="upload-progress-pct" class="text-xs font-bold text-[#00ADB5]">0%</span>
+            </div>
+            <div class="w-full bg-[#00ADB5]/20 rounded-full h-2 overflow-hidden">
+              <div id="upload-progress-bar"
+                class="h-2 rounded-full bg-gradient-to-r from-[#00ADB5] to-[#00d4de] transition-all duration-300"
+                style="width: 0%"></div>
+            </div>
+          </div>
           ${newFilePreviewPanel}
         </div>
       </div>`;
     }
+
 
     return `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -834,14 +852,27 @@
 
   // ─── Form Submit ──────────────────────────────────────────────────────────────
 
-  // Helper: baca file input sebagai base64 string
-  function readFileAsBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result); // "data:...;base64,..."
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
+  // ─── Upload Progress UI ───────────────────────────────────────────────────────
+  // Ditampilkan saat chunked upload sedang berlangsung
+  function showUploadProgress(label) {
+    const el = document.getElementById("upload-progress-wrap");
+    if (!el) return;
+    el.classList.remove("hidden");
+    const lbl = document.getElementById("upload-progress-label");
+    if (lbl) lbl.textContent = label || "Mengupload file...";
+    updateUploadProgress(0);
+  }
+
+  function updateUploadProgress(pct) {
+    const bar = document.getElementById("upload-progress-bar");
+    const txt = document.getElementById("upload-progress-pct");
+    if (bar) bar.style.width = pct + "%";
+    if (txt) txt.textContent = pct + "%";
+  }
+
+  function hideUploadProgress() {
+    const el = document.getElementById("upload-progress-wrap");
+    if (el) el.classList.add("hidden");
   }
 
   async function submitForm() {
@@ -894,18 +925,47 @@
       }
     }
 
-    // Upload file — baca sebagai base64 jika user memilih file baru
+    // Upload file — gunakan chunked upload jika user memilih file baru
     const fileInput = document.getElementById("form-file");
     if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+
+      // Validasi ukuran sebelum mulai upload
+      const validation = SisuratApi.validateFileSize(file);
+      if (!validation.valid) {
+        showModalAlert("error", validation.message);
+        return;
+      }
+
       try {
-        data.file_base64 = await readFileAsBase64(fileInput.files[0]);
-        data.file_name = fileInput.files[0].name;
+        const folderId = SisuratApi.getFolderId(table, false);
+
+        // Tampilkan progress bar
+        showUploadProgress(`Mengupload "${file.name}"...`);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i>Mengupload...';
+
+        // Upload via chunked — hasilnya URL publik Google Drive
+        const fileUrl = await SisuratApi.uploadFileChunked(
+          file,
+          folderId,
+          (pct) => updateUploadProgress(pct),
+        );
+
+        // Simpan URL (bukan Base64) ke payload record
+        data.upload_file = fileUrl;
+
         // Sertakan URL file lama agar backend bisa menghapusnya
         if (state.existingFileUrl) {
           data.old_file_url = state.existingFileUrl;
         }
+
+        hideUploadProgress();
       } catch (err) {
-        showModalAlert("error", "Gagal membaca file: " + err.message);
+        hideUploadProgress();
+        showModalAlert("error", "Gagal upload file: " + err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan';
         return;
       }
     }
