@@ -17,6 +17,48 @@
     />
 
     <link rel="stylesheet" href="css/style.css" />
+    <style>
+      @keyframes cinematicGlow {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.4;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.8;
+        }
+      }
+
+      .glow-cinematic {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+        overflow: hidden;
+      }
+
+      .glow-cinematic::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140%;
+        height: 140%;
+        transform: translate(-50%, -50%);
+
+        background: radial-gradient(
+          circle at center,
+          rgba(0, 173, 181, 0.35) 0%,
+          rgba(0, 173, 181, 0.15) 30%,
+          rgba(0, 173, 181, 0.05) 55%,
+          transparent 75%
+        );
+
+        animation: cinematicGlow 6s ease-in-out infinite;
+        filter: blur(60px);
+      }
+    </style>
   </head>
   <body class="flex overflow-hidden text-[#222831]">
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -148,7 +190,9 @@
             class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm"
           >
             <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
-            <span class="text-sm font-extrabold text-[#222831] font-outfit">SISURAT</span>
+            <span class="text-sm font-extrabold text-[#222831] font-outfit"
+              >SISURAT</span
+            >
           </div>
         </div>
         <span
@@ -193,19 +237,75 @@
             </h1>
           </div>
 
-          <div
-            class="shrink-0 max-w-sm text-gray-200 font-medium text-sm md:text-base bg-white/5 p-4 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg hidden md:block"
+          <button
+            onclick="
+              document.getElementById('infoCari').classList.toggle('hidden')
+            "
+            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
           >
-            Sistem deteksi cerdas yang didesain untuk menemukan dokumen Anda
-            secepat memikirkan kata kuncinya.
-          </div>
+            <i
+              class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"
+            ></i>
+            Panduan Cari
+          </button>
         </div>
       </div>
 
       <div class="px-6 lg:px-12 -mt-10 lg:-mt-14 relative z-20 pb-16">
+        <div
+          id="infoCari"
+          class="hidden bg-white rounded-3xl p-6 md:p-8 mt-20 mb-10 shadow-2xl shadow-[#00ADB5]/10 border border-[#00ADB5]/20"
+        >
+          <div class="space-y-6">
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00ADB5] to-[#00939c] flex items-center justify-center shadow-lg shadow-[#00ADB5]/30"
+                >
+                  <i class="fas fa-circle-play text-white text-lg"></i>
+                </div>
+                <h3
+                  class="text-xl font-bold font-outfit text-[#222831] tracking-wide"
+                >
+                  Panduan Sistem
+                </h3>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">
+                Pelajari cara menggunakan fitur laporan melalui video berikut
+              </p>
+            </div>
+
+            <!-- Responsive Video Container -->
+            <div
+              class="relative w-full rounded-2xl overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,173,181,0.25)] border border-[#00ADB5]/20 bg-gradient-to-br from-[#00ADB5]/5 to-transparent group"
+              style="padding-top: 56.25%"
+            >
+              <!-- Overlay Glow -->
+
+              <iframe
+                class="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/CtRIsakAgjQ?si=udLK1Yn_mkIrL6-U"
+                title="Panduan Sistem"
+                frameborder="0"
+                allow="
+                  accelerometer;
+                  autoplay;
+                  clipboard-write;
+                  encrypted-media;
+                  gyroscope;
+                  picture-in-picture;
+                "
+                allowfullscreen
+              >
+              </iframe>
+              <div class="glow-cinematic ring-1 ring-[#00ADB5]/20"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Search Bar Giant -->
         <div
-          class="bg-white rounded-[2rem] shadow-2xl p-4 md:p-6 mb-8 border border-gray-100/50 flex flex-col md:flex-row gap-4 items-center"
+          class="bg-white rounded-[2rem] shadow-2xl p-4 md:p-6 mt-20 mb-8 border border-gray-100/50 flex flex-col md:flex-row gap-4 items-center"
         >
           <div class="relative flex-1 w-full group">
             <div
