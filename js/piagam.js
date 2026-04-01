@@ -262,12 +262,14 @@
       "pengambilan_list",
       "pengambilan_icon",
       "pengambilan_other_container",
+      "ref_pengambilan",
     );
     initCustomSelect(
       "jenis_perlombaan_select",
       "jenis_perlombaan_list",
       "jenis_perlombaan_icon",
       "jenis_perlombaan_other_container",
+      "ref_jenis_perlombaan",
     );
 
     global.addEventListener("resize", resizeCanvas);
@@ -322,7 +324,7 @@
   }
 
   // --- MULAI: Fungsi untuk Custom Searchable Dropdown Unit Kerja ---
-  function initSearchableDropdown() {
+  async function initSearchableDropdown() {
     const inputSekolah = document.getElementById("unit_kerja");
     const listSekolah = document.getElementById("unit_kerja_list");
     const iconSekolah = document.getElementById("unit_kerja_icon");
@@ -330,112 +332,22 @@
     // Jika elemen tidak ditemukan di halaman, hentikan fungsi
     if (!inputSekolah || !listSekolah) return;
 
-    // Data Isian Dropdown
-    const dataSekolah = [
-      "SMP NEGERI 1 AMBARAWA",
-      "SMP NEGERI 2 AMBARAWA",
-      "SMP NEGERI 3 AMBARAWA",
-      "SMP NEGERI 4 AMBARAWA",
-      "SMP NEGERI 5 AMBARAWA",
-      "SMP NEGERI 6 AMBARAWA SATU ATAP",
-      "SMP ISLAM SUDIRMAN AMBARAWA",
-      "SMP KRISTEN LENTERA AMBARAWA",
-      "SMP MATER ALMA",
-      "SMP MUHAMMADIYAH AMBARAWA",
-      "SMP PANGUDI LUHUR AMBARAWA",
-      "SMP NEGERI 1 BANCAK",
-      "SMP ISLAM SUDIRMAN 1 BANCAK",
-      "SMP NEGERI 1 BANDUNGAN",
-      "SMP NEGERI 2 BANDUNGAN SATU ATAP",
-      "SMP AL MASUDIYYAH BANDUNGAN",
-      "SMP ISLAMADINA BANDUNGAN",
-      "SMP IT ASSALAM BANDUNGAN",
-      "SMP YALAL WATHON BLATER",
-      "SMP NEGERI 1 BANYUBIRU",
-      "SMP NEGERI 2 BANYUBIRU",
-      "SMP NEGERI 3 BANYUBIRU",
-      "SMP ISLAM SUDIRMAN BANYUBIRU",
-      "SMP PGRI BANYUBIRU",
-      "SMP NEGERI 1 BAWEN",
-      "SMP NEGERI 2 BAWEN",
-      "SMP DARUL FIKRI BAWEN",
-      "SMP NEGERI 1 BERGAS",
-      "UPTD SPF SMP NEGERI 2 BERGAS",
-      "SMP DARUSSALAM BERGAS",
-      "SMP ISLAM TERPADU CAHAYA UMMAT",
-      "SMP KANISIUS GIRISONTA",
-      "SMP PGRI BERGAS",
-      "SMP NEGERI 1 BRINGIN",
-      "SMP NEGERI 2 BRINGIN",
-      "SMP NEGERI 3 BRINGIN",
-      "SMP PLUS AL-ITTIHAD PONCOL",
-      "SMP NEGERI 1 GETASAN",
-      "SMP NEGERI 2 GETASAN",
-      "SMP NEGERI 3 GETASAN",
-      "SMP IT IZZATUL ISLAM GETASAN",
-      "SMP KRISTEN GETASAN",
-      "SMP NEGERI 1 JAMBU",
-      "SMP NEGERI 2 JAMBU",
-      "SMP MUHAMMADIYAH JAMBU",
-      "SMP THERESIANA JAMBU",
-      "SMP NEGERI 1 KALIWUNGU",
-      "SMP NEGERI 2 KALIWUNGU",
-      "SMP KERABAT",
-      "SMPIT QURAN INSAN MULIA KALIWUNGU",
-      "SMP NEGERI 1 PABELAN",
-      "SMP NEGERI 2 PABELAN",
-      "SMP NEGERI 3 PABELAN",
-      "SMP PLUS DAARUL AHGAFF PABELAN",
-      "SMP NEGERI 1 PRINGAPUS",
-      "SMP NEGERI 2 PRINGAPUS",
-      "SMP NEGERI 3 PRINGAPUS SATU ATAP",
-      "SMP ISLAM AL-HIDAYAAT PRINGAPUS",
-      "SMP NEGERI 1 SUMOWONO",
-      "SMP NEGERI 2 SUMOWONO",
-      "SMP ISLAM SUDIRMAN SUMOWONO",
-      "SMP THERESIANA SUMOWONO",
-      "SMP NEGERI 1 SURUH",
-      "SMP NEGERI 2 SURUH",
-      "SMP NEGERI 3 SURUH",
-      "SMP AL ISLAM SURUH",
-      "SMP ISLAM AR-RAHMAH SURUH",
-      "SMP ISLAM SUDIRMAN SURUH",
-      "SMP MUHAMMADIYAH SURUH",
-      "SMP NU SURUH",
-      "SMP NEGERI 1 SUSUKAN",
-      "SMP NEGERI 2 SUSUKAN",
-      "SMP ISLAM BINA INSANI",
-      "SMP ISLAM SUDIRMAN SUSUKAN",
-      "SMP MUHAMMADIYAH SUSUKAN",
-      "SMP NEGERI 1 TENGARAN",
-      "SMP NEGERI 2 TENGARAN",
-      "SMP NEGERI 3 TENGARAN",
-      "SMP NEGERI 4 TENGARAN SATU ATAP",
-      "SMP ISLAM SUDIRMAN TENGARAN",
-      "SMPIT NURUL ISLAM TENGARAN",
-      "SMP NEGERI 1 TUNTANG",
-      "SMP NEGERI 2 TUNTANG",
-      "SMP NEGERI 3 TUNTANG",
-      "SMP ISLAM PLUS AT TOHARI TUNTANG",
-      "SMP NUSANTARA TUNTANG",
-      "SMP PANGUDI LUHUR TUNTANG",
-      "SMP NEGERI 3 UNGARAN",
-      "SMP NEGERI 4 UNGARAN",
-      "SMP NEGERI 6 UNGARAN",
-      "SMP ALAM UNGARAN",
-      "SMP AN NUR UNGARAN",
-      "SMP DAARUL QURAN UNGARAN",
-      "SMP ISLAM PLUS ASSALAMAH UNGARAN",
-      "SMP ISLAM UNGARAN",
-      "SMP KANAAN UNGARAN",
-      "SMP MARDI RAHAYU UNGARAN",
-      "SMP PGRI UNGARAN",
-      "SMP NEGERI 1 UNGARAN",
-      "SMP NEGERI 2 UNGARAN",
-      "SMP NEGERI 5 UNGARAN",
-      "SMP ISLAM TERPADU MIFTAHUL ULUM UNGARAN",
-      "SMP MUHAMMADIYAH UNGARAN",
-    ];
+    // Tampilkan loading state
+    inputSekolah.placeholder = "Memuat daftar sekolah...";
+    inputSekolah.disabled = true;
+
+    // Fetch data dari API (dengan cache sessionStorage)
+    const refData = await SisuratApi.fetchRef("ref_sekolah");
+    const dataSekolah = refData.map((row) =>
+      String(row.nama_sekolah || "").toUpperCase().trim()
+    ).filter(Boolean);
+
+    // Kembalikan input ke kondisi normal
+    inputSekolah.disabled = false;
+    inputSekolah.placeholder =
+      dataSekolah.length > 0
+        ? "Ketik untuk mencari sekolah..."
+        : "Data sekolah tidak tersedia";
 
     function renderList(items) {
       listSekolah.innerHTML = "";
@@ -503,13 +415,52 @@
   // --- SELESAI: Fungsi Dropdown ---
 
   // --- MULAI: Fungsi untuk Custom Dropdown (Tanpa Search) ---
-  function initCustomSelect(inputId, listId, iconId, otherContainerId) {
+  /**
+   * @param {string} inputId          - ID elemen input (readonly)
+   * @param {string} listId           - ID elemen <ul> dropdown
+   * @param {string} iconId           - ID elemen ikon chevron
+   * @param {string} otherContainerId - ID container input manual "Other"
+   * @param {string} refTable         - Nama tabel referensi ("ref_pengambilan" / "ref_jenis_perlombaan")
+   */
+  async function initCustomSelect(inputId, listId, iconId, otherContainerId, refTable) {
     const input = document.getElementById(inputId);
     const list = document.getElementById(listId);
     const icon = document.getElementById(iconId);
     const otherContainer = document.getElementById(otherContainerId);
 
     if (!input || !list) return;
+
+    // Tampilkan loading state
+    input.placeholder = "Memuat...";
+    input.disabled = true;
+
+    // Fetch data referensi dari API (dengan forceRefresh untuk pastikan data terbaru)
+    const refData = await SisuratApi.fetchRef(refTable);
+
+    // Kembalikan input ke kondisi normal
+    input.disabled = false;
+    input.placeholder = refData.length > 0 ? "Pilih jenis..." : "Data tidak tersedia";
+
+    // Render item dari API ke dalam <ul>
+    list.innerHTML = "";
+    refData.forEach((row) => {
+      const nama = String(row.nama || "").trim();
+      if (!nama) return;
+      const li = document.createElement("li");
+      li.className =
+        "px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium";
+      li.setAttribute("data-value", nama);
+      li.textContent = nama;
+      list.appendChild(li);
+    });
+
+    // Selalu tambahkan pilihan "Lainnya (Isi Manual)" di paling bawah
+    const liOther = document.createElement("li");
+    liOther.className =
+      "px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors font-medium";
+    liOther.setAttribute("data-value", "Other");
+    liOther.textContent = "Lainnya (Isi Manual)";
+    list.appendChild(liOther);
 
     const items = list.querySelectorAll("li");
 

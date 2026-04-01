@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbwExFT-HGWi4GW5BQ1vgC4V4goQfBT7VOFPICJkoHTr4ZqOtFsKnBbX97KQxOtLoZE/exec";
+    "https://script.google.com/macros/s/AKfycbwAZSY42Dl3dcQ6ovwtqxjIv_9uSG-IcwE7XJXlJyWCQTMU0ijDbTxxrjkhUjVN_CE1/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -361,6 +361,76 @@
     return finalRes.fileUrl; // URL publik Google Drive
   }
 
+  // ─── Fetch Tabel Referensi (dengan cache sessionStorage + TTL) ───────────────
+  /**
+   * Ambil data tabel referensi dan cache di sessionStorage selama 10 menit.
+   * Data di-fetch ulang jika cache kosong, kedaluwarsa, atau forceRefresh = true.
+   *
+   * @param {string} tableName       - "ref_sekolah" | "ref_pengambilan" | "ref_jenis_perlombaan"
+   * @param {boolean} [forceRefresh] - Paksa fetch ulang meskipun ada cache
+   * @returns {Promise<Array>}       - Array objek baris (hanya yang aktif = TRUE)
+   */
+  const REF_CACHE_TTL_MS = 10 * 60 * 1000; // 10 menit
+
+  async function fetchRef(tableName, forceRefresh = false) {
+    const CACHE_KEY = `sisurat_ref_${tableName}`;
+
+    // Cek cache dulu (dengan validasi TTL)
+    if (!forceRefresh) {
+      try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const isExpired = Date.now() - timestamp > REF_CACHE_TTL_MS;
+          if (!isExpired && Array.isArray(data)) {
+            return data;
+          }
+        }
+      } catch (_) {
+        // Abaikan error parsing — fetch ulang
+      }
+    }
+
+    try {
+      const url = `${BASE_URL}?action=get_data&table=${encodeURIComponent(tableName)}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      const rows = Array.isArray(result.data) ? result.data : [];
+
+      // Filter hanya baris yang aktif (kolom aktif = "TRUE" atau "true")
+      const activeRows = rows.filter(
+        (row) => String(row.aktif).toUpperCase() === "TRUE"
+      );
+
+      // Simpan ke cache beserta timestamp (hanya jika ada data)
+      if (activeRows.length > 0) {
+        try {
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ data: activeRows, timestamp: Date.now() })
+          );
+        } catch (_) {
+          // sessionStorage penuh / private mode — abaikan
+        }
+      }
+
+      return activeRows;
+    } catch (error) {
+      console.error(`Gagal mengambil data referensi ${tableName}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Invalidasi cache tabel referensi tertentu (dipanggil setelah admin CRUD).
+   * @param {string} tableName
+   */
+  function invalidateRef(tableName) {
+    try {
+      sessionStorage.removeItem(`sisurat_ref_${tableName}`);
+    } catch (_) {}
+  }
+
   // ─── Export Helpers ───────────────────────────────────────────────────────────
 
   function exportCsv(rows, filename) {
@@ -412,6 +482,8 @@
     normalizeRecord,
     fetchTable,
     fetchAllTables,
+    fetchRef,
+    invalidateRef,
     login,
     savePiagam,
     saveRecord,
