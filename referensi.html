@@ -36,7 +36,9 @@
               class="w-8 h-8 transform group-hover:scale-110 transition duration-300"
             />
           </div>
-          <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">
+          <h2
+            class="text-2xl font-extrabold tracking-wide font-outfit text-white"
+          >
             SISURAT
           </h2>
         </a>
@@ -48,7 +50,9 @@
           href="dashboard.html"
           class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
         >
-          <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <i
+            class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Overview</span>
         </a>
 
@@ -56,7 +60,9 @@
           href="cari.html"
           class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
         >
-          <i class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <i
+            class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Pencarian Pintar</span>
         </a>
 
@@ -64,7 +70,9 @@
           href="master.html"
           class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
         >
-          <i class="fas fa-database w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <i
+            class="fas fa-database w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Master Data</span>
         </a>
 
@@ -72,7 +80,9 @@
           href="laporan.html"
           class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
         >
-          <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <i
+            class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"
+          ></i>
           <span>Ekspor &amp; Laporan</span>
         </a>
 
@@ -88,15 +98,26 @@
 
       <!-- Bottom Actions -->
       <div class="pt-6 border-t border-white/10 mt-auto">
-        <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
-            <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+        <div
+          class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5"
+        >
+          <div
+            class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]"
+          >
+            <div
+              class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center"
+            >
               <i class="fas fa-user text-white text-xs"></i>
             </div>
           </div>
           <div class="flex-1 overflow-hidden">
             <p class="text-xs text-gray-400 font-medium">Logged in as</p>
-            <p id="user-name" class="text-sm font-bold text-white truncate w-full">Administrator</p>
+            <p
+              id="user-name"
+              class="text-sm font-bold text-white truncate w-full"
+            >
+              Administrator
+            </p>
           </div>
         </div>
 
@@ -104,7 +125,8 @@
           onclick="logout()"
           class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group"
         >
-          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate Session
+          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate
+          Session
         </button>
       </div>
     </aside>
@@ -112,33 +134,58 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto min-h-0 relative">
       <!-- Mobile Header -->
-      <div class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+      <div
+        class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm"
+      >
         <div class="flex items-center gap-3">
-          <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+          <button
+            onclick="toggleSidebar()"
+            class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg"
+          >
             <i class="fas fa-bars text-xl"></i>
           </button>
           <div class="flex items-center gap-2">
             <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
           </div>
         </div>
-        <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+        <span
+          class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]"
+        >
           <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
         </span>
       </div>
 
       <!-- Header Banner -->
-      <div class="h-64 pt-16 pb-10 mb-20 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl">
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"></div>
-        <div class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"></div>
-        <div class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"></div>
+      <div
+        class="h-64 pt-16 pb-10 mb-20 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl"
+      >
+        <div
+          class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"
+        ></div>
+        <div
+          class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"
+        ></div>
+        <div
+          class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"
+        ></div>
 
-        <div class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6">
+        <div
+          class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6"
+        >
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm">
-              <i class="fas fa-sliders-h text-[#00ADB5]"></i> Manajemen Referensi
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm"
+            >
+              <i class="fas fa-sliders-h text-[#00ADB5]"></i> Manajemen
+              Referensi
             </div>
-            <h1 class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight">
-              Kelola Referensi,<br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-white">Data Dropdown Piagam.</span>
+            <h1
+              class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight"
+            >
+              Kelola Referensi,<br /><span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-white"
+                >Data Dropdown Piagam.</span
+              >
             </h1>
           </div>
         </div>
@@ -146,49 +193,113 @@
 
       <!-- Main Panel -->
       <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16 space-y-8">
-
         <!-- Info Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div onclick="refSwitchTab('sekolah')" class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0">
-              <i class="fas fa-school text-blue-500 group-hover:text-white transition-colors"></i>
+          <div
+            onclick="refSwitchTab('sekolah')"
+            class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group"
+          >
+            <div
+              class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0"
+            >
+              <i
+                class="fas fa-school text-blue-500 group-hover:text-white transition-colors"
+              ></i>
             </div>
             <div>
-              <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Nama Sekolah</p>
-              <p id="count-sekolah" class="text-2xl font-extrabold font-outfit text-[#222831]">—</p>
+              <p
+                class="text-[11px] font-black text-gray-400 uppercase tracking-widest"
+              >
+                Nama Sekolah
+              </p>
+              <p
+                id="count-sekolah"
+                class="text-2xl font-extrabold font-outfit text-[#222831]"
+              >
+                —
+              </p>
             </div>
           </div>
-          <div onclick="refSwitchTab('pengambilan')" class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group">
-            <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0">
-              <i class="fas fa-gifts text-purple-500 group-hover:text-white transition-colors"></i>
+          <div
+            onclick="refSwitchTab('pengambilan')"
+            class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group"
+          >
+            <div
+              class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0"
+            >
+              <i
+                class="fas fa-gifts text-purple-500 group-hover:text-white transition-colors"
+              ></i>
             </div>
             <div>
-              <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Jenis Pengambilan</p>
-              <p id="count-pengambilan" class="text-2xl font-extrabold font-outfit text-[#222831]">—</p>
+              <p
+                class="text-[11px] font-black text-gray-400 uppercase tracking-widest"
+              >
+                Jenis Pengambilan
+              </p>
+              <p
+                id="count-pengambilan"
+                class="text-2xl font-extrabold font-outfit text-[#222831]"
+              >
+                —
+              </p>
             </div>
           </div>
-          <div onclick="refSwitchTab('perlombaan')" class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group">
-            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0">
-              <i class="fas fa-medal text-amber-500 group-hover:text-white transition-colors"></i>
+          <div
+            onclick="refSwitchTab('perlombaan')"
+            class="ref-info-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:border-[#00ADB5] hover:shadow-[0_4px_20px_rgba(0,173,181,0.1)] transition-all group"
+          >
+            <div
+              class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-[#00ADB5] transition-colors shrink-0"
+            >
+              <i
+                class="fas fa-medal text-amber-500 group-hover:text-white transition-colors"
+              ></i>
             </div>
             <div>
-              <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Jenis Perlombaan</p>
-              <p id="count-perlombaan" class="text-2xl font-extrabold font-outfit text-[#222831]">—</p>
+              <p
+                class="text-[11px] font-black text-gray-400 uppercase tracking-widest"
+              >
+                Jenis Perlombaan
+              </p>
+              <p
+                id="count-perlombaan"
+                class="text-2xl font-extrabold font-outfit text-[#222831]"
+              >
+                —
+              </p>
             </div>
           </div>
         </div>
 
         <!-- CRUD Panel -->
-        <div id="panel-referensi" class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100">
+        <div
+          id="panel-referensi"
+          class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100"
+        >
           <!-- Header Panel -->
-          <div class="px-6 pt-6 pb-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+          <div
+            class="px-6 pt-6 pb-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+              <div
+                class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center"
+              >
                 <i class="fas fa-sliders-h text-[#00ADB5] text-lg"></i>
               </div>
               <div>
-                <h2 id="ref-panel-title" class="text-xl font-bold font-outfit text-[#222831]">Nama Sekolah</h2>
-                <p id="ref-panel-sub" class="text-xs text-gray-400 font-medium mt-0.5">Data sekolah untuk dropdown formulir</p>
+                <h2
+                  id="ref-panel-title"
+                  class="text-xl font-bold font-outfit text-[#222831]"
+                >
+                  Nama Sekolah
+                </h2>
+                <p
+                  id="ref-panel-sub"
+                  class="text-xs text-gray-400 font-medium mt-0.5"
+                >
+                  Data sekolah untuk dropdown formulir
+                </p>
               </div>
             </div>
             <button
@@ -201,7 +312,9 @@
           </div>
 
           <!-- Tab Selector -->
-          <div class="px-6 pt-4 flex gap-2 border-b border-gray-100 overflow-x-auto">
+          <div
+            class="px-6 pt-4 flex gap-2 border-b border-gray-100 overflow-x-auto"
+          >
             <button
               id="tab-sekolah"
               onclick="refSwitchTab('sekolah')"
@@ -229,7 +342,9 @@
           <div class="p-6">
             <!-- Search bar -->
             <div class="mb-4 relative">
-              <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <div
+                class="absolute inset-y-0 left-4 flex items-center pointer-events-none"
+              >
                 <i class="fas fa-search text-gray-400 text-sm"></i>
               </div>
               <input
@@ -242,26 +357,58 @@
             </div>
 
             <!-- Loading state -->
-            <div id="ref-loading" class="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
-              <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
-              <span class="text-sm font-medium animate-pulse">Memuat data referensi...</span>
+            <div
+              id="ref-loading"
+              class="flex flex-col items-center justify-center py-16 text-gray-400 gap-3"
+            >
+              <i
+                class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"
+              ></i>
+              <span class="text-sm font-medium animate-pulse"
+                >Memuat data referensi...</span
+              >
             </div>
 
             <!-- Empty state -->
-            <div id="ref-empty" class="hidden flex-col items-center justify-center py-16 text-gray-400 gap-3">
+            <div
+              id="ref-empty"
+              class="hidden flex-col items-center justify-center py-16 text-gray-400 gap-3"
+            >
               <i class="fas fa-inbox text-5xl opacity-20"></i>
-              <p class="text-sm font-medium">Belum ada data. Klik "Tambah Data" untuk mulai.</p>
+              <p class="text-sm font-medium">
+                Belum ada data. Klik "Tambah Data" untuk mulai.
+              </p>
             </div>
 
             <!-- Tabel -->
-            <div id="ref-table-wrapper" class="hidden overflow-x-auto rounded-2xl border border-gray-100">
+            <div
+              id="ref-table-wrapper"
+              class="hidden overflow-x-auto rounded-2xl border border-gray-100"
+            >
               <table class="w-full text-sm">
                 <thead>
                   <tr class="bg-gray-50 text-left">
-                    <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest w-12">#</th>
-                    <th id="ref-col-label" class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Nama</th>
-                    <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center w-28">Status</th>
-                    <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right w-32">Aksi</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest w-12"
+                    >
+                      #
+                    </th>
+                    <th
+                      id="ref-col-label"
+                      class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest"
+                    >
+                      Nama
+                    </th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center w-28"
+                    >
+                      Status
+                    </th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right w-32"
+                    >
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody id="ref-tbody" class="divide-y divide-gray-50"></tbody>
@@ -269,7 +416,10 @@
             </div>
 
             <!-- Counter -->
-            <div id="ref-counter" class="hidden mt-3 text-xs text-gray-400 font-medium text-right"></div>
+            <div
+              id="ref-counter"
+              class="hidden mt-3 text-xs text-gray-400 font-medium text-right"
+            ></div>
           </div>
         </div>
       </div>
@@ -282,27 +432,49 @@
       onclick="refCloseModal(event)"
     >
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-      <div class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-md p-8">
+      <div
+        class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-md p-8"
+      >
         <!-- Header -->
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+            <div
+              class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center"
+            >
               <i id="ref-modal-icon" class="fas fa-plus text-[#00ADB5]"></i>
             </div>
-            <h3 id="ref-modal-title" class="text-lg font-extrabold font-outfit text-[#222831]">Tambah Data</h3>
+            <h3
+              id="ref-modal-title"
+              class="text-lg font-extrabold font-outfit text-[#222831]"
+            >
+              Tambah Data
+            </h3>
           </div>
-          <button onclick="refCloseModalDirect()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+          <button
+            onclick="refCloseModalDirect()"
+            class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          >
             <i class="fas fa-times text-gray-500 text-sm"></i>
           </button>
         </div>
 
         <!-- Form -->
-        <form id="ref-form" onsubmit="event.preventDefault(); refSimpan();">
+        <form
+          id="ref-form"
+          onsubmit="
+            event.preventDefault();
+            refSimpan();
+          "
+        >
           <input type="hidden" id="ref-edit-id" />
           <input type="hidden" id="ref-edit-row" />
 
           <div class="mb-5">
-            <label id="ref-field-label" class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Nama</label>
+            <label
+              id="ref-field-label"
+              class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2"
+              >Nama</label
+            >
             <input
               type="text"
               id="ref-input-nama"
@@ -314,26 +486,53 @@
           </div>
 
           <div class="mb-6">
-            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Status</label>
+            <label
+              class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3"
+              >Status</label
+            >
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="ref-aktif" value="TRUE" checked class="accent-[#00ADB5]" />
+                <input
+                  type="radio"
+                  name="ref-aktif"
+                  value="TRUE"
+                  checked
+                  class="accent-[#00ADB5]"
+                />
                 <span class="text-sm font-semibold text-gray-700">Aktif</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="ref-aktif" value="FALSE" class="accent-red-500" />
-                <span class="text-sm font-semibold text-gray-700">Non-aktif</span>
+                <input
+                  type="radio"
+                  name="ref-aktif"
+                  value="FALSE"
+                  class="accent-red-500"
+                />
+                <span class="text-sm font-semibold text-gray-700"
+                  >Non-aktif</span
+                >
               </label>
             </div>
           </div>
 
-          <div id="ref-modal-alert" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"></div>
+          <div
+            id="ref-modal-alert"
+            class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"
+          ></div>
 
           <div class="flex gap-3">
-            <button type="button" onclick="refCloseModalDirect()" class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-gray-600 transition-colors text-sm">
+            <button
+              type="button"
+              onclick="refCloseModalDirect()"
+              class="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-gray-600 transition-colors text-sm"
+            >
               Batal
             </button>
-            <button type="submit" id="ref-submit-btn" class="flex-1 py-3 rounded-xl bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold shadow-[0_4px_12px_rgba(0,173,181,0.3)] transition-all text-sm flex items-center justify-center gap-2">
+            <button
+              type="submit"
+              id="ref-submit-btn"
+              class="flex-1 py-3 rounded-xl bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold shadow-[0_4px_12px_rgba(0,173,181,0.3)] transition-all text-sm flex items-center justify-center gap-2"
+            >
               <i class="fas fa-save"></i> Simpan
             </button>
           </div>
@@ -360,7 +559,12 @@
           if (nm && nmm) nmm.textContent = nm.textContent;
         });
         const nm = document.getElementById("user-name");
-        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+        if (nm)
+          observer.observe(nm, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+          });
       });
     </script>
   </body>
