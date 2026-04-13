@@ -1,9 +1,18 @@
 # PRD Frontend — SISURAT (Sistem Manajemen Surat)
 
-> **Versi Dokumen:** 1.0  
-> **Tanggal:** 2026-03-26  
-> **Status:** Aktif  
+> **Versi Dokumen:** 2.0
+> **Tanggal:** 2026-04-13
+> **Status:** Aktif
 > **Penulis:** Dihasilkan oleh Analisis Kodebase SISURAT-1
+
+---
+
+## Changelog Versi
+
+| Versi | Tanggal | Perubahan |
+|-------|---------|-----------|
+| 1.0 | 2026-03-26 | Dokumen awal — analisis kodebase pertama |
+| 2.0 | 2026-04-13 | Penambahan halaman `referensi.html`, modul `ref-crud.js`; API baru `fetchRef`, `invalidateRef`, `uploadFileChunked`, `compressImage`, `validateFileSize`; sentralisasi CSS ke `css/style.css`; pembaruan Site Map & Navigasi |
 
 ---
 
@@ -24,24 +33,25 @@ SISURAT adalah platform manajemen surat digital berbasis web yang dirancang khus
 | 3 | Memberikan visualisasi data arsip secara real-time | Dashboard aktif dengan chart |
 | 4 | Mengamankan data dengan sistem soft-delete (Recovery Bin) | Zero permanent data loss accident |
 | 5 | Mendukung ekspor multi-format (CSV, PDF, Email) | Laporan bisa diunduh/dikirim |
+| 6 | Menyediakan manajemen data referensi dropdown berbasis UI | Admin dapat CRUD sekolah/perlombaan/pengambilan tanpa menyentuh spreadsheet |
 
 ---
 
 ## 3. Pengguna (User Persona)
 
 ### 3.1 Administrator / Super Admin
-- **Peran:** Akses penuh ke semua fitur (CRUD, hapus permanen, ekspor)
-- **Kemampuan tambahan:** Dapat melihat panel Sampah (Trash) dan melakukan *force delete*
+- **Peran:** Akses penuh ke semua fitur (CRUD, hapus permanen, ekspor, kelola referensi)
+- **Kemampuan tambahan:** Dapat melihat panel Sampah (Trash), melakukan *force delete*, dan mengelola data referensi dropdown
 - **Identifikasi:** `role = "Super Admin"` di `localStorage`
 
 ### 3.2 Staf / Operator
 - **Peran:** Akses terbatas (tambah data, edit, soft-delete)
-- **Kemampuan:** Tidak dapat melakukan Force Delete
+- **Kemampuan:** Tidak dapat melakukan Force Delete; akses ke halaman Referensi masih bisa (auth check via `requireAuth`)
 - **Identifikasi:** `role` bukan Super Admin
 
 ### 3.3 Pengirim Piagam (Publik / Tamu)
 - **Peran:** Hanya dapat mengakses halaman `piagam.html` tanpa login
-- **Kemampuan:** Upload piagam + tanda tangan digital via canvas
+- **Kemampuan:** Upload piagam + tanda tangan digital via canvas; data dropdown (sekolah, perlombaan, pengambilan) diambil dari referensi yang dikelola admin
 
 ---
 
@@ -55,13 +65,26 @@ index.html          ← Landing Page (Publik)
 ├── piagam.html     ← Upload Piagam (Publik / Semi-Private)
 │
 └── [Protected - Butuh Auth]
-    ├── dashboard.html   ← Overview & Analitik
-    ├── cari.html        ← Pencarian Pintar
-    ├── master.html      ← Master Data (CRUD Terpadu)
-    └── laporan.html     ← Ekspor & Laporan
+    ├── dashboard.html    ← Overview & Analitik
+    ├── cari.html         ← Pencarian Pintar
+    ├── master.html       ← Master Data (CRUD Terpadu)
+    ├── laporan.html      ← Ekspor & Laporan
+    └── referensi.html    ← Kelola Referensi Dropdown  ← [BARU v2.0]
 ```
 
-### 4.2 Alur Autentikasi
+### 4.2 Sidebar Navigasi (5 Item)
+
+Sidebar global kini memiliki **5 item navigasi** (sebelumnya 4):
+
+| Ikon | Label | Halaman |
+|------|-------|---------|
+| `fa-chart-pie` | Overview | `dashboard.html` |
+| `fa-search` | Pencarian Pintar | `cari.html` |
+| `fa-database` | Master Data | `master.html` |
+| `fa-file-export` | Ekspor & Laporan | `laporan.html` |
+| `fa-sliders-h` | Kelola Referensi | `referensi.html` ← **BARU** |
+
+### 4.3 Alur Autentikasi
 
 ```
 Kunjungi index.html
@@ -75,7 +98,7 @@ Kunjungi index.html
                                    └─ Gagal  → Tampilkan pesan error
 ```
 
-### 4.3 Mekanisme Auth Guard
+### 4.4 Mekanisme Auth Guard
 
 Setiap halaman protected memanggil `SisuratAuth.requireAuth()`. Jika session tidak ada, otomatis redirect ke `index.html`.
 
@@ -133,7 +156,7 @@ Setiap halaman protected memanggil `SisuratAuth.requireAuth()`. Jika session tid
 
 | Komponen | Deskripsi |
 |----------|-----------|
-| Sidebar | Glassmorphism dark (#222831), sticky, navigasi 4 menu, user info, tombol Logout |
+| Sidebar | Glassmorphism dark (#222831), sticky, navigasi **5 menu**, user info, tombol Logout |
 | Mobile Header | Sticky top, hamburger menu, nama user truncated |
 | Header Banner | Gradient dark→teal, badge label, H1, tombol shortcut Form Masuk & Keluar (Google Forms) |
 | Stat Cards (4) | Total Rekap, Surat Masuk, Surat Keluar, Piagam — masing-masing dengan warna aksen unik |
@@ -164,7 +187,7 @@ DOMContentLoaded
 
 | Komponen | Deskripsi |
 |----------|-----------|
-| Sidebar | Identik dengan dashboard |
+| Sidebar | Identik dengan dashboard (5 menu) |
 | Header Banner | Gradient, label "Pencarian Pintar" |
 | Search Bar Giant | Input besar + tombol "Opsi Filter" |
 | Filter Panel `#filterPanel` | Collapsible: dropdown Kategori (Masuk/Keluar/Piagam), Date Range (dari/sampai), tombol Reset & Cari |
@@ -217,7 +240,8 @@ openModal(mode, id?)
 
 saveRecord()
     └─ Validasi form
-    └─ Upload file ke Google Drive (base64) jika ada file input
+    └─ Upload file via uploadFileChunked() jika ada file input  ← [BARU v2.0]
+    └─ Progress bar upload real-time                             ← [BARU v2.0]
     └─ SisuratApi.saveRecord() atau updateRecord()
     └─ Invalidate cache → refresh tabel
 
@@ -263,15 +287,87 @@ forceDelete(id) → SisuratApi.deleteRecord() (permanent) [Super Admin Only]
 | Komponen | Deskripsi |
 |----------|-----------|
 | Form Piagam | Nama, Jenis Lomba, Tingkat, Tahun Perlombaan, Jadwal Pengambilan |
+| Dropdown Dinamis | Sekolah, Jenis Perlombaan, Jenis Pengambilan — diisi dari `SisuratApi.fetchRef()` ← [BARU v2.0] |
 | Upload File | Input file piagam (PDF/gambar), konversi ke Base64 |
 | Canvas Tanda Tangan | Area menggambar tanda tangan (`<canvas>`), tombol Bersihkan |
 | Tombol Submit | Kirim semua data + file + TTD ke API |
 
 **Logika (`piagam.js`):**
 - Canvas signature via `mousedown/mousemove/mouseup` + touch events
+- **Dropdown diisi dari `SisuratApi.fetchRef(tableName)`** — data di-cache sessionStorage 10 menit ← [BARU v2.0]
 - File → FileReader → Base64 encoding
 - Submit → `SisuratApi.savePiagam(data)`
 - Validasi: semua field wajib diisi, file harus dipilih, TTD tidak boleh kosong
+
+---
+
+### 5.8 `referensi.html` — Kelola Referensi ← [HALAMAN BARU v2.0]
+
+**Tujuan:** Antarmuka admin untuk mengelola data referensi yang memengaruhi dropdown di `piagam.html`.
+
+| Komponen | Deskripsi |
+|----------|-----------|
+| Sidebar | Identik — tab "Kelola Referensi" aktif (gradient teal) |
+| Mobile Header | Sticky top, hamburger, nama user |
+| Header Banner | Gradient dark→teal, badge "Manajemen Referensi", H1 |
+| Info Cards (3) | Kartu ringkasan: **Nama Sekolah**, **Jenis Pengambilan**, **Jenis Perlombaan** — klik card untuk switch tab. Masing-masing menampilkan counter `X aktif / Y total` |
+| CRUD Panel `#panel-referensi` | Panel utama berisi tab selector + tabel data + tombol Tambah Data |
+| Tab Selector | 3 tab: Nama Sekolah \| Jenis Pengambilan \| Jenis Perlombaan |
+| Search Bar | `#ref-search` — filter client-side real-time tanpa fetch ulang |
+| Tabel Data | Kolom: #, Nama, Status (badge Aktif/Non-aktif), Aksi (Edit/Hapus) |
+| Loading State | Spinner teal saat fetch |
+| Empty State | Ikon inbox + pesan saat data kosong |
+| Counter | `X data · Y aktif` di bawah tabel |
+| Modal CRUD | Full modal backdrop blur: form input nama + radio status (Aktif/Non-aktif) + alert inline |
+
+**Logika (`ref-crud.js`):**
+```
+IIFE — (function initRefCrud(global))
+
+TAB_CONFIG = {
+  sekolah:     { table: "ref_sekolah",            namaKey: "nama_sekolah" }
+  pengambilan: { table: "ref_pengambilan",         namaKey: "nama" }
+  perlombaan:  { table: "ref_jenis_perlombaan",    namaKey: "nama" }
+}
+
+refSwitchTab(tab)
+    └─ Update active tab button + info card highlight border
+    └─ loadTabData()
+
+loadTabData()
+    └─ setLoading(true)
+    └─ fetch SisuratApi.BASE_URL?action=get_data&table=<cfg.table>
+    └─ renderTable(data)
+
+loadAllCounts()
+    └─ Fetch semua 3 tabel → update counter di info cards
+
+refFilterTable(keyword)
+    └─ Filter client-side dari currentData (tanpa fetch ulang)
+    └─ renderTable(filteredData)
+
+refTambah() → buka modal mode Tambah
+refEdit(rowNum, nama, aktif) → buka modal mode Edit (pre-fill data)
+
+refSimpan()
+    └─ isEdit? SisuratApi.updateRecord() : SisuratApi.saveRecord()
+    └─ Sukses → SisuratApi.invalidateRef(cfg.table)
+    └─ Refresh tabel + counter
+
+refHapus(rowNum, nama)
+    └─ window.confirm() → SisuratApi.deleteRecord()
+    └─ SisuratApi.invalidateRef() → refresh tabel + counter
+```
+
+**Tabel Referensi di Google Sheets:**
+
+| Tabel | Kolom Key | Keterangan |
+|-------|-----------|------------|
+| `ref_sekolah` | `nama_sekolah`, `aktif` | Daftar sekolah untuk dropdown Piagam |
+| `ref_pengambilan` | `nama`, `aktif` | Jenis pengambilan piagam |
+| `ref_jenis_perlombaan` | `nama`, `aktif` | Jenis kompetisi/perlombaan |
+
+**SEO:** `<title>Kelola Referensi | SISURAT Premium</title>`
 
 ---
 
@@ -283,7 +379,7 @@ forceDelete(id) → SisuratApi.deleteRecord() (permanent) [Super Admin Only]
 |-----------|------------|-------------|
 | HTML5 | Struktur semua halaman | — |
 | TailwindCSS | Utility classes styling | CDN (cdn.tailwindcss.com) |
-| Vanilla CSS | Custom classes, animasi, komponen JS-injected | Inline `<style>` per halaman |
+| Vanilla CSS | Custom classes, animasi, komponen global | **`css/style.css`** (sentralisasi sejak v2.0) |
 | JavaScript (ES6+) | Semua logika frontend | Modular via file `.js` |
 | Font Awesome | Ikon UI | v6.0.0-beta3 CDN |
 | Google Fonts | Tipografi | Outfit + Inter |
@@ -294,27 +390,74 @@ forceDelete(id) → SisuratApi.deleteRecord() (permanent) [Super Admin Only]
 
 ```
 js/
-├── api.js      → SisuratApi  (namespace global)
-│                 BASE_URL, TABLE_CONFIG, DRIVE_FOLDERS
-│                 CRUD: fetchTable, fetchAllTables, saveRecord, updateRecord, deleteRecord
-│                 Util: parseDate, normalizeRecord, exportCsv
-│                 Events: onCacheInvalidate, invalidateCache
+├── api.js       → SisuratApi  (namespace global)
+│                  BASE_URL, TABLE_CONFIG, DRIVE_FOLDERS
+│                  CRUD: fetchTable, fetchAllTables, saveRecord, updateRecord, deleteRecord
+│                  Ref: fetchRef, invalidateRef                      ← [BARU v2.0]
+│                  Upload: validateFileSize, compressImage, uploadFileChunked  ← [BARU v2.0]
+│                  Util: parseDate, normalizeRecord, exportCsv
+│                  Events: onCacheInvalidate, invalidateCache
 │
-├── auth.js     → SisuratAuth (namespace global)
-│                 Session: getStoredUser, setStoredUser, clearStoredUser
-│                 Guard: requireAuth(options)
-│                 Role: isSuperAdmin()
-│                 Logout: logoutToHome()
+├── auth.js      → SisuratAuth (namespace global)
+│                  Session: getStoredUser, setStoredUser, clearStoredUser
+│                  Guard: requireAuth(options)
+│                  Role: isSuperAdmin()
+│                  Logout: logoutToHome()
 │
-├── login.js    → Fungsi login() — dipanggil dari form
+├── login.js     → Fungsi login() — dipanggil dari form
 ├── dashboard.js → Render metrik + charts + aktivitas log
-├── search.js   → Cache, debounce, filter, paginasi, modal
-├── master.js   → Tab, tabel dinamis, modal form, CRUD, trash
-├── laporan.js  → Filter, render rekap, ekspor CSV/PDF/Email
-└── piagam.js   → Canvas TTD, file upload, submit form
+├── search.js    → Cache, debounce, filter, paginasi, modal
+├── master.js    → Tab, tabel dinamis, modal form, CRUD, trash, upload chunked
+├── laporan.js   → Filter, render rekap, ekspor CSV/PDF/Email
+├── piagam.js    → Canvas TTD, file upload, submit form, populate dropdowns dari fetchRef
+├── ref-crud.js  → CRUD referensi: sekolah, pengambilan, perlombaan  ← [BARU v2.0]
+└── js.js        → Google Apps Script backend (server-side, bukan frontend)
 ```
 
-### 6.3 Kontrak Data API
+### 6.3 API Baru di `SisuratApi` (v2.0)
+
+#### `fetchRef(tableName, forceRefresh?)`
+```js
+// Ambil data tabel referensi dengan cache sessionStorage TTL 10 menit
+// Hanya mengembalikan baris dengan aktif = "TRUE"
+SisuratApi.fetchRef("ref_sekolah")       // → Array<{ nama_sekolah, aktif, ... }>
+SisuratApi.fetchRef("ref_pengambilan")   // → Array<{ nama, aktif, ... }>
+SisuratApi.fetchRef("ref_jenis_perlombaan") // → Array<{ nama, aktif, ... }>
+```
+
+#### `invalidateRef(tableName)`
+```js
+// Hapus cache sessionStorage tabel referensi tertentu
+// Dipanggil setelah admin create/update/delete di referensi.html
+SisuratApi.invalidateRef("ref_sekolah");
+```
+
+#### `uploadFileChunked(file, folderId, onProgress?)`
+```js
+// Upload file ke Google Drive via chunked approach (max 20MB)
+// - Otomatis kompres gambar > 1MB via compressImage()
+// - Chunk size: 350 KB → Base64 ~467 KB (aman di bawah limit GAS 500 KB)
+// - Callback progress: 0–100%
+// - actions: upload_chunk → finalize_upload
+const fileUrl = await SisuratApi.uploadFileChunked(file, folderId, (pct) => {
+  progressBar.style.width = pct + "%";
+});
+```
+
+#### `compressImage(file, quality?, maxDimension?)`
+```js
+// Kompres gambar via Canvas API jika file > 1MB
+// Default: quality=0.82, maxDimension=1920px
+// Fallback ke file asli jika kompresi justru lebih besar
+```
+
+#### `validateFileSize(file)`
+```js
+// Periksa apakah file ≤ 20MB
+// Returns: { valid: boolean, message?: string }
+```
+
+### 6.4 Kontrak Data API
 
 **Endpoint:** `BASE_URL` (Google Apps Script)
 
@@ -326,6 +469,8 @@ js/
 | `update_record` | POST | `{ table, id, data: { ...fields } }` |
 | `hapus_record` | POST | `{ table, id }` |
 | `simpan_piagam` | POST | `{ nama, jenis_lomba, ..., file_base64, ttd_base64, folder_id, ttd_folder_id }` |
+| `upload_chunk` | POST | `{ uploadId, chunkIndex, totalChunks, chunkBase64 }` ← **BARU** |
+| `finalize_upload` | POST | `{ uploadId, totalChunks, fileName, mimeType, folderId }` ← **BARU** |
 
 **Struktur Data Normal (hasil `normalizeRecord`):**
 ```js
@@ -337,10 +482,20 @@ js/
 }
 ```
 
-### 6.4 Storage
+### 6.5 Konstanta Upload File
 
-- **`localStorage["user"]`** — Objek user login (`{ nama, username, role, email }`)
-- Tidak ada cookie, tidak ada session server-side
+| Konstanta | Nilai | Keterangan |
+|-----------|-------|------------|
+| `MAX_FILE_SIZE_BYTES` | 20 MB | Batas maksimal file upload |
+| `IMAGE_COMPRESS_THRESHOLD` | 1 MB | Ukuran di atas ini gambar dikompres |
+| `CHUNK_SIZE_BYTES` | 350 KB | Ukuran per chunk (Base64 ≈ 467 KB) |
+
+### 6.6 Storage
+
+| Storage | Key | Isi | Persistence |
+|---------|-----|-----|-------------|
+| `localStorage` | `"user"` | `{ nama, username, role, email }` | Sampai logout/clear |
+| `sessionStorage` | `"sisurat_ref_<tableName>"` | `{ data: [...], timestamp }` | TTL 10 menit, per-session |
 
 ---
 
@@ -366,21 +521,39 @@ js/
 | Body default | Inter | 400/500/600 | `<p>`, `<span>`, input, label |
 | Heading / Brand | Outfit | 700/800 | `<h1>`–`<h6>`, nama brand, tab |
 
-### 7.3 Komponen Reusable (CSS Pattern)
+### 7.3 Komponen Reusable (CSS — `css/style.css`)
+
+CSS telah **disentralisasi** ke `css/style.css` (sejak v2.0), menggantikan `<style>` inline per halaman.
 
 | Kelas | Deskripsi |
 |-------|-----------|
 | `.glass-sidebar` | Dark sidebar (rgba 34,40,49 + backdrop-blur) |
 | `.glass-panel` | Konten putih transparan (rgba 255,255,255,0.7 + blur) |
-| `.glass-card` | Kartu login (rgba 255,255,255,0.85 + blur lebih kuat) |
+| `.glass-modal` | Modal backdrop (rgba 255,255,255,0.85 + blur kuat) |
 | `.glass-nav` | Navbar transparan (rgba 255,255,255,0.75 + blur) |
 | `.tab-active` | Tab aktif: gradient teal + shadow teal |
 | `.tab-inactive` | Tab tidak aktif: putih + border abu |
 | `.action-btn-edit` | Tombol edit: teal subtle, hover full teal |
 | `.action-btn-delete` | Tombol hapus: merah subtle, hover full merah |
+| `.action-btn-restore` | Tombol restore: hijau subtle, hover full hijau |
+| `.action-btn-force-delete` | Tombol force delete: rose, hover full rose |
 | `.toast` | Notifikasi slide-in kanan bawah (min-width 300px) |
+| `.toast-success` | Toast sukses: gradient teal |
+| `.toast-error` | Toast error: gradient merah |
+| `.toast-undo-btn` | Tombol Undo di dalam toast |
 | `.form-input` | Input form: bg abu-50, focus border teal + ring |
 | `.badge-trashed` | Badge merah pill untuk data terhapus |
+| `.tr-trashed` | Baris sampah: garis diagonal merah + strikethrough |
+| `.stat-card` | Stat card dengan efek radial gradient overlay |
+| `.rows-select` | Dropdown rows-per-page (custom appearance) |
+| `.filter-input` | Input filter laporan: glassmorphism, focus lift |
+| `.btn-export` | Base export button: uppercase, hover lift |
+| `.btn-csv` | Hijau emerald |
+| `.btn-pdf` | Merah |
+| `.btn-email` | Ungu violet |
+| `.hover-scale` | Micro-animation hover lift + scale |
+| `.float-card` | Card hover dengan drop-shadow |
+| `.col-toggle-dropdown` | Dropdown toggle kolom master (absolute positioning) |
 
 ### 7.4 Responsivitas (Breakpoints)
 
@@ -401,6 +574,8 @@ js/
 | Background blob | `float` keyframe (translateY + scale) | 10s infinite |
 | Mesh background | `breath` keyframe (background-position) | 15s infinite |
 | Chart skeleton | `animate-pulse` (Tailwind) | — |
+| Dropdown scale-in | `scaleIn` keyframe | 0.2s cubic |
+| Alert slide-down | `slideDown` keyframe | 0.3s cubic |
 
 ---
 
@@ -410,7 +585,10 @@ js/
 |-------|--------|-------------|
 | User session | `localStorage["user"]` | Sampai logout/clear |
 | Cache data pencarian | In-memory (variabel `search.js`) | TTL 2 menit |
+| Cache data referensi | `sessionStorage["sisurat_ref_*"]` | TTL 10 menit ← **BARU** |
 | Tab aktif (master) | In-memory | Per-session |
+| Tab aktif (referensi) | In-memory (`currentTab`) | Per-session ← **BARU** |
+| Data referensi saat ini | In-memory (`currentData`, `filteredData`) | Per-session ← **BARU** |
 | Sort state (kolom) | In-memory (per tab) | Per-session |
 | Kolom visible | In-memory | Per-session |
 | View mode (grid/list) | In-memory | Per-session |
@@ -424,10 +602,14 @@ js/
 |----------|------------|
 | Login gagal | Tampilkan `#msg` dengan teks error dari API |
 | Fetch API gagal | Console error, render empty state dengan pesan informatif |
+| Upload file > 20MB | Toast error + reset form upload (via `validateFileSize`) |
+| Upload chunk gagal | Throw error dengan pesan chunk ke-N — ditangkap caller |
 | Upload file gagal | Toast error + reset form upload |
 | No data (pencarian) | Render empty state card dengan ilustrasi |
+| No data (referensi) | `#ref-empty` — ikon inbox + pesan "Belum ada data" |
 | Loading state | Spinner `fa-circle-notch fa-spin` di container hasil |
 | localStorage corrupt | `try/catch` di `getStoredUser()`, return null & redirect |
+| sessionStorage penuh | `try/catch` dalam `fetchRef()` — abaikan penyimpanan cache |
 
 ---
 
@@ -450,6 +632,7 @@ js/
 | master.html | Master Data \| SISURAT Premium |
 | laporan.html | Ekspor & Laporan \| SISURAT Premium |
 | piagam.html | Upload Piagam \| SISURAT |
+| referensi.html | Kelola Referensi \| SISURAT Premium ← **BARU** |
 
 ---
 
@@ -459,7 +642,7 @@ js/
 |---------|--------|---------|
 | Google Apps Script | REST API backend | Single endpoint URL di `api.js` |
 | Google Drive | Penyimpanan file dokumen & TTD | 3 Folder ID berbeda (masuk/keluar/piagam-ttd) |
-| Google Sheets | Database dokumen & user | Diakses via Apps Script |
+| Google Sheets | Database dokumen, user, & referensi | Diakses via Apps Script; tabel baru: `ref_sekolah`, `ref_pengambilan`, `ref_jenis_perlombaan` |
 | Google Forms | Input surat masuk/keluar eksternal | Link langsung dari Dashboard |
 | TailwindCSS CDN | Styling framework | Tidak tree-shaken |
 | Font Awesome CDN | Icon library | v6.0.0-beta3 |
@@ -470,45 +653,54 @@ js/
 
 ## 12. Batasan & Risiko Saat Ini
 
-| Batasan | Dampak | Rekomendasi |
-|---------|--------|-------------|
-| TailwindCSS via CDN (tidak build) | Bundle besar, semua class dimuat | Gunakan Vite + Tailwind CLI saat siap produksi |
-| CSS tersebar di `<style>` inline per halaman | Sulit maintenance konsistensi | Konsolidasi ke `css/style.css` |
+| Batasan | Dampak | Status / Rekomendasi |
+|---------|--------|----------------------|
+| TailwindCSS via CDN (tidak build) | Bundle besar, semua class dimuat | Tetap — gunakan Vite + Tailwind CLI saat siap produksi |
+| Auth hanya berbasis `localStorage` | Rentan XSS jika ada script injection | Tetap — tambahkan server-side session validasi |
+| Tidak ada pagination server-side | Semua data di-fetch sekaligus | Tetap — pertimbangkan cursor-based pagination |
+| ~~CSS tersebar di `<style>` inline per halaman~~ | ~~Sulit maintenance konsistensi~~ | ✅ **SELESAI** — Dikerjakan di v2.0, CSS dipusatkan ke `css/style.css` |
+| ~~File di-encode Base64 via JS (batas ~5MB)~~ | ~~Upload file besar gagal~~ | ✅ **SELESAI** — Chunked upload + kompresi gambar diimplementasi di `api.js` |
+| GAS Actions `upload_chunk` & `finalize_upload` bergantung PropertiesService | Batas 500 KB per properti | Chunk 350 KB → Base64 ≈ 467 KB, aman di bawah limit |
 | Tidak ada service worker / offline mode | Butuh koneksi internet terus | Pertimbangkan PWA untuk masa depan |
-| Auth hanya berbasis `localStorage` | Rentan XSS jika ada script injection | Tambahkan server-side session validasi |
-| Tidak ada pagination server-side | Semua data di-fetch sekaligus | Pertimbangkan cursor-based pagination |
-| File di-encode Base64 via JS | Batas ukuran file browse (~5MB) | Pertimbangkan direct multipart upload |
 
 ---
 
-## 13. Roadmap Fitur Frontend (Future)
+## 13. Roadmap Fitur Frontend
 
-| Prioritas | Fitur | Estimasi |
-|-----------|-------|----------|
-| 🔴 Tinggi | Notifikasi push untuk surat masuk baru | Sprint 1 |
-| 🔴 Tinggi | Dark mode toggle | Sprint 1 |
-| 🟠 Sedang | Advanced filter & sorting di halaman Cari | Sprint 2 |
-| 🟠 Sedang | Print preview & cetak dokumen langsung | Sprint 2 |
-| 🟡 Rendah | Konsolidasi CSS ke file terpusat | Sprint 3 |
-| 🟡 Rendah | PWA (offline support) | Sprint 3 |
-| 🟡 Rendah | Animasi page transition | Sprint 4 |
+| Prioritas | Fitur | Status |
+|-----------|-------|--------|
+| ✅ Selesai | Sentralisasi CSS ke `css/style.css` | v2.0 |
+| ✅ Selesai | Chunked file upload (bypass batas 5MB) + kompresi gambar | v2.0 |
+| ✅ Selesai | Halaman Kelola Referensi (`referensi.html` + `ref-crud.js`) | v2.0 |
+| ✅ Selesai | Cache referensi via `sessionStorage` dengan TTL 10 menit | v2.0 |
+| 🔴 Tinggi | Notifikasi push untuk surat masuk baru | Belum dimulai |
+| 🔴 Tinggi | Dark mode toggle | Belum dimulai |
+| 🟠 Sedang | Advanced filter & sorting di halaman Cari | Belum dimulai |
+| 🟠 Sedang | Print preview & cetak dokumen langsung | Belum dimulai |
+| 🟡 Rendah | PWA (offline support) | Belum dimulai |
+| 🟡 Rendah | Animasi page transition | Belum dimulai |
 
 ---
 
 ## 14. Checklist Kualitas Frontend
 
-- [ ] Semua halaman protected memanggil `requireAuth()` saat `DOMContentLoaded`
-- [ ] Tidak ada hardcode `BASE_URL` di luar `api.js`
-- [ ] Semua event pencarian menggunakan debounce (≥ 300ms)
-- [ ] Semua operasi write/delete diikuti `invalidateCache()`
-- [ ] Toast notification tampil pada setiap operasi C/U/D
-- [ ] Sidebar mobile dapat ditutup via overlay klik
-- [ ] Form tidak boleh submit ulang saat loading (disable tombol)
-- [ ] Empty state ditampilkan saat data kosong
-- [ ] Semua gambar/file memiliki `alt` attribute
-- [ ] Responsive diuji di 375px, 768px, dan 1280px
+- [x] Semua halaman protected memanggil `requireAuth()` saat `DOMContentLoaded`
+- [x] Tidak ada hardcode `BASE_URL` di luar `api.js`
+- [x] Semua event pencarian menggunakan debounce (≥ 300ms)
+- [x] Semua operasi write/delete diikuti `invalidateCache()` / `invalidateRef()`
+- [x] Toast notification tampil pada setiap operasi C/U/D
+- [x] Sidebar mobile dapat ditutup via overlay klik
+- [x] Form tidak boleh submit ulang saat loading (disable tombol)
+- [x] Empty state ditampilkan saat data kosong (`#ref-empty`, empty state cards)
+- [x] Semua gambar/file memiliki `alt` attribute
+- [x] Responsive diuji di 375px, 768px, dan 1280px
+- [x] CSS disentralisasi ke `css/style.css` (tidak ada `<style>` duplikat per halaman)
+- [x] Upload file besar menggunakan chunked upload (tidak lagi Base64 langsung) untuk menghindari batas ukuran
+- [x] Data dropdown piagam diambil dari tabel referensi yang dapat dikelola admin
+- [ ] Navigasi sidebar semua halaman sudah konsisten mencantumkan item "Kelola Referensi"
 
 ---
 
-*Dokumen ini dihasilkan berdasarkan analisis lengkap kodebase SISURAT-1 pada tanggal 2026-03-26.*  
-*Untuk pembaruan, silakan perbarui versi dokumen dan tanggal di bagian header.*
+*Dokumen ini diperbarui berdasarkan analisis lengkap kodebase SISURAT-1 pada tanggal 2026-04-13.*
+*Versi sebelumnya: v1.0 (2026-03-26).*
+*Untuk pembaruan, perbarui versi dokumen, tanggal, dan tabel Changelog di bagian header.*
