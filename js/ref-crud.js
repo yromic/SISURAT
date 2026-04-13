@@ -37,7 +37,7 @@
       counterId: "count-perlombaan",
     },
   };
-
+==========================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
   // ─── State ─────────────────────────────────────────────────────────────────
   let currentTab = "sekolah";
   let currentData = [];
@@ -56,29 +56,23 @@
   }
 
   function renderTable(data) {
-    const cfg = TAB_CONFIG[currentTab];
+    const cfg = TAB_CONFIG[currentTab]
     const tbody = document.getElementById("ref-tbody");
     const colLabel = document.getElementById("ref-col-label");
     const loading = document.getElementById("ref-loading");
     const empty = document.getElementById("ref-empty");
-    const wrapper = document.getElementById("ref-table-wrapper");
+    const wrapper = document.getElementById("rle-wrapper");
     const counter = document.getElementById("ref-counter");
 
     if (colLabel) colLabel.textContent = cfg.fieldLabel;
-    if (loading) loading.classList.add("hidden");
-
+    if (loading) loading.classList.add("hidden"
     if (!data || data.length === 0) {
       if (empty) { empty.classList.remove("hidden"); empty.classList.add("flex"); }
-      if (wrapper) wrapper.classList.add("hidden");
-      if (counter) counter.classList.add("hidden");
-      return;
+      if (wrapper) wrapper.classList.add("hid
     }
 
     if (empty) { empty.classList.add("hidden"); empty.classList.remove("flex"); }
-    if (wrapper) wrapper.classList.remove("hidden");
-
-    if (counter) {
-      const aktifCount = data.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
+    if (wrapper) wrapper.classList.remove("hidden"ount = data.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
       counter.textContent = `${data.length} data · ${aktifCount} aktif`;
       counter.classList.remove("hidden");
     }
@@ -86,76 +80,64 @@
     if (!tbody) return;
     tbody.innerHTML = data
       .map((row, idx) => {
-        const nama = row[cfg.namaKey] || "-";
+        cons = row[cfg.namaKey] || "-";
         const aktif = String(row.aktif).toUpperCase() === "TRUE";
         const rowNum = row.row_number;
         const safeNama = nama.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
-        return `
+  
           <tr class="hover:bg-gray-50/80 transition-colors group">
             <td class="px-5 py-3.5 text-gray-400 font-medium text-sm">${idx + 1}</td>
             <td class="px-5 py-3.5 font-semibold text-[#222831] text-sm">${nama}</td>
             <td class="px-5 py-3.5 text-center">
-              ${aktif
+              tif
                 ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100"><i class="fas fa-circle text-[6px]"></i> Aktif</span>'
                 : '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 text-xs font-bold rounded-full border border-red-100"><i class="fas fa-circle text-[6px]"></i> Non-aktif</span>'
               }
-            </td>
-            <td class="px-5 py-3.5 text-right">
+            </ass="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onclick="refEdit(${rowNum}, '${safeNama}', '${aktif ? "TRUE" : "FALSE"}')"
                   class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-500 text-blue-500 hover:text-white flex items-center justify-center transition-all text-xs"
                   title="Edit"
-                ><i class="fas fa-pencil-alt"></i></button>
+        i class="fas fa-pencil-alt"></i></button>
                 <button
                   onclick="refHapus(${rowNum}, '${safeNama}')"
                   class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-all text-xs"
-                  title="Hapus"
-                ><i class="fas fa-trash"></i></button>
+                  titli class="fas fa-trash"></i></button>
               </div>
             </td>
           </tr>
         `;
       })
-      .join("");
+      
   }
 
   // ─── Update Info Card counter ───────────────────────────────────────────────
-  async function loadAllCounts() {
-    for (const [key, cfg] of Object.entries(TAB_CONFIG)) {
+  async function loadAllCounts() {ey, cfg] of Object.entries(TAB_CONFIG)) {
       try {
         const url = `${SisuratApi.BASE_URL}?action=get_data&table=${encodeURIComponent(cfg.table)}`;
         const res = await fetch(url);
         const result = await res.json();
-        const rows = Array.isArray(result.data) ? result.data : [];
-        const aktif = rows.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
+        const rows = Array.isArray(result.data) ? result.data : f = rows.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
         const el = document.getElementById(cfg.counterId);
         if (el) el.textContent = `${aktif} aktif / ${rows.length} total`;
       } catch (_) {}
-    }
-  }
-
+  
   // ─── Filter tabel berdasarkan input search ──────────────────────────────────
   function refFilterTable(keyword) {
     const cfg = TAB_CONFIG[currentTab];
     if (!keyword.trim()) {
-      filteredData = currentData;
-    } else {
+      filteredData = cur
       const kw = keyword.toLowerCase();
       filteredData = currentData.filter(row =>
-        String(row[cfg.namaKey] || "").toLowerCase().includes(kw)
-      );
-    }
-    renderTable(filteredData);
+        String(row[cfg.namaKey] || "").toLowerCase().includeslteredData);
   }
 
   // ─── Load Data Tab Aktif ───────────────────────────────────────────────────
   async function loadTabData() {
     const cfg = TAB_CONFIG[currentTab];
-    setLoading(true);
-
-    // Reset search
+    setLoadch
     const searchEl = document.getElementById("ref-search");
     if (searchEl) searchEl.value = "";
 
