@@ -93,6 +93,21 @@
           ></i>
           <span>Kelola Referensi</span>
         </a>
+
+        <!-- Super Admin Section -->
+        <div id="sidebar-superadmin-section" class="hidden">
+          <div class="my-2 px-2">
+            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Super Admin</p>
+          </div>
+          <a href="user-management.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+            <i class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+            <span>Kelola User</span>
+          </a>
+          <a href="shield.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+            <i class="fas fa-shield-alt w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+            <span>Permission Shield</span>
+          </a>
+        </div>
       </nav>
 
       <!-- Bottom Actions -->
@@ -649,6 +664,9 @@
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/shield.store.js"></script>
+    <script src="js/shield.guard.js"></script>
+    <script src="js/sidebar-init.js"></script>
     <script src="js/master.js"></script>
     <script>
       function toggleSidebar() {
@@ -660,18 +678,12 @@
         document.getElementById("sidebar-overlay").classList.remove("open");
       }
       document.addEventListener("DOMContentLoaded", function () {
-        const observer = new MutationObserver(function () {
-          const nm = document.getElementById("user-name");
-          const nmm = document.getElementById("user-name-mobile");
-          if (nm && nmm) nmm.textContent = nm.textContent;
-        });
         const nm = document.getElementById("user-name");
-        if (nm)
-          observer.observe(nm, {
-            childList: true,
-            characterData: true,
-            subtree: true,
-          });
+        const nmm = document.getElementById("user-name-mobile");
+        if (nm && nmm) {
+          const obs = new MutationObserver(() => { nmm.textContent = nm.textContent; });
+          obs.observe(nm, { childList: true, characterData: true, subtree: true });
+        }
       });
     </script>
   </body>

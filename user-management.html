@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola User | SISURAT Premium</title>
+    <meta name="description" content="Manajemen akun user dan assignment role untuk sistem SISURAT." />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .user-avatar-ring {
+        background: conic-gradient(from 180deg at 50% 50%, #00ADB5 0%, #7c3aed 50%, #00ADB5 100%);
+        padding: 2px;
+        border-radius: 50%;
+      }
+      .shield-disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+      .role-badge { display: inline-flex; align-items: center; gap: 4px; }
+    </style>
+  </head>
+  <body class="flex overflow-hidden text-[#222831]">
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4">
+      <div class="px-4 py-6 mb-4">
+        <a href="dashboard.html" class="flex items-center gap-3 group">
+          <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300">
+            <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+          </div>
+          <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">SISURAT</h2>
+        </a>
+      </div>
+
+      <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
+        <a href="dashboard.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Overview</span>
+        </a>
+        <a href="cari.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Pencarian Pintar</span>
+        </a>
+        <a href="master.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-database w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Master Data</span>
+        </a>
+        <a href="laporan.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Ekspor &amp; Laporan</span>
+        </a>
+        <a href="referensi.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-sliders-h w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Kelola Referensi</span>
+        </a>
+
+        <!-- Separator Super Admin -->
+        <div class="my-2 px-2">
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Super Admin</p>
+        </div>
+
+        <!-- ACTIVE: Kelola User -->
+        <a href="user-management.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1">
+          <i class="fas fa-users-cog w-6 text-center text-lg"></i>
+          <span>Kelola User</span>
+        </a>
+        <a href="shield.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-shield-alt w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Permission Shield</span>
+        </a>
+      </nav>
+
+      <div class="pt-6 border-t border-white/10 mt-auto">
+        <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
+            <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+              <i class="fas fa-user text-white text-xs"></i>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <p class="text-xs text-gray-400 font-medium">Logged in as</p>
+            <p id="user-name" class="text-sm font-bold text-white truncate w-full">Administrator</p>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group">
+          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate Session
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto min-h-0 relative">
+      <!-- Mobile Header -->
+      <div class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <div class="flex items-center gap-2">
+            <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
+          </div>
+        </div>
+        <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+          <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
+        </span>
+      </div>
+
+      <!-- No Access Banner -->
+      <div id="no-access-banner" class="hidden mx-4 lg:mx-12 mt-8 bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
+        <i class="fas fa-lock text-red-400 text-3xl"></i>
+        <div>
+          <p class="font-bold text-red-700 text-lg">Akses Ditolak</p>
+          <p class="text-red-600 text-sm">Halaman ini hanya dapat diakses oleh Super Admin.</p>
+        </div>
+      </div>
+
+      <!-- Main Content (superadmin only) -->
+      <div id="user-main-content">
+        <!-- Header Banner -->
+        <div class="h-64 pt-16 pb-10 mb-20 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl">
+          <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"></div>
+          <div class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"></div>
+          <div class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"></div>
+
+          <div class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm">
+                <i class="fas fa-users-cog text-[#00ADB5]"></i> Manajemen User
+              </div>
+              <h1 class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight">
+                Kelola Akun,<br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-white">Assign Role & Akses.</span>
+              </h1>
+            </div>
+            <button id="btn-tambah-user" onclick="umOpenModal('add')"
+                    data-shield="create_user"
+                    class="flex items-center gap-2 px-6 py-3 bg-white text-[#222831] font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm shrink-0">
+              <i class="fas fa-user-plus text-[#00ADB5]"></i> Tambah User Baru
+            </button>
+          </div>
+        </div>
+
+        <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16 space-y-8">
+          <!-- Stat Cards -->
+          <div id="stat-cards-row" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100">
+              <div class="w-12 h-12 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center shrink-0">
+                <i class="fas fa-users text-[#00ADB5] text-xl"></i>
+              </div>
+              <div>
+                <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total User</p>
+                <p id="stat-total-user" class="text-2xl font-extrabold font-outfit text-[#222831]">—</p>
+              </div>
+            </div>
+            <!-- Dynamic role stats will be injected by JS -->
+          </div>
+
+          <!-- CRUD Panel -->
+          <div class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100">
+            <!-- Panel Header -->
+            <div class="px-6 pt-6 pb-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+                  <i class="fas fa-users-cog text-[#00ADB5] text-lg"></i>
+                </div>
+                <div>
+                  <h2 class="text-xl font-bold font-outfit text-[#222831]">Daftar User</h2>
+                  <p class="text-xs text-gray-400 font-medium mt-0.5">Kelola akun admin dan assignment role</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <!-- Rows per page -->
+                <select id="um-rows-select" class="rows-select text-sm font-semibold py-2 px-3 rounded-xl border border-gray-200 bg-white text-[#393E46] focus:border-[#00ADB5] outline-none">
+                  <option value="10">10 / halaman</option>
+                  <option value="25">25 / halaman</option>
+                  <option value="50">50 / halaman</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="px-6 pt-4 pb-2">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <i class="fas fa-search text-gray-400 text-sm"></i>
+                </div>
+                <input id="um-search" type="text" placeholder="Cari nama, username, email, atau role..."
+                       class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 text-sm font-medium outline-none transition-all" />
+              </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="um-loading" class="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+              <i class="fas fa-circle-notch fa-spin text-3xl text-[#00ADB5]"></i>
+              <span class="text-sm font-medium animate-pulse">Memuat data user...</span>
+            </div>
+
+            <!-- Table Wrapper -->
+            <div id="um-table-wrapper" class="hidden overflow-x-auto">
+              <!-- Empty State -->
+              <div id="um-empty" class="hidden flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+                <i class="fas fa-user-slash text-5xl opacity-20"></i>
+                <p class="text-sm font-medium">Belum ada user. Klik "Tambah User Baru" untuk memulai.</p>
+              </div>
+
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-gray-50 text-left">
+                    <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest w-14">Avatar</th>
+                    <th onclick="umSort('nama')" class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-[#00ADB5] transition-colors">
+                      Nama &amp; Email <i class="fas fa-sort ml-1 opacity-40"></i>
+                    </th>
+                    <th onclick="umSort('username')" class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-[#00ADB5] transition-colors">
+                      Username <i class="fas fa-sort ml-1 opacity-40"></i>
+                    </th>
+                    <th onclick="umSort('role')" class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-[#00ADB5] transition-colors">
+                      Role <i class="fas fa-sort ml-1 opacity-40"></i>
+                    </th>
+                    <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right w-40">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="um-tbody" class="divide-y divide-gray-50"></tbody>
+              </table>
+
+              <!-- Counter & Pagination -->
+              <div class="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                <p id="um-counter" class="text-xs text-gray-400 font-medium"></p>
+                <div id="um-pagination"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── Modal Tambah/Edit User ──────────────────────────────────────── -->
+    <div id="um-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4" onclick="umCloseModal(event)">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-lg p-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+              <i id="um-modal-icon" class="fas fa-user-plus text-[#00ADB5] text-lg"></i>
+            </div>
+            <h3 id="um-modal-title" class="text-xl font-extrabold font-outfit text-[#222831]">Tambah User Baru</h3>
+          </div>
+          <button onclick="umCloseModalDirect()" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+            <i class="fas fa-times text-gray-500 text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Form -->
+        <form id="um-form" onsubmit="event.preventDefault(); umSimpan();" class="space-y-4">
+          <!-- Nama -->
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Nama Lengkap</label>
+            <input type="text" id="um-form-nama" placeholder="Nama lengkap user" required autocomplete="off"
+                   class="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#00ADB5] focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 focus:shadow-[0_0_0_4px_rgba(0,173,181,0.12)]" />
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Username</label>
+            <input type="text" id="um-form-username" placeholder="username (tanpa spasi)" required autocomplete="off"
+                   class="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#00ADB5] focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 focus:shadow-[0_0_0_4px_rgba(0,173,181,0.12)]" />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Email</label>
+            <input type="email" id="um-form-email" placeholder="email@sekolah.sch.id" autocomplete="off"
+                   class="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#00ADB5] focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 focus:shadow-[0_0_0_4px_rgba(0,173,181,0.12)]" />
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Password</label>
+            <input type="password" id="um-form-password" placeholder="••••••••" autocomplete="new-password"
+                   class="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#00ADB5] focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 focus:shadow-[0_0_0_4px_rgba(0,173,181,0.12)]" />
+            <p id="um-form-password-hint" class="text-xs text-gray-400 mt-1 ml-1"></p>
+          </div>
+
+          <!-- Role -->
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">
+              <i class="fas fa-shield-alt text-[#00ADB5] mr-1"></i> Role / Hak Akses
+            </label>
+            <select id="um-form-role"
+                    class="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#00ADB5] focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 appearance-none">
+              <option value="">Pilih Role...</option>
+            </select>
+            <p class="text-xs text-gray-400 mt-1 ml-1 flex items-center gap-1">
+              <i class="fas fa-info-circle text-[#00ADB5]"></i>
+              Role menentukan hak akses user. Atur role di
+              <a href="shield.html" class="text-[#00ADB5] font-semibold underline hover:text-[#00939c]">Permission Shield</a>.
+            </p>
+          </div>
+
+          <!-- Alert -->
+          <div id="um-modal-alert" class="hidden px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 border"></div>
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="umCloseModalDirect()"
+                    class="flex-1 py-3.5 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-gray-600 transition-colors text-sm">
+              Batal
+            </button>
+            <button type="submit" id="um-submit-btn"
+                    class="flex-1 py-3.5 rounded-xl bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold shadow-[0_4px_12px_rgba(0,173,181,0.3)] transition-all text-sm flex items-center justify-center gap-2">
+              <i class="fas fa-save"></i> Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="um-toast-container" class="fixed bottom-6 right-6 z-[9999] space-y-3"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/shield.store.js"></script>
+    <script src="js/shield.guard.js"></script>
+    <script src="js/user-management.js"></script>
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebar-overlay").classList.toggle("open");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebar-overlay").classList.remove("open");
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        const observer = new MutationObserver(function () {
+          const nm = document.getElementById("user-name");
+          const nmm = document.getElementById("user-name-mobile");
+          if (nm && nmm) nmm.textContent = nm.textContent;
+        });
+        const nm = document.getElementById("user-name");
+        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+      });
+    </script>
+  </body>
+</html>

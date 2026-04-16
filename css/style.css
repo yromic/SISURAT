@@ -668,3 +668,65 @@ label[for^="input-"] {
     opacity: 1;
   }
 }
+
+/* ─── 22. Permission Shield ──────────────────────────────────── */
+
+/* Disabled state oleh ShieldGuard */
+.shield-disabled {
+  opacity: 0.38;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
+/* Sidebar separator Super Admin */
+.sidebar-divider {
+  padding: 8px 8px 4px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.3);
+}
+
+/* Permission badge warna per action */
+.perm-badge-view    { background: rgba(59,130,246,0.12); color: #3b82f6; border-color: rgba(59,130,246,0.25); }
+.perm-badge-create  { background: rgba(16,185,129,0.12); color: #10b981; border-color: rgba(16,185,129,0.25); }
+.perm-badge-edit    { background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.25); }
+.perm-badge-delete  { background: rgba(239,68,68,0.12);  color: #ef4444; border-color: rgba(239,68,68,0.25); }
+.perm-badge-export  { background: rgba(139,92,246,0.12); color: #8b5cf6; border-color: rgba(139,92,246,0.25); }
+.perm-badge-active  { background: rgba(0,173,181,0.1); color: #00adb5; border-color: rgba(0,173,181,0.3); }
+
+/* Role list hover state */
+.role-list-item:hover:not(.role-list-item-active) {
+  background-color: #f8fafc;
+  transform: translateX(4px);
+}
+
+/* Toast posisi dalam container (user-management & shield) */
+#um-toast-container .toast,
+#shield-toast-container .toast {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shield permission card indeterminate checkbox */
+input[type="checkbox"]:indeterminate {
+  accent-color: #00adb5;
+}
+
+/* Toggle switch dalam shield panel */
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(0,173,181,0.2);
+}
+
+/* Shield panel animation */
+@keyframes shieldPanelIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.shield-panel-enter {
+  animation: shieldPanelIn 0.35s cubic-bezier(0.16,1,0.3,1);
+}

@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbwAZSY42Dl3dcQ6ovwtqxjIv_9uSG-IcwE7XJXlJyWCQTMU0ijDbTxxrjkhUjVN_CE1/exec";
+    "https://script.google.com/macros/s/AKfycbz1njCfL9mhDMN_4aTjLGU2twkNAtJOn093bOyURBBBdHLcuByi4lUzVpqY0ljDJ2il/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -10,9 +10,10 @@
   // Kita batasi di 20MB dan kompres gambar otomatis jika >1MB.
   const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
   const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
-  // PENTING: PropertiesService GAS memiliki batas 500 KB per nilai properti.
-  // Base64 overhead +33%, jadi chunk 350 KB raw → ~467 KB Base64 → aman di bawah 500 KB.
-  const CHUNK_SIZE_BYTES = 350 * 1024; // 350 KB per chunk (Base64 ≈ 467 KB < 500 KB limit)
+  // PENTING: CacheService GAS memiliki batas 100 KB per nilai.
+  // Chunk size raw dalam bytes HARUS kelipatan 3 agar bit padding Base64 tidak kacau saat digabungkan.
+  // 48 KB = 49152 bytes (kelipatan 3). Base64 = 65536 karakter (~64 KB). Sangat aman di bawah limit 100 KB.
+  const CHUNK_SIZE_BYTES = 48 * 1024; // Wajib kelipatan 3!
 
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
@@ -171,6 +172,11 @@
     if (payload.ttd_base64 && !payload.ttd_folder_id) {
       payload.ttd_folder_id = getFolderId(table, true);
     }
+    // Sertakan identitas aktor untuk validasi RBAC
+    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
+    if (user && user.username) {
+      payload.actor = user.username;
+    }
     // Struktur: { action, data: { table, data: payload } } — sesuai backend (params.data.table)
     return postAction("simpan_record", { table, data: payload });
   }
@@ -184,12 +190,20 @@
     if (payload.ttd_base64 && !payload.ttd_folder_id) {
       payload.ttd_folder_id = getFolderId(table, true);
     }
+    // Sertakan identitas aktor untuk validasi RBAC
+    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
+    if (user && user.username) {
+      payload.actor = user.username;
+    }
     // Struktur: { action, data: { table, id, data: payload } } — sesuai backend (params.data.table)
     return postAction("update_record", { table, id, data: payload });
   }
 
   function deleteRecord(table, id) {
-    return postAction("hapus_record", { table, id });
+    // Sertakan actor agar backend bisa validasi RBAC + tulis audit log
+    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
+    const actor = user ? (user.username || user.email || "") : "";
+    return postAction("hapus_record", { table, id, actor });
   }
 
   async function uploadFile(formData) {

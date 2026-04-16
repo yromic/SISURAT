@@ -378,6 +378,15 @@
     const allCols = TABLE_COLUMNS[tab];
     const visibleCols = allCols.filter((c) => !isColHidden(tab, c.key));
     const isSA = SisuratAuth.isSuperAdmin();
+    // ── Permission-based action visibility [BUG-01 fix] ────────────────────
+    const editPerm   = tab === "piagam" ? "edit_piagam"   : "edit_surat";
+    const deletePerm = tab === "piagam" ? "delete_piagam" : "delete_surat";
+    const createPerm = tab === "piagam" ? "create_piagam" : "create_surat";
+    const _guard     = typeof ShieldGuard !== "undefined" ? ShieldGuard : null;
+    const canEdit    = isSA || (_guard !== null && _guard.can(editPerm));
+    const canDelete  = isSA || (_guard !== null && _guard.can(deletePerm));
+    const canCreate  = isSA || (_guard !== null && _guard.can(createPerm));
+    const showActions = canEdit || canDelete;
     const total = state.filteredData.length;
     const pageSize = state.pageSize;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -402,6 +411,8 @@
                 : "fa-sort-down text-[#00ADB5]"
               : "fa-sort text-gray-300";
             return `<th class="th-cell cursor-pointer hover:bg-[#e6fafb] select-none group"
+                data-col="${c.key}"
+                aria-sort="${state.sortKey === c.key ? (state.sortDir === 1 ? 'ascending' : 'descending') : 'none'}"
                 onclick="sortBy('${c.key}')">
                 <span class="flex items-center gap-1">
                     ${c.label}
@@ -410,12 +421,12 @@
             </th>`;
           })
           .join("")}
-        ${isSA ? '<th class="th-cell text-center">Aksi</th>' : ""}
+        ${showActions ? '<th class="th-cell text-center">Aksi</th>' : ""}
       </tr>`;
 
     // Render body
     const tbody = document.getElementById("master-tbody");
-    const colSpan = visibleCols.length + (isSA ? 2 : 1);
+    const colSpan = visibleCols.length + (showActions ? 2 : 1);
     if (pageData.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -439,17 +450,17 @@
               })
               .join("")}
             ${
-              isSA
+              showActions
                 ? `<td class="td-cell text-center">
                 <div class="flex gap-1 justify-center">
-                  <button onclick='openEditModal(${rowJson},${JSON.stringify(rowId)})'
+                  ${canEdit ? `<button id="btn-edit-${rowId}" onclick='openEditModal(${rowJson},${JSON.stringify(rowId)})'
                     class="action-btn-edit" title="Edit">
                     <i class="fas fa-pencil-alt"></i>
-                  </button>
-                  <button onclick='confirmDelete(${JSON.stringify(rowId)})'
+                  </button>` : ""}
+                  ${canDelete ? `<button id="btn-delete-${rowId}" onclick='confirmDelete(${JSON.stringify(rowId)})'
                     class="action-btn-delete" title="Hapus">
                     <i class="fas fa-trash"></i>
-                  </button>
+                  </button>` : ""}
                 </div>
               </td>`
                 : ""
@@ -474,7 +485,7 @@
     // Tambah button visibility
     const addBtn = document.getElementById("btn-tambah");
     if (addBtn) {
-      addBtn.classList.toggle("hidden", !isSA);
+      addBtn.classList.toggle("hidden", !canCreate);
     }
   }
 
@@ -905,9 +916,10 @@
       data.timestamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
       // Email Address & Nama Upload: ambil dari sesi login yang tersimpan
+      // PENTING: Prioritaskan username agar RBAC backend versi sebelumnya tetap lolos (karena backend mengambil field ini sebagai 'actor')
       const currentUser = SisuratAuth.getStoredUser();
       data.email_address =
-        (currentUser && (currentUser.email || currentUser.username)) || "";
+        (currentUser && (currentUser.username || currentUser.email)) || "";
       // nama_pengupload: tampilkan nama lengkap jika ada, fallback ke username
       data.nama_pengupload =
         (currentUser && (currentUser.nama || currentUser.username)) || "";
@@ -1331,6 +1343,15 @@
     document
       .getElementById("master-search")
       .addEventListener("input", debouncedSearch);
+
+    // [BUG-02 fix] Sort via event delegation pada thead — lebih reliable dari inline onclick
+    const theadEl = document.getElementById("master-thead");
+    if (theadEl) {
+      theadEl.addEventListener("click", (e) => {
+        const th = e.target.closest("th[data-col]");
+        if (th) sortBy(th.dataset.col);
+      });
+    }
 
     // Wire confirm-delete-btn ke doForceDelete
     const confirmBtn = document.getElementById("confirm-delete-btn");

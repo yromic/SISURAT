@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permission Shield | SISURAT Premium</title>
+    <meta name="description" content="Manajemen Role dan Permission berbasis Shield untuk sistem SISURAT. Terinspirasi dari Laravel Filament Shield." />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .role-list-item { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
+      .shield-disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+      .perm-label-active { border-color: #00ADB5; background-color: rgba(0,173,181,0.08); color: #00ADB5; }
+      .shield-panel-enter { animation: slideInRight 0.3s cubic-bezier(0.4,0,0.2,1) forwards; }
+      @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+      .toggle-switch { position:relative; width:44px; height:24px; }
+      .toggle-switch input { opacity:0; width:0; height:0; }
+      .toggle-slider {
+        position:absolute; inset:0; background:#d1d5db; border-radius:9999px;
+        cursor:pointer; transition:0.3s;
+      }
+      .toggle-slider::before {
+        content:''; position:absolute; width:18px; height:18px; left:3px; top:3px;
+        background:white; border-radius:50%; transition:0.3s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      }
+      .toggle-switch input:checked + .toggle-slider { background:#00ADB5; }
+      .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+      .toggle-switch input:disabled + .toggle-slider { opacity:0.5; cursor:not-allowed; }
+    </style>
+  </head>
+  <body class="flex overflow-hidden text-[#222831]">
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4">
+      <div class="px-4 py-6 mb-4">
+        <a href="dashboard.html" class="flex items-center gap-3 group">
+          <div class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300">
+            <img src="assets/icon/Logo.ico" alt="Logo" class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+          </div>
+          <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">SISURAT</h2>
+        </a>
+      </div>
+
+      <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
+        <a href="dashboard.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Overview</span>
+        </a>
+        <a href="cari.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Pencarian Pintar</span>
+        </a>
+        <a href="master.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-database w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Master Data</span>
+        </a>
+        <a href="laporan.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Ekspor &amp; Laporan</span>
+        </a>
+        <a href="referensi.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-sliders-h w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Kelola Referensi</span>
+        </a>
+        <div class="my-2 px-2">
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Super Admin</p>
+        </div>
+        <a href="user-management.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"></i><span>Kelola User</span>
+        </a>
+        <!-- ACTIVE: Permission Shield -->
+        <a href="shield.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1">
+          <i class="fas fa-shield-alt w-6 text-center text-lg"></i><span>Permission Shield</span>
+        </a>
+      </nav>
+
+      <div class="pt-6 border-t border-white/10 mt-auto">
+        <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
+            <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+              <i class="fas fa-user text-white text-xs"></i>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <p class="text-xs text-gray-400 font-medium">Logged in as</p>
+            <p id="user-name" class="text-sm font-bold text-white truncate w-full">Administrator</p>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group">
+          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate Session
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto min-h-0 relative">
+      <!-- Mobile Header -->
+      <div class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
+        </div>
+        <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+          <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
+        </span>
+      </div>
+
+      <!-- No Access Banner -->
+      <div id="no-access-banner" class="hidden mx-4 lg:mx-12 mt-8 bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
+        <i class="fas fa-lock text-red-400 text-3xl"></i>
+        <div>
+          <p class="font-bold text-red-700 text-lg">Akses Ditolak</p>
+          <p class="text-red-600 text-sm">Halaman ini hanya dapat diakses oleh Super Admin.</p>
+        </div>
+      </div>
+
+      <!-- Main Shield Content -->
+      <div id="shield-main-content">
+        <!-- Header Banner -->
+        <div class="h-72 pt-16 pb-10 mb-20 relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl"
+             style="background: linear-gradient(135deg, #222831 0%, #393E46 40%, #7c3aed 80%, #00ADB5 100%);">
+          <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"></div>
+          <div class="absolute -top-10 -right-20 w-80 h-80 bg-purple-500/10 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"></div>
+          <div class="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-purple-400 to-[#00ADB5] rounded-full blur-[60px] mix-blend-screen opacity-50"></div>
+
+          <div class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm">
+                <i class="fas fa-shield-alt text-purple-300"></i> Permission Shield
+              </div>
+              <h1 class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight">
+                Role &amp; Permission,<br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-teal-200">Kontrol Akses Granular.</span>
+              </h1>
+            </div>
+
+            <!-- Stat banners -->
+            <div class="flex flex-col gap-3 shrink-0">
+              <div class="flex items-center gap-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl px-5 py-3 shadow">
+                <i class="fas fa-user-shield text-purple-300 text-xl"></i>
+                <div>
+                  <p class="text-xs font-bold text-white/60 uppercase tracking-widest">Total Role</p>
+                  <p id="shield-stat-roles" class="text-2xl font-extrabold font-outfit text-white">—</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl px-5 py-3 shadow">
+                <i class="fas fa-key text-teal-300 text-xl"></i>
+                <div>
+                  <p class="text-xs font-bold text-white/60 uppercase tracking-widest">Total Permission</p>
+                  <p id="shield-stat-perms" class="text-2xl font-extrabold font-outfit text-white">—</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16">
+          <!-- Info bar -->
+          <div class="mb-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-3 text-sm text-amber-700">
+            <i class="fas fa-info-circle text-amber-400 text-lg shrink-0"></i>
+            <p>
+              <strong>Catatan:</strong> Konfigurasi Shield disimpan di localStorage browser. Gunakan tombol
+              <strong>Export JSON</strong> untuk backup dan <strong>Import</strong> untuk restore di browser lain.
+            </p>
+          </div>
+
+          <!-- Sync Status Banner (Known Limitation 2 — diisi oleh shield.panel.js) -->
+          <div id="shield-sync-banner" class="mb-6"></div>
+
+          <!-- Main Shield Panel Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+
+            <!-- LEFT: Role List -->
+            <div class="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-gray-100 flex flex-col overflow-hidden">
+              <div class="px-5 pt-5 pb-4 border-b border-gray-100 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <i class="fas fa-user-shield text-purple-500 text-sm"></i>
+                  </div>
+                  <h2 class="text-sm font-bold font-outfit text-[#222831]">Daftar Role</h2>
+                </div>
+                <button onclick="shieldOpenNewRole()"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-[#00ADB5] hover:bg-[#00939c] text-white text-xs font-bold rounded-xl shadow-sm transition-all hover:-translate-y-0.5">
+                  <i class="fas fa-plus text-[10px]"></i> Baru
+                </button>
+              </div>
+              <div id="shield-role-list" class="flex-1 p-3 space-y-1 overflow-y-auto min-h-[200px]">
+                <!-- Rendered by JS -->
+                <div class="flex items-center justify-center h-24 text-gray-400">
+                  <i class="fas fa-circle-notch fa-spin text-xl text-[#00ADB5]"></i>
+                </div>
+              </div>
+
+              <!-- Export / Reset -->
+              <div class="p-4 border-t border-gray-100 space-y-2">
+                <button onclick="shieldExportJson()"
+                        class="w-full flex items-center justify-center gap-2 text-xs font-bold px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-600 transition-colors">
+                  <i class="fas fa-file-export"></i> Export JSON
+                </button>
+                <button onclick="shieldResetDefault()"
+                        class="w-full flex items-center justify-center gap-2 text-xs font-bold px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors">
+                  <i class="fas fa-undo"></i> Reset ke Default
+                </button>
+              </div>
+            </div>
+
+            <!-- RIGHT: Permission Panel -->
+            <div>
+              <!-- Empty state (awal) -->
+              <div id="shield-empty-state" class="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-gray-100 flex flex-col items-center justify-center py-20 text-gray-400 gap-4 text-center">
+                <div class="w-20 h-20 rounded-2xl bg-purple-50 flex items-center justify-center">
+                  <i class="fas fa-shield-alt text-purple-300 text-4xl"></i>
+                </div>
+                <p class="text-base font-bold text-[#222831]">Pilih Role</p>
+                <p class="text-sm max-w-xs">Klik salah satu role di panel kiri untuk melihat dan mengelola permission-nya.</p>
+              </div>
+
+              <!-- Role Permission Panel -->
+              <div id="shield-role-panel" class="hidden space-y-5 shield-panel-enter">
+
+                <!-- Role Header Card -->
+                <div class="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-6">
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-[#00ADB5] flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-shield text-white text-xl"></i>
+                      </div>
+                      <div>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Role Aktif</p>
+                        <h2 id="shield-role-name" class="text-2xl font-extrabold font-outfit text-[#222831]">—</h2>
+                        <span id="shield-role-badge" class="px-3 py-1 rounded-full text-xs font-bold text-white bg-[#00ADB5]">—</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 flex-wrap">
+                      <!-- Super Admin Toggle -->
+                      <div class="flex items-center gap-2.5 px-4 py-2.5 bg-purple-50 rounded-xl border border-purple-100">
+                        <span class="text-xs font-bold text-purple-700">Super Admin</span>
+                        <label class="toggle-switch">
+                          <input type="checkbox" id="shield-sa-toggle" onchange="shieldToggleSuperAdmin(this.checked)" />
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+
+                      <!-- Global Select All -->
+                      <div class="flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                        <span class="text-xs font-bold text-gray-600">Semua Izin</span>
+                        <label class="toggle-switch">
+                          <input type="checkbox" id="shield-global-all" onchange="shieldToggleGlobalAll(this.checked)" />
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+
+                      <!-- Action Buttons -->
+                      <button onclick="shieldSaveRole()"
+                              class="flex items-center gap-2 px-5 py-2.5 bg-[#00ADB5] hover:bg-[#00939c] text-white text-sm font-bold rounded-xl shadow-[0_4px_12px_rgba(0,173,181,0.3)] transition-all hover:-translate-y-0.5">
+                        <i class="fas fa-save"></i> Simpan
+                      </button>
+
+                      <div class="relative group">
+                        <button class="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-[#222831] text-sm font-bold rounded-xl transition-colors">
+                          <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 hidden group-hover:block">
+                          <button onclick="shieldRenameRole()" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-[#222831] hover:bg-gray-50 flex items-center gap-2">
+                            <i class="fas fa-pen text-[#00ADB5] w-4 text-center"></i> Rename Role
+                          </button>
+                          <button onclick="shieldDuplicateRole()" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-[#222831] hover:bg-gray-50 flex items-center gap-2">
+                            <i class="fas fa-copy text-blue-500 w-4 text-center"></i> Duplikasi
+                          </button>
+                          <a href="user-management.html" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-[#222831] hover:bg-gray-50 flex items-center gap-2">
+                            <i class="fas fa-users w-4 text-center text-purple-500"></i> Assign ke User
+                          </a>
+                          <hr class="my-1 border-gray-100"/>
+                          <button id="shield-delete-btn" onclick="shieldDeleteRole()" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-red-500 hover:bg-red-50 flex items-center gap-2">
+                            <i class="fas fa-trash w-4 text-center"></i> Hapus Role
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Permission Cards Grid -->
+                <div class="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-gray-100 p-6">
+                  <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <div class="w-9 h-9 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+                        <i class="fas fa-key text-[#00ADB5] text-sm"></i>
+                      </div>
+                      <h3 class="text-lg font-bold font-outfit text-[#222831]">Permissions per Resource</h3>
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium">Klik badge untuk toggle</p>
+                  </div>
+
+                  <div id="shield-perm-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Rendered by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── Modal Buat Role Baru ───────────────────────────────────────────── -->
+    <div id="nr-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4" onclick="shieldCloseNewRole(event)">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-md p-8">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center">
+              <i class="fas fa-user-shield text-purple-500 text-lg"></i>
+            </div>
+            <h3 class="text-xl font-extrabold font-outfit text-[#222831]">Buat Role Baru</h3>
+          </div>
+          <button onclick="shieldCloseNewRoleDirect()" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+            <i class="fas fa-times text-gray-500 text-sm"></i>
+          </button>
+        </div>
+
+        <form id="nr-form" onsubmit="event.preventDefault(); shieldCreateRole();" class="space-y-5">
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Nama Role</label>
+            <input type="text" id="nr-nama" placeholder="contoh: Editor, Viewer, Operator..." required autocomplete="off"
+                   class="w-full bg-gray-50 border-2 border-gray-200 focus:border-purple-400 focus:bg-white rounded-2xl px-4 py-3.5 font-medium text-[#334155] outline-none transition-all duration-200 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.1)]" />
+            <p class="text-xs text-gray-400 mt-1.5 ml-1">Nama akan diconvert ke snake_case otomatis.</p>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Warna Badge Role</label>
+            <div class="flex items-center gap-3">
+              <input type="color" id="nr-color" value="#00ADB5"
+                     class="w-12 h-12 rounded-xl border-2 border-gray-200 cursor-pointer p-1" />
+              <div class="flex gap-2 flex-wrap">
+                <button type="button" onclick="document.getElementById('nr-color').value='#00ADB5'" class="w-8 h-8 rounded-lg bg-[#00ADB5] border-2 border-transparent hover:border-gray-300 transition-colors" title="Teal"></button>
+                <button type="button" onclick="document.getElementById('nr-color').value='#7c3aed'" class="w-8 h-8 rounded-lg bg-[#7c3aed] border-2 border-transparent hover:border-gray-300 transition-colors" title="Purple"></button>
+                <button type="button" onclick="document.getElementById('nr-color').value='#f59e0b'" class="w-8 h-8 rounded-lg bg-amber-400 border-2 border-transparent hover:border-gray-300 transition-colors" title="Amber"></button>
+                <button type="button" onclick="document.getElementById('nr-color').value='#ef4444'" class="w-8 h-8 rounded-lg bg-red-500 border-2 border-transparent hover:border-gray-300 transition-colors" title="Red"></button>
+                <button type="button" onclick="document.getElementById('nr-color').value='#10b981'" class="w-8 h-8 rounded-lg bg-emerald-500 border-2 border-transparent hover:border-gray-300 transition-colors" title="Green"></button>
+                <button type="button" onclick="document.getElementById('nr-color').value='#3b82f6'" class="w-8 h-8 rounded-lg bg-blue-500 border-2 border-transparent hover:border-gray-300 transition-colors" title="Blue"></button>
+              </div>
+            </div>
+          </div>
+
+          <div id="nr-alert" class="hidden px-4 py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 border border-red-100"></div>
+
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="shieldCloseNewRoleDirect()"
+                    class="flex-1 py-3.5 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-gray-600 transition-colors text-sm">
+              Batal
+            </button>
+            <button type="submit"
+                    class="flex-1 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-[0_4px_12px_rgba(124,58,237,0.3)] transition-all text-sm flex items-center justify-center gap-2">
+              <i class="fas fa-plus"></i> Buat Role
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="shield-toast-container" class="fixed bottom-6 right-6 z-[9999] space-y-3"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/shield.store.js"></script>
+    <script src="js/shield.guard.js"></script>
+    <script src="js/shield.panel.js"></script>
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebar-overlay").classList.toggle("open");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebar-overlay").classList.remove("open");
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        const observer = new MutationObserver(function () {
+          const nm = document.getElementById("user-name");
+          const nmm = document.getElementById("user-name-mobile");
+          if (nm && nmm) nmm.textContent = nm.textContent;
+        });
+        const nm = document.getElementById("user-name");
+        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
+      });
+    </script>
+  </body>
+</html>
