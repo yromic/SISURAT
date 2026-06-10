@@ -548,9 +548,6 @@
   // ─── Modal Form ───────────────────────────────────────────────────────────────
   function buildFormHTML(tab) {
     const fields = FORM_FIELDS[tab];
-    const halfLen = Math.ceil(fields.length / 2);
-    const leftFields = fields.slice(0, halfLen);
-    const rightFields = fields.slice(halfLen);
 
     const renderField = (f) => `
       <div>
@@ -603,7 +600,7 @@
         : ``;
 
       ttdSection = `
-        <div class="mt-4 col-span-2">
+        <div class="mt-4 col-span-1 md:col-span-2">
           <label class="block text-xs font-semibold text-[#393E46] mb-2 uppercase tracking-wide">
             <i class="fas fa-pen text-[#00ADB5] mr-1"></i>Tanda Tangan
             ${ttdUrl ? '<span class="text-gray-400 font-normal normal-case ml-1">(gambar ulang untuk mengganti)</span>' : ""}
@@ -682,7 +679,7 @@
     if (tab !== "piagam") {
       const maxMB = Math.round(SisuratApi.MAX_FILE_SIZE_BYTES / 1024 / 1024);
       uploadSection = `
-      <div class="mt-4 col-span-2">
+      <div class="mt-4 col-span-1 md:col-span-2">
         <label class="block text-xs font-semibold text-[#393E46] mb-1 uppercase tracking-wide">
           <i class="fas fa-paperclip text-[#00ADB5] mr-1"></i>Upload File
           <span class="text-gray-400 font-normal capitalize">(opsional${state.existingFileUrl ? " — biarkan kosong jika tidak ingin mengganti" : ""})</span>
@@ -720,8 +717,7 @@
 
     return `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-3">${leftFields.map(renderField).join("")}</div>
-        <div class="space-y-3">${rightFields.map(renderField).join("")}</div>
+        ${fields.map(renderField).join("")}
         ${ttdSection}
         ${uploadSection}
       </div>`;
