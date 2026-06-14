@@ -503,6 +503,14 @@ function _validateTableName(tableName) {
     return _findDivisiByCode(code) !== null;
 }
 
+function _getFolderIdForDivisi(divisiId, tableName) {
+    var divisi = _findDivisiByCode(divisiId);
+    if (divisi && divisi.data && divisi.data.drive_folder_id) {
+        return String(divisi.data.drive_folder_id).trim();
+    }
+    return DRIVE_FOLDER_ID;
+}
+
 // ─── Helper: validasi RBAC per action + table ─────────────────────────────────
 // @returns {allowed: boolean, role: string, msg: string}
 function _checkRole(session, action, tableName) {

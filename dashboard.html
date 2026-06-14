@@ -209,7 +209,20 @@
             </h1>
           </div>
 
-          <div class="flex flex-wrap gap-2 sm:gap-4 shrink-0">
+          <div class="flex flex-wrap gap-2 sm:gap-4 shrink-0 items-center">
+            <!-- Divisi Switcher -->
+            <div id="divisi-switcher-container" class="hidden relative">
+              <select
+                id="divisi-switcher"
+                class="px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-md text-sm sm:text-base outline-none cursor-pointer appearance-none pr-10"
+              >
+                <option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white">
+                <i class="fas fa-chevron-down text-xs"></i>
+              </div>
+            </div>
+
             <a
               href="https://forms.gle/pY8xrxpHjS7acLDZ8"
               target="_blank"
@@ -447,6 +460,35 @@
                 Buka Pencarian <i class="fas fa-long-arrow-alt-right"></i>
               </a>
             </div>
+          </div>
+        </div>
+
+        <!-- Section Ringkasan Per Divisi (Hanya untuk Super Admin) -->
+        <div id="ringkasan-divisi-section" class="hidden glass-panel rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)] mb-10">
+          <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-[#00ADB5]/10 flex items-center justify-center">
+                <i class="fas fa-building text-[#00ADB5] text-lg"></i>
+              </div>
+              <h2 class="text-xl font-bold font-outfit text-[#222831]">Ringkasan Per Divisi</h2>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-gray-100">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-50 text-left">
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Kode Divisi</th>
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Nama Divisi</th>
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Surat Masuk</th>
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Surat Keluar</th>
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Piagam</th>
+                  <th class="px-5 py-3.5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody id="ringkasan-divisi-tbody" class="divide-y divide-gray-50">
+                <!-- Diberikan secara dinamis -->
+              </tbody>
+            </table>
           </div>
         </div>
 
