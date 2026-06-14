@@ -84,6 +84,16 @@ var RBAC_RULES = {
     "get_data:ref_sekolah":     ["super_admin", "admin", "operator"],
     "get_data:ref_pengambilan": ["super_admin", "admin", "operator"],
     "get_data:ref_jenis_perlombaan": ["super_admin", "admin", "operator"],
+    "read:surat_masuk":         ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:surat_keluar":        ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:piagam":              ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_pengambilan":     ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_jenis":           ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_sekolah":         ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_jenis_perlombaan":["super_admin", "admin_divisi", "admin", "operator"],
+    "read:db_users":            ["super_admin", "admin_divisi", "admin"],
+    "read:db_summary":          ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:db_audit_log":        ["super_admin", "admin_divisi", "admin"],
     "create:db_surat_masuk":    ["super_admin", "admin", "operator"],
     "create:db_surat_keluar":   ["super_admin", "admin", "operator"],
     "create:db_piagam":         ["super_admin", "admin", "operator"],
@@ -95,6 +105,10 @@ var RBAC_RULES = {
     "delete:db_piagam":         ["super_admin", "admin"],
     "manage_user:*":            ["super_admin"],
     "reset_password:*":         ["super_admin"],
+    "init_divisi:db_divisi":    ["super_admin"],
+    "retry_init_divisi:db_divisi": ["super_admin"],
+    "cleanup_divisi:db_divisi": ["super_admin"],
+    "migrate_existing_records:db_divisi": ["super_admin"],
     "init_divisi:*":            ["super_admin"],
     "retry_init_divisi:*":      ["super_admin"],
     "cleanup_divisi:*":         ["super_admin"],
@@ -456,26 +470,82 @@ function _lookupUser(username) {
     return null;
 }
 
+function _getTableSuffix(tableName) {
+    if (!tableName) return "";
+    var match = tableName.match(/^([A-Z0-9]+)_(surat_masuk|surat_keluar|piagam|ref_pengambilan|ref_jenis)$/i);
+    if (match) {
+        return match[2].toLowerCase();
+    }
+    return tableName;
+}
+
+function _extractDivisi(tableName) {
+    if (!tableName) return "";
+    var match = tableName.match(/^([A-Z0-9]+)_(surat_masuk|surat_keluar|piagam|ref_pengambilan|ref_jenis)$/i);
+    if (match) {
+        var code = match[1].toUpperCase();
+        if (code !== "DB" && code !== "REF") {
+            return code;
+        }
+    }
+    return "";
+}
+
+function _validateTableName(tableName) {
+    if (!tableName) return false;
+    if (GLOBAL_SHEETS[tableName]) return true;
+    var match = tableName.match(/^([A-Z0-9]+)_(surat_masuk|surat_keluar|piagam|ref_pengambilan|ref_jenis)$/i);
+    if (!match) return false;
+    var code = match[1].toUpperCase();
+    if (code === "DB" || code === "REF") {
+        return true;
+    }
+    return _findDivisiByCode(code) !== null;
+}
+
 // ─── Helper: validasi RBAC per action + table ─────────────────────────────────
 // @returns {allowed: boolean, role: string, msg: string}
-function _checkRole(actor_username, action, tableName) {
+function _checkRole(session, action, tableName) {
+    var actor_username = (session && typeof session === "object") ? session.username : session;
     var user = _lookupUser(actor_username);
     if (!user) {
-        return { allowed: false, role: "", msg: "Actor tidak ditemukan: " + actor_username };
+        return { allowed: false, role: "", msg: "Actor tidak ditemukan: " + actor_username, error: "ERR_401_SESSION", session: session || null };
     }
     var role = user.role;
-    // Super Admin bypass semua permission
-    if (role === "super_admin") {
-        return { allowed: true, role: role, msg: "" };
+
+    if (!_validateTableName(tableName)) {
+        return { allowed: false, role: role, msg: "Tabel tidak valid atau tidak ditemukan: " + tableName, error: "ERR_404_TABLE", session: (session && typeof session === "object") ? session : user };
     }
-    var specificKey = action + ":" + tableName;
+
+    // Super Admin bypass semua permission dan divisi
+    if (role === "super_admin") {
+        return { allowed: true, role: role, msg: "", session: (session && typeof session === "object") ? session : user, tableSuffix: _getTableSuffix(tableName), targetDivisi: _extractDivisi(tableName) };
+    }
+
+    // Validasi Divisi / Scope
+    var tableDivisi = _extractDivisi(tableName);
+    if (tableDivisi) {
+        var userDivisi = String(user.divisi_id || "").toUpperCase();
+        if (tableDivisi !== userDivisi) {
+            return { allowed: false, role: role, msg: "Akses lintas divisi ditolak", error: "ERR_403_DIVISI", session: (session && typeof session === "object") ? session : user };
+        }
+    }
+
+    var suffix = _getTableSuffix(tableName);
+    var specificKey = action + ":" + suffix;
+    var rawKey = action + ":" + tableName;
     var wildcardKey = action + ":*";
-    var allowedRoles = RBAC_RULES[specificKey] || RBAC_RULES[wildcardKey] || [];
+    var allowedRoles = RBAC_RULES[specificKey] || RBAC_RULES[rawKey] || RBAC_RULES[wildcardKey] || [];
     var allowed = allowedRoles.indexOf(role) !== -1;
+
     return {
         allowed: allowed,
         role: role,
         msg: allowed ? "" : ("Role '" + role + "' tidak diizinkan untuk " + action + " pada " + tableName),
+        error: allowed ? "" : "ERR_403_ROLE",
+        session: (session && typeof session === "object") ? session : user,
+        tableSuffix: suffix,
+        targetDivisi: tableDivisi || user.divisi_id
     };
 }
 
@@ -571,12 +641,7 @@ function doPost(e) {
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             var tableName = data.table || "";
-            var rbacGet = _checkRole(sessionResult.session.username, "get_data", tableName);
-            if (!rbacGet.allowed) {
-                writeAuditLog(sessionResult.session.username, rbacGet.role, "DENIED:get_data", tableName, "-", rbacGet.msg);
-                return _errorResponse("ERR_403_ROLE");
-            }
-            return getData(tableName);
+            return getData(tableName, sessionResult.session, data);
         } else if (action == "simpan_record") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
@@ -750,12 +815,15 @@ function normalizeKey(header) {
 // Tabel users yang boleh di-read oleh admin (password akan di-strip)
 var USER_TABLES = ["db_users", "users"];
 
-function getData(tableName) {
-    // Tabel users: izinkan read tapi strip kolom password sebelum dikirim
-    var isUserTable = USER_TABLES.indexOf(tableName) !== -1;
-    if (tableName == "users" && tableName != "db_users") {
-        // "users" (legacy) tetap diblokir langsung untuk keamanan
-        return responseJSON({ status: "error", message: "Akses ditolak" });
+function getData(tableName, session, data) {
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    var rbac = _checkRole(session, "read", tableName, data || {});
+    if (!rbac.allowed) {
+        writeAuditLog(session.username, session.role || "-", session.divisi_id || "-", "DENIED:read", tableName, "-", rbac.msg);
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -776,10 +844,45 @@ function getData(tableName) {
     var headerMapByName = _getHeaderIndexMap(sheet);
     var deletedIdx = headerMapByName.is_deleted;
 
+    var isSuperAdmin = session.role === "super_admin";
+
     var result = rows.map(function (row, rowIndex) {
         if (deletedIdx !== undefined && /^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim())) {
             return null;
         }
+
+        if (tableName === "db_users") {
+            if (session.role === "operator") return null;
+            if (!isSuperAdmin) {
+                var divIdx = headerMapByName.divisi_id;
+                var userDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                if (userDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                    return null;
+                }
+            }
+        }
+
+        if (tableName === "db_summary") {
+            if (!isSuperAdmin) {
+                var divIdx = headerMapByName.divisi_id;
+                var summaryDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                if (summaryDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                    return null;
+                }
+            }
+        }
+
+        if (tableName === "db_audit_log") {
+            if (session.role === "operator") return null;
+            if (!isSuperAdmin) {
+                var divIdx = headerMapByName.divisi_id;
+                var auditDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                if (auditDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                    return null;
+                }
+            }
+        }
+
         var obj = {};
 
         // Sisipkan nomor baris sheet (row 2 = data pertama, dst.)
@@ -873,12 +976,27 @@ function _normalizeDivisiCode(code) {
 }
 
 function _requireSuperAdmin(session, action) {
-    var rbac = _checkRole(session.username, action, "*");
-    if (!rbac.allowed) {
-        writeAuditLog(session.username, rbac.role, "DENIED:" + action, "db_divisi", "-", rbac.msg);
-        return { ok: false, response: _errorResponse("ERR_403_ROLE"), role: rbac.role };
-    }
-    return { ok: true, role: rbac.role };
+  var rbac = _checkRole(session, action, "db_divisi", {});
+  if (!rbac.allowed) {
+    writeAuditLog(
+      session && session.username ? session.username : "-",
+      session && session.role ? session.role : "-",
+      session && session.divisi_id ? session.divisi_id : "-",
+      "DENIED:" + action,
+      "db_divisi",
+      "-",
+      rbac.error || "ERR_403_ROLE"
+    );
+    return {
+      ok: false,
+      response: _errorResponse(rbac.error || "ERR_403_ROLE"),
+      role: session && session.role
+    };
+  }
+  return {
+    ok: true,
+    role: session.role
+  };
 }
 
 function _rowObjectFromValues(headers, rowValues) {
@@ -1138,6 +1256,10 @@ function responseJSON(object) {
 
 // ─── Simpan Piagam (legacy – dari piagam.html) ───────────────────────────────
 function simpanPiagam(dataInput, session) {
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
     if (!dataInput) {
         return responseJSON({
             status: "error",
@@ -1145,16 +1267,27 @@ function simpanPiagam(dataInput, session) {
         });
     }
 
-    var actor = session.username;
-    var rbac = _checkRole(actor, "create", "db_piagam");
-    if (!rbac.allowed) {
-        writeAuditLog(actor, rbac.role, "DENIED:create", "db_piagam", "-", rbac.msg);
-        return _errorResponse("ERR_403_ROLE");
+    var targetDivisi = "";
+    if (session.role === "super_admin") {
+        targetDivisi = dataInput.divisi_id ? String(dataInput.divisi_id).trim().toUpperCase() : "";
+    } else {
+        targetDivisi = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "";
     }
 
-    var sheet = ss.getSheetByName("db_piagam");
+    if (!targetDivisi || !_findDivisiByCode(targetDivisi)) {
+        writeAuditLog(session.username, session.role, "-", "DENIED:create", "db_piagam", "-", "Invalid division code: " + targetDivisi);
+        return _errorResponse("ERR_403_DIVISI");
+    }
+
+    var tableName = targetDivisi + "_piagam";
+    var rbac = _checkRole(session, "create", tableName, dataInput);
+    if (!rbac.allowed) {
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
+    }
+
+    var sheet = ss.getSheetByName(tableName);
     if (!sheet) {
-        return responseJSON({ status: "error", message: "Tabel tidak ditemukan: db_piagam" });
+        return responseJSON({ status: "error", message: "Tabel tidak ditemukan: " + tableName });
     }
     _ensureHeaders(sheet, PIAGAM_HEADERS);
 
@@ -1169,7 +1302,7 @@ function simpanPiagam(dataInput, session) {
                 "ttd_" + Date.now() + ".png",
             );
 
-            var folderId = DRIVE_FOLDERS.db_piagam_ttd;
+            var folderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
             var folder = DriveApp.getFolderById(folderId);
 
             var file = folder.createFile(imageBlob);
@@ -1186,7 +1319,7 @@ function simpanPiagam(dataInput, session) {
 
     dataInput.email_address = session.email || session.username;
     dataInput.nama_pengupload = session.nama || session.username;
-    dataInput.divisi_id = session.divisi_id || "";
+    dataInput.divisi_id = targetDivisi;
     dataInput.ttd_pengambil = linkTTD;
     delete dataInput.actor;
     delete dataInput.ttd_base64;
@@ -1199,8 +1332,8 @@ function simpanPiagam(dataInput, session) {
         var headerNorm = String(header).toLowerCase().trim();
         if (headerNorm === "id") return recordId;
         if (headerNorm === "timestamp") return now;
-        if (headerNorm === "email address") return dataInput.email_address;
-        if (headerNorm === "nama pengupload") return dataInput.nama_pengupload;
+        if (headerNorm === "email address" || headerNorm === "email_address") return dataInput.email_address;
+        if (headerNorm === "nama pengupload" || headerNorm === "nama_pengupload") return dataInput.nama_pengupload;
         if (headerNorm === "divisi_id") return dataInput.divisi_id;
         if (headerNorm === "is_deleted") return false;
         if (headerNorm === "deleted_at" || headerNorm === "deleted_by") return "";
@@ -1210,7 +1343,8 @@ function simpanPiagam(dataInput, session) {
     });
 
     sheet.appendRow(newRow);
-    writeAuditLog(actor, rbac.role, "create", "db_piagam", recordId, "Tambah piagam");
+    writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+    updateSummary(targetDivisi, "piagam", 1);
 
     return responseJSON({
         status: "success",
@@ -1253,9 +1387,13 @@ function uploadFileToDrive(base64DataUrl, fileName, folderId) {
 // ─── Chunked Upload: Terima satu chunk Base64 ────────────────────────────────
 // Chunk dikirim sebagai Base64 string yang bersih.
 // Chunk disimpan sementara di CacheService untuk menghindari limit 500KB PropertiesService.
-// Kunci: "chunk_<uploadId>_<chunkIndex>"
-function handleUploadChunk(data) {
+// Kunci: "chunk_{divisi_id}_{uploadId}_{chunkIndex}"
+function handleUploadChunk(data, session) {
     try {
+        if (!session) {
+            return _errorResponse("ERR_401_SESSION");
+        }
+
         var uploadId    = data.uploadId;
         var chunkIndex  = data.chunkIndex;
         var chunkBase64 = data.chunkBase64;
@@ -1264,7 +1402,8 @@ function handleUploadChunk(data) {
             return responseJSON({ status: "error", message: "Parameter chunk tidak lengkap" });
         }
 
-        var key = "chunk_" + uploadId + "_" + chunkIndex;
+        var divisiId = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL";
+        var key = "chunk_" + divisiId + "_" + uploadId + "_" + chunkIndex;
         CacheService.getScriptCache().put(key, chunkBase64, 3600); // Expiry 1 jam
 
         return responseJSON({ status: "success", message: "Chunk " + chunkIndex + " diterima" });
@@ -1276,29 +1415,33 @@ function handleUploadChunk(data) {
 // ─── Chunked Upload: Finalize ─────────────────────────────────────────────────
 // Setelah semua chunk diterima, gabungkan menjadi satu file dan simpan ke Drive.
 // Bersihkan semua chunk dari CacheService setelah selesai.
-function finalizeUpload(data) {
+function finalizeUpload(data, session) {
     try {
+        if (!session) {
+            return _errorResponse("ERR_401_SESSION");
+        }
+
         var uploadId    = data.uploadId;
         var totalChunks = parseInt(data.totalChunks, 10);
         var fileName    = data.fileName  || ("file_" + Date.now());
         var mimeType    = data.mimeType  || "application/octet-stream";
-        var folderId    = data.folderId  || DRIVE_FOLDER_ID;
 
         if (!uploadId || !totalChunks) {
             return responseJSON({ status: "error", message: "Parameter finalize tidak lengkap" });
         }
 
+        var divisiId = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL";
         var cache = CacheService.getScriptCache();
 
         // Gabungkan semua Base64 chunks menjadi satu string
         var fullBase64 = "";
         for (var i = 0; i < totalChunks; i++) {
-            var key = "chunk_" + uploadId + "_" + i;
+            var key = "chunk_" + divisiId + "_" + uploadId + "_" + i;
             var chunk = cache.get(key);
             if (!chunk) {
                 // Bersihkan chunk yang sudah ada sebelum return error
                 for (var j = 0; j < i; j++) {
-                    cache.remove("chunk_" + uploadId + "_" + j);
+                    cache.remove("chunk_" + divisiId + "_" + uploadId + "_" + j);
                 }
                 return responseJSON({
                     status: "error",
@@ -1310,7 +1453,19 @@ function finalizeUpload(data) {
 
         // Hapus semua chunk dari Cache setelah digabungkan
         for (var k = 0; k < totalChunks; k++) {
-            cache.remove("chunk_" + uploadId + "_" + k);
+            cache.remove("chunk_" + divisiId + "_" + uploadId + "_" + k);
+        }
+
+        // Verify size limit: 10 MB per file
+        var totalBytes = Math.floor(fullBase64.length * 0.75);
+        if (totalBytes > 10 * 1024 * 1024) {
+            return _errorResponse("ERR_413_FILE");
+        }
+
+        // Determine destination folder ID authoritatively
+        var folderId = data.folderId || DRIVE_FOLDER_ID;
+        if (session.role !== "super_admin" && session.divisi_id) {
+            folderId = _getFolderIdForDivisi(session.divisi_id);
         }
 
         // Buat blob dari Base64 gabungan dan simpan ke Google Drive
@@ -1324,6 +1479,8 @@ function finalizeUpload(data) {
         var file = folder.createFile(blob);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         var fileUrl = "https://drive.google.com/uc?export=view&id=" + file.getId();
+
+        writeAuditLog(session.username, session.role, session.divisi_id || "-", "upload", "-", "-", "Upload file: " + fileName);
 
         return responseJSON({
             status: "success",
@@ -1394,12 +1551,13 @@ function simpanRecord(tableName, dataInput, session) {
         return responseJSON({ status: "error", message: "Gunakan action manage_user untuk mengelola user" });
     }
 
-    // ─── RBAC validation (Issue 1 fix) ───────────────────────────────
-    var actor = session.username;
-    var rbac  = _checkRole(actor, "create", tableName);
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    var rbac = _checkRole(session, "create", tableName, dataInput);
     if (!rbac.allowed) {
-        writeAuditLog(actor, rbac.role, "DENIED:create", tableName, "-", rbac.msg);
-        return _errorResponse("ERR_403_ROLE");
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -1410,12 +1568,14 @@ function simpanRecord(tableName, dataInput, session) {
         _ensureHeaders(sheet, _requiredRecordHeaders(tableName));
     }
 
+    // Override/force divisi_id for non-super_admin, and use rbac.targetDivisi
+    var targetDivisi = rbac.targetDivisi || "";
+    dataInput.divisi_id = targetDivisi;
+
     // Proses upload file lampiran jika ada (legacy Base64 — hanya jika upload_file belum ada)
-    // Catatan: Sejak v3.0, file dokumen dikirim via chunked upload dan upload_file sudah berisi URL.
-    //          Blok ini tetap dipertahankan untuk kompatibilitas jika ada client lama.
     if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
         try {
-            var fileFolderId = dataInput.folder_id || DRIVE_FOLDERS[tableName] || DRIVE_FOLDER_ID;
+            var fileFolderId = _getFolderIdForDivisi(targetDivisi, tableName);
             dataInput.upload_file = uploadFileToDrive(
                 dataInput.file_base64,
                 dataInput.file_name || "",
@@ -1433,7 +1593,7 @@ function simpanRecord(tableName, dataInput, session) {
     // Proses upload TTD piagam jika ada (masih via Base64 karena gambar kecil)
     if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
         try {
-            var ttdFolderId = dataInput.ttd_folder_id || DRIVE_FOLDERS.db_piagam_ttd || DRIVE_FOLDER_ID;
+            var ttdFolderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
             var ttdFileName = "ttd_" + Date.now() + ".png";
             dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
             delete dataInput.ttd_base64;
@@ -1445,7 +1605,6 @@ function simpanRecord(tableName, dataInput, session) {
 
     dataInput.email_address = session.email || session.username;
     dataInput.nama_pengupload = session.nama || session.username;
-    dataInput.divisi_id = session.divisi_id || "";
     delete dataInput.actor;
 
     // Waktu input saat ini (untuk kolom Timestamp)
@@ -1462,16 +1621,16 @@ function simpanRecord(tableName, dataInput, session) {
         }
 
         // Kolom Email Address → isi dari data yang dikirim frontend (username/email admin)
-        if (headerNorm === "email address") {
+        if (headerNorm === "email address" || headerNorm === "email_address") {
             return session.email || session.username;
         }
 
-        if (headerNorm === "nama pengupload") {
+        if (headerNorm === "nama pengupload" || headerNorm === "nama_pengupload") {
             return session.nama || session.username;
         }
 
         if (headerNorm === "divisi_id") {
-            return session.divisi_id || "";
+            return targetDivisi;
         }
 
         // Kolom ID (hanya jika nama kolomnya benar-benar "id") → UUID
@@ -1482,14 +1641,19 @@ function simpanRecord(tableName, dataInput, session) {
         if (headerNorm === "deleted_at" || headerNorm === "deleted_by") return "";
 
         var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
+        if (key === "npsn") return "'" + (dataInput[key] || "-");
         return dataInput[key] !== undefined ? dataInput[key] : "";
     });
 
     sheet.appendRow(newRow);
 
-    // ─── Audit Log (Issue 2 fix) ──────────────────────────────────
-    writeAuditLog(actor, rbac.role, "create", tableName, recordId,
+    // ─── Audit Log & Summary ──────────────────────────────────
+    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "create", tableName, recordId,
         "Tambah data baru ke " + tableName);
+
+    if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
+        updateSummary(targetDivisi, rbac.tableSuffix, 1);
+    }
 
     return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
 }
@@ -1502,12 +1666,13 @@ function updateRecord(tableName, id, dataInput, session) {
         return responseJSON({ status: "error", message: "Gunakan action manage_user untuk mengelola user" });
     }
 
-    // ─── RBAC validation (Issue 1 fix) ───────────────────────────────
-    var actor = session.username;
-    var rbac  = _checkRole(actor, "update", tableName);
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    var rbac = _checkRole(session, "update", tableName, dataInput);
     if (!rbac.allowed) {
-        writeAuditLog(actor, rbac.role, "DENIED:update", tableName, id, rbac.msg);
-        return _errorResponse("ERR_403_ROLE");
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -1523,23 +1688,44 @@ function updateRecord(tableName, id, dataInput, session) {
         return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
     }
 
+    var headers = _getHeaders(sheet);
+    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
+    var rowValues = rowRange.getValues()[0];
+    var headerMapByName = _getHeaderIndexMap(sheet);
+
+    var targetDivisi = rbac.targetDivisi || "";
+    var isSuperAdmin = session.role === "super_admin";
+
+    // Division isolation check on the record level
+    if (!isSuperAdmin) {
+        var divIdx = headerMapByName.divisi_id;
+        if (divIdx !== undefined) {
+            var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
+            var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
+            if (existingDivisiId !== userDivisiId) {
+                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:update_division_mismatch", tableName, id, "Cross-division update blocked");
+                return _errorResponse("ERR_403_DIVISI");
+            }
+        }
+    }
+
+    // Resolving folder ID authoritatively
+    var fileFolderId = _getFolderIdForDivisi(targetDivisi, tableName);
+    var ttdFolderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
+
     // Proses upload file lampiran baru jika ada
-    // Skenario 1: Chunked upload (v3.0+) — upload_file sudah berisi URL dari frontend
     if (dataInput.upload_file && dataInput.old_file_url) {
-        // File baru sudah terupload via chunked, hapus file lama dari Drive
-        deleteFileFromDrive(dataInput.old_file_url);
+        deleteFileFromDriveSecure(dataInput.old_file_url, fileFolderId);
         delete dataInput.old_file_url;
         delete dataInput.file_base64;
         delete dataInput.file_name;
         delete dataInput.folder_id;
-    // Skenario 2: Legacy Base64 (backward compat untuk client lama)
     } else if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
         try {
             if (dataInput.old_file_url) {
-                deleteFileFromDrive(dataInput.old_file_url);
+                deleteFileFromDriveSecure(dataInput.old_file_url, fileFolderId);
                 delete dataInput.old_file_url;
             }
-            var fileFolderId = dataInput.folder_id || DRIVE_FOLDERS[tableName] || DRIVE_FOLDER_ID;
             dataInput.upload_file = uploadFileToDrive(
                 dataInput.file_base64,
                 dataInput.file_name || "",
@@ -1558,13 +1744,10 @@ function updateRecord(tableName, id, dataInput, session) {
     // Proses upload TTD piagam baru jika ada (gambar ulang)
     if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
         try {
-            // Hapus TTD lama dari Drive
             if (dataInput.old_ttd_url) {
-                deleteFileFromDrive(dataInput.old_ttd_url);
+                deleteFileFromDriveSecure(dataInput.old_ttd_url, ttdFolderId);
                 delete dataInput.old_ttd_url;
             }
-            // Upload TTD baru ke folder TTD piagam
-            var ttdFolderId = dataInput.ttd_folder_id || DRIVE_FOLDERS.db_piagam_ttd || DRIVE_FOLDER_ID;
             var ttdFileName = "ttd_" + Date.now() + ".png";
             dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
             delete dataInput.ttd_base64;
@@ -1576,14 +1759,12 @@ function updateRecord(tableName, id, dataInput, session) {
         delete dataInput.old_ttd_url;
     }
 
-    dataInput.email_address = session.email || session.username;
-    dataInput.nama_pengupload = session.nama || session.username;
-    dataInput.divisi_id = session.divisi_id || "";
+    // Protect sensitive system fields from being modified via update request
+    var protectedKeys = ["id", "timestamp", "divisi_id", "email_address", "nama_pengupload", "is_deleted", "deleted_at", "deleted_by"];
+    protectedKeys.forEach(function(key) {
+        delete dataInput[key];
+    });
     delete dataInput.actor;
-
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
-    var rowValues = rowRange.getValues()[0];
 
     headers.forEach(function (header, colIdx) {
         var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
@@ -1594,8 +1775,8 @@ function updateRecord(tableName, id, dataInput, session) {
 
     rowRange.setValues([rowValues]);
 
-    // ─── Audit Log (Issue 2 fix) ──────────────────────────────────
-    writeAuditLog(actor, rbac.role, "update", tableName, id,
+    // ─── Audit Log ──────────────────────────────────
+    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "update", tableName, id,
         "Update record id=" + id + " di " + tableName);
 
     return responseJSON({ status: "success", message: "Data berhasil diupdate!" });
@@ -1609,12 +1790,13 @@ function hapusRecord(tableName, id, session) {
         return responseJSON({ status: "error", message: "Gunakan action manage_user untuk mengelola user" });
     }
 
-    // ─── RBAC validation (Issue 1 fix) ───────────────────────────────
-    var actor = session.username;
-    var rbac  = _checkRole(actor, "delete", tableName);
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    var rbac = _checkRole(session, "delete", tableName);
     if (!rbac.allowed) {
-        writeAuditLog(actor, rbac.role, "DENIED:delete", tableName, id, rbac.msg);
-        return _errorResponse("ERR_403_ROLE");
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -1630,37 +1812,44 @@ function hapusRecord(tableName, id, session) {
         return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
     }
 
-    // ── Baca nilai baris sebelum dihapus ──────────────────────────────────────
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var rowValues = sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0];
+    var headers = _getHeaders(sheet);
+    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
+    var rowValues = rowRange.getValues()[0];
     var headerMapByName = _getHeaderIndexMap(sheet);
+
+    var targetDivisi = rbac.targetDivisi || "";
+    var isSuperAdmin = session.role === "super_admin";
+
+    // Division isolation check on the record level
+    if (!isSuperAdmin) {
+        var divIdx = headerMapByName.divisi_id;
+        if (divIdx !== undefined) {
+            var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
+            var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
+            if (existingDivisiId !== userDivisiId) {
+                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:delete_division_mismatch", tableName, id, "Cross-division delete blocked");
+                return _errorResponse("ERR_403_DIVISI");
+            }
+        }
+    }
+
+    var wasDeleted = headerMapByName.is_deleted !== undefined && /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
+    if (wasDeleted) {
+        return responseJSON({ status: "success", message: "Data sudah dihapus sebelumnya." });
+    }
+
     rowValues[headerMapByName.is_deleted] = true;
     rowValues[headerMapByName.deleted_at] = new Date();
-    rowValues[headerMapByName.deleted_by] = actor;
-    sheet.getRange(rowNumber, 1, 1, headers.length).setValues([rowValues]);
-    writeAuditLog(actor, rbac.role, "delete", tableName, id, "Soft delete record id=" + id + " dari " + tableName);
-    return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
+    rowValues[headerMapByName.deleted_by] = session.username;
+    rowRange.setValues([rowValues]);
 
-    // Buat objek data dari header + nilai baris
-    var rowData = {};
-    headers.forEach(function (header, colIdx) {
-        var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
-        rowData[key] = rowValues[colIdx];
-    });
+    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, "Soft delete record id=" + id + " dari " + tableName);
 
-    // ── Hapus file lampiran dari Google Drive (jika ada) ─────────────────────
-    // Kolom "Upload File" → rowData.upload_file (surat masuk / surat keluar)
-    if (rowData.upload_file && String(rowData.upload_file).trim() !== "") {
-        // Soft delete keeps the stored Drive file untouched.
+    // Decrement summary count
+    if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
+        updateSummary(targetDivisi, rbac.tableSuffix, -1);
     }
 
-    // Kolom "TTD Pengambil" → rowData.ttd_pengambil (piagam)
-    if (rowData.ttd_pengambil && String(rowData.ttd_pengambil).trim() !== "") {
-        // Soft delete keeps the stored TTD file untouched.
-    }
-
-    // ── Hapus baris spreadsheet ───────────────────────────────────────────────
-    // Legacy hard delete path is intentionally bypassed by the soft-delete return above.
     return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
 }
 
@@ -1673,12 +1862,14 @@ function manageUser(data, session) {
         return responseJSON({ status: "error", message: "sub_action tidak ditemukan" });
     }
 
-    // ─── RBAC validation: hanya super_admin (Issue 1 fix) ────────────────
-    var actor = session.username;
-    var rbac  = _checkRole(actor, "manage_user", "db_users");
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    // ─── RBAC validation (Issue 1 fix) ────────────────
+    var rbac = _checkRole(session, "manage_user", "db_users");
     if (!rbac.allowed) {
-        writeAuditLog(actor, rbac.role, "DENIED:manage_user", "db_users", "-", rbac.msg);
-        return _errorResponse("ERR_403_ROLE");
+        return _errorResponse(rbac.error || "ERR_403_ROLE");
     }
     delete data.actor;
     delete data.email_address;
@@ -1694,11 +1885,17 @@ function manageUser(data, session) {
     }
 
     var sub = data.sub_action;
+    var isSuperAdmin = session.role === "super_admin";
 
     // ── CREATE ───────────────────────────────────────────────────────────────
     if (sub === "create") {
         if (!data.username || !data.password) {
             return responseJSON({ status: "error", message: "Username dan password wajib diisi" });
+        }
+
+        // Prevent admin_divisi from creating super_admin users
+        if (!isSuperAdmin && String(data.role || "").toLowerCase() === "super_admin") {
+            return _errorResponse("ERR_403_ROLE");
         }
 
         // Cek duplikat username
@@ -1712,6 +1909,9 @@ function manageUser(data, session) {
         }
 
         var passwordFields = _passwordHashFields(data.password);
+        var userDivisi = isSuperAdmin ? (data.divisi_id || "") : session.divisi_id;
+        var userScope = isSuperAdmin ? (data.scope || "") : "divisi";
+
         var newUser = {
             username: data.username,
             password: passwordFields.password,
@@ -1723,13 +1923,13 @@ function manageUser(data, session) {
             email: data.email || "",
             role_id: data.role_id || "",
             aktif: data.aktif !== undefined ? data.aktif : "TRUE",
-            divisi_id: data.divisi_id || "",
-            scope: data.scope || "",
+            divisi_id: userDivisi,
+            scope: userScope,
         };
         sheet.appendRow(userHeaders.map(function(header) {
             return newUser[header] !== undefined ? newUser[header] : "";
         }));
-        writeAuditLog(actor, rbac.role, "create_user", "db_users", data.username,
+        writeAuditLog(session.username, rbac.session.role, userDivisi, "create_user", "db_users", data.username,
             "User baru: " + data.username + " (role: " + (data.role || "Admin") + ")");
         return responseJSON({ status: "success", message: "User \"" + data.username + "\" berhasil ditambahkan" });
     }
@@ -1744,7 +1944,29 @@ function manageUser(data, session) {
         if (!headers) {
             return _errorResponse("ERR_500_SERVER");
         }
-        var rowVals  = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+        if (rowNum < 2 || rowNum > sheet.getLastRow()) {
+            return responseJSON({ status: "error", message: "Baris tidak valid: " + rowNum });
+        }
+
+        var rowVals = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+        var headerMapByName = _getHeaderIndexMap(sheet);
+        var existingUsername = String(rowVals[headerMapByName.username] || "").trim();
+        var existingDivisiId = String(rowVals[headerMapByName.divisi_id] || "").trim().toUpperCase();
+
+        // Cross-division update protection
+        if (!isSuperAdmin) {
+            if (existingDivisiId !== String(session.divisi_id).toUpperCase()) {
+                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:manage_user_cross_divisi", "db_users", existingUsername, "Attempt to update cross-division user");
+                return _errorResponse("ERR_403_DIVISI");
+            }
+            if (data.role && String(data.role).toLowerCase() === "super_admin") {
+                return _errorResponse("ERR_403_ROLE");
+            }
+            // Force divisi_id and scope for updates by non-super_admins
+            data.divisi_id = session.divisi_id;
+            data.scope = "divisi";
+        }
+
         var updatedPassword = null;
         if (data.password && data.password.trim() !== "") {
             updatedPassword = _passwordHashFields(data.password);
@@ -1763,7 +1985,8 @@ function manageUser(data, session) {
         });
 
         sheet.getRange(rowNum, 1, 1, headers.length).setValues([rowVals]);
-        writeAuditLog(actor, rbac.role, "update_user", "db_users", data.username || String(data.row_number),
+        var logDivisi = isSuperAdmin ? (data.divisi_id || existingDivisiId) : session.divisi_id;
+        writeAuditLog(session.username, rbac.session.role, logDivisi, "update_user", "db_users", data.username || String(data.row_number),
             "Update user row=" + data.row_number);
         return responseJSON({ status: "success", message: "User berhasil diperbarui" });
     }
@@ -1777,11 +2000,26 @@ function manageUser(data, session) {
         if (delRow < 2 || delRow > sheet.getLastRow()) {
             return responseJSON({ status: "error", message: "Baris tidak valid: " + delRow });
         }
-        // Baca username sebelum dihapus untuk audit log
-        var deletedUsername = "-";
-        try { deletedUsername = sheet.getRange(delRow, 1).getValue(); } catch(_) {}
+
+        var headers = _ensureUserPasswordColumns(sheet);
+        if (!headers) {
+            return _errorResponse("ERR_500_SERVER");
+        }
+        var rowVals = sheet.getRange(delRow, 1, 1, headers.length).getValues()[0];
+        var headerMapByName = _getHeaderIndexMap(sheet);
+        var existingUsername = String(rowVals[headerMapByName.username] || "").trim();
+        var existingDivisiId = String(rowVals[headerMapByName.divisi_id] || "").trim().toUpperCase();
+
+        // Cross-division delete protection
+        if (!isSuperAdmin) {
+            if (existingDivisiId !== String(session.divisi_id).toUpperCase()) {
+                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:manage_user_cross_divisi", "db_users", existingUsername, "Attempt to delete cross-division user");
+                return _errorResponse("ERR_403_DIVISI");
+            }
+        }
+
         sheet.deleteRow(delRow);
-        writeAuditLog(actor, rbac.role, "delete_user", "db_users", deletedUsername,
+        writeAuditLog(session.username, rbac.session.role, isSuperAdmin ? existingDivisiId : session.divisi_id, "delete_user", "db_users", existingUsername,
             "Hapus user row=" + delRow);
         return responseJSON({ status: "success", message: "User berhasil dihapus" });
     }
@@ -1794,6 +2032,10 @@ function manageUser(data, session) {
 function resetPassword(data, session) {
     if (!data || !data.username || !data.new_password) {
         return responseJSON({ status: "error", message: "username dan new_password wajib diisi" });
+    }
+
+    if (!session) {
+        return _errorResponse("ERR_401_SESSION");
     }
 
     var sheet = _getUserSheet();
@@ -1815,23 +2057,33 @@ function resetPassword(data, session) {
         return responseJSON({ status: "error", message: "Kolom username/password tidak ditemukan di sheet" });
     }
 
-    var resetActor = session.username;
-    var rbacReset  = _checkRole(resetActor, "reset_password", "db_users");
+    var rbacReset = _checkRole(session, "reset_password", "db_users");
     if (!rbacReset.allowed) {
-        writeAuditLog(resetActor, rbacReset.role, "DENIED:reset_password", "db_users", data.username, rbacReset.msg);
-        return _errorResponse("ERR_403_ROLE");
+        return _errorResponse(rbacReset.error || "ERR_403_ROLE");
     }
     delete data.actor;
 
+    var isSuperAdmin = session.role === "super_admin";
+
     for (var i = 1; i < allData.length; i++) {
         if (allData[i][userColIdx] === data.username) {
+            var targetUserDivisiId = String(allData[i][_headerIndex(headers, "divisi_id")] || "").trim().toUpperCase();
+
+            // Cross-division reset password protection
+            if (!isSuperAdmin) {
+                if (targetUserDivisiId !== String(session.divisi_id).toUpperCase()) {
+                    writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:reset_password_cross_divisi", "db_users", data.username, "Attempt to reset password of cross-division user");
+                    return _errorResponse("ERR_403_DIVISI");
+                }
+            }
+
             var passwordFields = _passwordHashFields(data.new_password);
             _setRowValueByHeader(sheet, i + 1, headers, "password", passwordFields.password);
             _setRowValueByHeader(sheet, i + 1, headers, "password_hash", passwordFields.password_hash);
             _setRowValueByHeader(sheet, i + 1, headers, "password_salt", passwordFields.password_salt);
             _setRowValueByHeader(sheet, i + 1, headers, "password_v", passwordFields.password_v);
-            writeAuditLog(resetActor, rbacReset.role, "reset_password", "db_users", data.username,
-                "Password user \"" + data.username + "\" direset oleh " + resetActor);
+            writeAuditLog(session.username, rbacReset.session.role, isSuperAdmin ? targetUserDivisiId : session.divisi_id, "reset_password", "db_users", data.username,
+                "Password user \"" + data.username + "\" direset oleh " + session.username);
             return responseJSON({ status: "success", message: "Password user \"" + data.username + "\" berhasil direset" });
         }
     }
