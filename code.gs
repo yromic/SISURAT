@@ -238,14 +238,134 @@ function _publicSession(session) {
     };
 }
 
+var DB_USERS_HEADERS = [
+    "username",
+    "password",
+    "password_hash",
+    "password_salt",
+    "password_v",
+    "role",
+    "nama",
+    "email",
+    "role_id",
+    "aktif",
+    "divisi_id",
+    "scope",
+];
+
+function _normalizeHeaderName(header) {
+    return String(header || "").toLowerCase().trim();
+}
+
+function _headerIndex(headers, name) {
+    return headers.map(_normalizeHeaderName).indexOf(name);
+}
+
+function _getUserSheet() {
+    return ss.getSheetByName("db_users") || ss.getSheetByName("users");
+}
+
+function _ensureUserPasswordColumns(sheet) {
+    if (!sheet) return null;
+    if (sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) {
+        sheet.getRange(1, 1, 1, DB_USERS_HEADERS.length).setValues([DB_USERS_HEADERS]);
+        return DB_USERS_HEADERS.slice();
+    }
+
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(_normalizeHeaderName);
+    var usernameIdx = _headerIndex(headers, "username");
+    var passwordIdx = _headerIndex(headers, "password");
+    if (usernameIdx < 0 || passwordIdx < 0) {
+        writeAuditLog("system", "-", "SERVER_ERROR", "db_users", "-", "Header username/password tidak ditemukan");
+        return null;
+    }
+
+    ["password_hash", "password_salt", "password_v"].forEach(function(name) {
+        if (_headerIndex(headers, name) >= 0) return;
+        var afterName = name === "password_hash" ? "password" : (name === "password_salt" ? "password_hash" : "password_salt");
+        var afterIdx = _headerIndex(headers, afterName);
+        if (afterIdx < 0) afterIdx = passwordIdx;
+        sheet.insertColumnAfter(afterIdx + 1);
+        sheet.getRange(1, afterIdx + 2).setValue(name);
+        headers.splice(afterIdx + 1, 0, name);
+    });
+
+    return headers;
+}
+
+function _hashPassword(password, salt) {
+    var digest = Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        String(salt || "") + ":" + String(password || ""),
+        Utilities.Charset.UTF_8
+    );
+    return digest.map(function(byte) {
+        var value = byte < 0 ? byte + 256 : byte;
+        return ("0" + value.toString(16)).slice(-2);
+    }).join("");
+}
+
+function _generateSalt() {
+    return Utilities.getUuid() + "-" + Utilities.getUuid();
+}
+
+function _passwordRecordFromRow(row, headers) {
+    var get = function(name) {
+        var idx = _headerIndex(headers, name);
+        return idx >= 0 ? String(row[idx] || "").trim() : "";
+    };
+    return {
+        password: get("password"),
+        password_hash: get("password_hash"),
+        password_salt: get("password_salt"),
+        password_v: get("password_v"),
+    };
+}
+
+function _verifyPassword(inputPassword, user) {
+    var version = String(user.password_v || "").trim();
+    if (version === "2") {
+        return !!(user.password_hash && user.password_salt) &&
+            _hashPassword(inputPassword, user.password_salt) === user.password_hash;
+    }
+    return String(user.password || "") === String(inputPassword || "");
+}
+
+function _setRowValueByHeader(sheet, rowNumber, headers, name, value) {
+    var idx = _headerIndex(headers, name);
+    if (idx >= 0) sheet.getRange(rowNumber, idx + 1).setValue(value);
+}
+
+function _upgradePasswordIfNeeded(sheet, rowNumber, headers, row, inputPassword) {
+    var userPassword = _passwordRecordFromRow(row, headers);
+    if (String(userPassword.password_v || "").trim() === "2") return false;
+    var salt = _generateSalt();
+    var hash = _hashPassword(inputPassword, salt);
+    _setRowValueByHeader(sheet, rowNumber, headers, "password_hash", hash);
+    _setRowValueByHeader(sheet, rowNumber, headers, "password_salt", salt);
+    _setRowValueByHeader(sheet, rowNumber, headers, "password_v", "2");
+    _setRowValueByHeader(sheet, rowNumber, headers, "password", "__MIGRATED__");
+    return true;
+}
+
+function _passwordHashFields(password) {
+    var salt = _generateSalt();
+    return {
+        password: "__MIGRATED__",
+        password_hash: _hashPassword(password, salt),
+        password_salt: salt,
+        password_v: "2",
+    };
+}
+
 // ─── Helper: baca user dari db_users berdasarkan username ────────────────────
 function _lookupUser(username) {
     if (!username) return null;
-    var sheet = ss.getSheetByName("db_users") || ss.getSheetByName("users");
+    var sheet = _getUserSheet();
     if (!sheet) return null;
     var data = sheet.getDataRange().getDisplayValues();
-    var headers = data[0].map(function(h){ return h.toLowerCase().trim(); });
-    var uCol = headers.indexOf("username");
+    var headers = data[0].map(_normalizeHeaderName);
+    var uCol = _headerIndex(headers, "username");
     if (uCol < 0) return null;
     for (var i = 1; i < data.length; i++) {
         var row = data[i];
@@ -354,6 +474,11 @@ function doPost(e) {
         var params = JSON.parse(e.postData.contents);
         var action = params.action;
         var data = params.data || {};
+        if (action == "login") {
+            data = params.data && typeof params.data === "object" ? params.data : {};
+            data.username = data.username || params.username || "";
+            data.password = data.password || params.password || "";
+        }
         var sessionResult;
         var sessionError;
 
@@ -449,32 +574,42 @@ function cekLogin(data) {
     }
 
     // Coba sheet baru "db_users" dulu, fallback ke "users" (backward compat)
-    var sheet = ss.getSheetByName("db_users") || ss.getSheetByName("users");
+    var sheet = _getUserSheet();
     if (!sheet) {
         writeAuditLog("system", "-", "SERVER_ERROR", "login", "-", "Sheet users tidak ditemukan");
         return _errorResponse("ERR_500_SERVER");
     }
 
+    var ensuredHeaders = _ensureUserPasswordColumns(sheet);
+    if (!ensuredHeaders) {
+        return _errorResponse("ERR_500_SERVER");
+    }
+
     var dataUsers = sheet.getDataRange().getDisplayValues();
-    var headers   = dataUsers[0].map(function(h){ return h.toLowerCase().trim(); });
+    var headers   = dataUsers[0].map(_normalizeHeaderName);
 
     // Helper: ambil nilai kolom berdasarkan nama header
     function col(row, name) {
-        var idx = headers.indexOf(name);
+        var idx = _headerIndex(headers, name);
         return idx >= 0 ? row[idx] : "";
     }
 
     for (var i = 1; i < dataUsers.length; i++) {
         var row    = dataUsers[i];
         var dbUser = col(row, "username") || row[0];
-        var dbPass = col(row, "password") || row[1];
 
-        if (dbUser == username && dbPass == password) {
+        if (dbUser == username) {
+            var passwordRecord = _passwordRecordFromRow(row, headers);
+            if (!_verifyPassword(password, passwordRecord)) {
+                break;
+            }
+
             var user = _lookupUser(dbUser);
             if (!user || user.aktif === false) {
                 writeAuditLog(dbUser || "system", "-", "DENIED:login", "-", "-", "Akun nonaktif atau tidak ditemukan");
                 return responseJSON({ status: "error", message: "Username atau Password salah!" });
             }
+            _upgradePasswordIfNeeded(sheet, i + 1, headers, row, password);
             cache.remove(failKey);
             var session = _createSession(user);
             writeAuditLog(user.username, user.role, "login", "-", "-", "Login berhasil");
@@ -568,7 +703,7 @@ function getData(tableName) {
                 : clean.replace(/\s+/g, "_");
 
             // ── Keamanan: Jangan pernah kirim kolom password ke frontend ──────
-            if (finalKey === "password") return;
+            if (["password", "password_hash", "password_salt"].indexOf(finalKey) !== -1) return;
 
             if (obj[finalKey] !== undefined && finalKey !== "row_number") {
                 obj[finalKey + "_2"] = row[index];
@@ -1110,7 +1245,11 @@ function manageUser(data, session) {
     var sheet = ss.getSheetByName("db_users");
     if (!sheet) {
         sheet = ss.insertSheet("db_users");
-        sheet.appendRow(["username", "password", "role", "nama", "email", "role_id"]);
+        sheet.appendRow(DB_USERS_HEADERS);
+    }
+    var userHeaders = _ensureUserPasswordColumns(sheet);
+    if (!userHeaders) {
+        return _errorResponse("ERR_500_SERVER");
     }
 
     var sub = data.sub_action;
@@ -1123,20 +1262,32 @@ function manageUser(data, session) {
 
         // Cek duplikat username
         var existing = sheet.getDataRange().getDisplayValues();
+        var existingHeaders = existing[0].map(_normalizeHeaderName);
+        var existingUserCol = _headerIndex(existingHeaders, "username");
         for (var i = 1; i < existing.length; i++) {
-            if (existing[i][0] === data.username) {
+            if (String(existing[i][existingUserCol]).trim() === String(data.username).trim()) {
                 return responseJSON({ status: "error", message: "Username \"" + data.username + "\" sudah digunakan" });
             }
         }
 
-        sheet.appendRow([
-            data.username,
-            data.password,
-            data.role     || "Admin",
-            data.nama     || data.username,
-            data.email    || "",
-            data.role_id  || "",
-        ]);
+        var passwordFields = _passwordHashFields(data.password);
+        var newUser = {
+            username: data.username,
+            password: passwordFields.password,
+            password_hash: passwordFields.password_hash,
+            password_salt: passwordFields.password_salt,
+            password_v: passwordFields.password_v,
+            role: data.role || "Admin",
+            nama: data.nama || data.username,
+            email: data.email || "",
+            role_id: data.role_id || "",
+            aktif: data.aktif !== undefined ? data.aktif : "TRUE",
+            divisi_id: data.divisi_id || "",
+            scope: data.scope || "",
+        };
+        sheet.appendRow(userHeaders.map(function(header) {
+            return newUser[header] !== undefined ? newUser[header] : "";
+        }));
         writeAuditLog(actor, rbac.role, "create_user", "db_users", data.username,
             "User baru: " + data.username + " (role: " + (data.role || "Admin") + ")");
         return responseJSON({ status: "success", message: "User \"" + data.username + "\" berhasil ditambahkan" });
@@ -1148,13 +1299,23 @@ function manageUser(data, session) {
             return responseJSON({ status: "error", message: "row_number wajib untuk update" });
         }
         var rowNum = parseInt(data.row_number, 10);
-        var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+        var headers = _ensureUserPasswordColumns(sheet);
+        if (!headers) {
+            return _errorResponse("ERR_500_SERVER");
+        }
         var rowVals  = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+        var updatedPassword = null;
+        if (data.password && data.password.trim() !== "") {
+            updatedPassword = _passwordHashFields(data.password);
+        }
 
         headers.forEach(function(h, idx) {
-            var key = h.toLowerCase().trim();
+            var key = _normalizeHeaderName(h);
             // Jangan timpa password jika tidak dikirim (field kosong = tidak berubah)
-            if (key === "password" && (!data.password || data.password.trim() === "")) return;
+            if (["password", "password_hash", "password_salt", "password_v"].indexOf(key) !== -1) {
+                if (updatedPassword) rowVals[idx] = updatedPassword[key];
+                return;
+            }
             if (data[key] !== undefined && data[key] !== null && data[key] !== "") {
                 rowVals[idx] = data[key];
             }
@@ -1194,15 +1355,20 @@ function resetPassword(data, session) {
         return responseJSON({ status: "error", message: "username dan new_password wajib diisi" });
     }
 
-    var sheet = ss.getSheetByName("db_users") || ss.getSheetByName("users");
+    var sheet = _getUserSheet();
     if (!sheet) {
         return responseJSON({ status: "error", message: "Sheet users tidak ditemukan" });
     }
 
+    var ensuredHeaders = _ensureUserPasswordColumns(sheet);
+    if (!ensuredHeaders) {
+        return _errorResponse("ERR_500_SERVER");
+    }
+
     var allData = sheet.getDataRange().getDisplayValues();
-    var headers = allData[0].map(function(h){ return h.toLowerCase().trim(); });
-    var userColIdx = headers.indexOf("username");
-    var passColIdx = headers.indexOf("password");
+    var headers = allData[0].map(_normalizeHeaderName);
+    var userColIdx = _headerIndex(headers, "username");
+    var passColIdx = _headerIndex(headers, "password");
 
     if (userColIdx < 0 || passColIdx < 0) {
         return responseJSON({ status: "error", message: "Kolom username/password tidak ditemukan di sheet" });
@@ -1218,7 +1384,11 @@ function resetPassword(data, session) {
 
     for (var i = 1; i < allData.length; i++) {
         if (allData[i][userColIdx] === data.username) {
-            sheet.getRange(i + 1, passColIdx + 1).setValue(data.new_password);
+            var passwordFields = _passwordHashFields(data.new_password);
+            _setRowValueByHeader(sheet, i + 1, headers, "password", passwordFields.password);
+            _setRowValueByHeader(sheet, i + 1, headers, "password_hash", passwordFields.password_hash);
+            _setRowValueByHeader(sheet, i + 1, headers, "password_salt", passwordFields.password_salt);
+            _setRowValueByHeader(sheet, i + 1, headers, "password_v", passwordFields.password_v);
             writeAuditLog(resetActor, rbacReset.role, "reset_password", "db_users", data.username,
                 "Password user \"" + data.username + "\" direset oleh " + resetActor);
             return responseJSON({ status: "success", message: "Password user \"" + data.username + "\" berhasil direset" });

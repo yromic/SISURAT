@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbykLuftJ65RUtn5q8T5i953NMzFiShekGWcMK4-SSGoUWozDW6SB2vVxpAt9E2rqqOOpg/exec";
+    "https://script.google.com/macros/s/AKfycbxGbgw4zmYmST3-6oWfOeopRvfw67765xcgiDeYzRdP656cHIaoGCvLEvELbn84VLw6QQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -128,6 +128,8 @@
 
   function getSessionToken() {
     try {
+      const explicitToken = localStorage.getItem("session_token");
+      if (explicitToken) return explicitToken;
       const rawValue = localStorage.getItem("user");
       if (!rawValue) return "";
       const user = JSON.parse(rawValue);

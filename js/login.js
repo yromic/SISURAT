@@ -32,9 +32,21 @@
       const result = await SisuratApi.login(username, password);
 
       if (result.status === "success") {
+        const token =
+          result.token ||
+          result.session_token ||
+          result.user?.token ||
+          result.user?.session_token;
+        if (token) {
+          localStorage.setItem("session_token", token);
+        }
+        const user = result.user || {};
+        if (user.role) localStorage.setItem("user_role", user.role);
+        if (user.scope) localStorage.setItem("user_scope", user.scope);
+        if (user.nama) localStorage.setItem("user_nama", user.nama);
         SisuratAuth.setStoredUser({
-          ...(result.user || {}),
-          session_token: result.session_token,
+          ...user,
+          session_token: token,
         });
         window.location.href = "dashboard.html";
       } else {

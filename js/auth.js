@@ -15,10 +15,22 @@
 
   function setStoredUser(user) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    const sessionToken =
+      user && (user.token || user.session_token || user.user?.token || user.user?.session_token);
+    if (sessionToken) {
+      localStorage.setItem("session_token", sessionToken);
+    }
+    if (user && user.role) localStorage.setItem("user_role", user.role);
+    if (user && user.scope) localStorage.setItem("user_scope", user.scope);
+    if (user && user.nama) localStorage.setItem("user_nama", user.nama);
   }
 
   function clearStoredUser() {
     localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem("session_token");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_scope");
+    localStorage.removeItem("user_nama");
   }
 
   function requireAuth(options = {}) {
@@ -26,9 +38,14 @@
       options;
 
     const user = getStoredUser();
-    if (!user || !user.session_token) {
+    const sessionToken = localStorage.getItem("session_token") || (user && user.session_token);
+    if (!user || !sessionToken) {
       window.location.href = redirectTo;
       return null;
+    }
+    if (!user.session_token) {
+      user.session_token = sessionToken;
+      setStoredUser(user);
     }
 
     const userNameEl = document.querySelector(userNameSelector);
@@ -61,7 +78,8 @@
 
   async function verifyRoleFromServer() {
     const user = getStoredUser();
-    if (!user || !user.session_token || !global.SisuratApi) {
+    const sessionToken = localStorage.getItem("session_token") || (user && user.session_token);
+    if (!user || !sessionToken || !global.SisuratApi) {
       return { valid: false, mismatch: false, msg: "ERR_401_SESSION" };
     }
 
@@ -79,7 +97,7 @@
       const serverRole = serverUser.role || null;
       const localRole = user.role || null;
       const mismatch = !!(serverRole && localRole && serverRole !== localRole);
-      setStoredUser({ ...user, ...serverUser, session_token: user.session_token });
+      setStoredUser({ ...user, ...serverUser, session_token: sessionToken });
 
       return {
         valid: true,
