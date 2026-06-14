@@ -94,15 +94,24 @@ var RBAC_RULES = {
     "read:db_users":            ["super_admin", "admin_divisi", "admin"],
     "read:db_summary":          ["super_admin", "admin_divisi", "admin", "operator"],
     "read:db_audit_log":        ["super_admin", "admin_divisi", "admin"],
-    "create:db_surat_masuk":    ["super_admin", "admin", "operator"],
-    "create:db_surat_keluar":   ["super_admin", "admin", "operator"],
-    "create:db_piagam":         ["super_admin", "admin", "operator"],
-    "update:db_surat_masuk":    ["super_admin", "admin"],
-    "update:db_surat_keluar":   ["super_admin", "admin"],
-    "update:db_piagam":         ["super_admin", "admin"],
-    "delete:db_surat_masuk":    ["super_admin", "admin"],
-    "delete:db_surat_keluar":   ["super_admin", "admin"],
-    "delete:db_piagam":         ["super_admin", "admin"],
+    "create:surat_masuk":       ["super_admin", "admin", "operator"],
+    "create:surat_keluar":      ["super_admin", "admin", "operator"],
+    "create:piagam":            ["super_admin", "admin", "operator"],
+    "create:ref_pengambilan":   ["super_admin", "admin", "operator"],
+    "create:ref_jenis":         ["super_admin", "admin", "operator"],
+    "create:ref_sekolah":       ["super_admin", "admin", "operator"],
+    "update:surat_masuk":       ["super_admin", "admin"],
+    "update:surat_keluar":      ["super_admin", "admin"],
+    "update:piagam":            ["super_admin", "admin"],
+    "update:ref_pengambilan":   ["super_admin", "admin"],
+    "update:ref_jenis":         ["super_admin", "admin"],
+    "update:ref_sekolah":       ["super_admin", "admin"],
+    "delete:surat_masuk":       ["super_admin", "admin"],
+    "delete:surat_keluar":      ["super_admin", "admin"],
+    "delete:piagam":            ["super_admin", "admin"],
+    "delete:ref_pengambilan":   ["super_admin", "admin"],
+    "delete:ref_jenis":         ["super_admin", "admin"],
+    "delete:ref_sekolah":       ["super_admin", "admin"],
     "manage_user:*":            ["super_admin"],
     "reset_password:*":         ["super_admin"],
     "init_divisi:db_divisi":    ["super_admin"],
@@ -491,6 +500,46 @@ function _extractDivisi(tableName) {
     return "";
 }
 
+function _resolveDivisionTable(session, tableName, dataInput) {
+    if (!tableName) return "";
+    var GLOBAL_TABLES = ["db_divisi", "db_users", "db_audit_log", "db_summary", "ref_sekolah"];
+    if (GLOBAL_TABLES.indexOf(tableName) !== -1) {
+        return tableName;
+    }
+
+    var parts = tableName.split("_");
+    if (parts.length > 1) {
+        var firstPart = parts[0].toUpperCase();
+        if (firstPart !== "DB" && firstPart !== "REF") {
+            // Already division-specific table name
+            return tableName;
+        }
+    }
+
+    var divisionCode = "";
+    if (session && session.role === "super_admin") {
+        if (dataInput && dataInput.divisi_id) {
+            divisionCode = String(dataInput.divisi_id).trim().toUpperCase();
+        }
+    } else if (session) {
+        divisionCode = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "";
+    }
+
+    if (!divisionCode) {
+        return "ERR_400_DIVISI_REQUIRED";
+    }
+
+    var suffix = "";
+    if (tableName === "db_surat_masuk" || tableName === "surat_masuk") suffix = "surat_masuk";
+    else if (tableName === "db_surat_keluar" || tableName === "surat_keluar") suffix = "surat_keluar";
+    else if (tableName === "db_piagam" || tableName === "piagam") suffix = "piagam";
+    else if (tableName === "ref_pengambilan") suffix = "ref_pengambilan";
+    else if (tableName === "ref_jenis_perlombaan" || tableName === "ref_jenis") suffix = "ref_jenis";
+    else suffix = tableName;
+
+    return divisionCode + "_" + suffix;
+}
+
 function _validateTableName(tableName) {
     if (!tableName) return false;
     if (GLOBAL_SHEETS[tableName]) return true;
@@ -648,33 +697,52 @@ function doPost(e) {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            var tableName = data.table || "";
+            var tableName = _resolveDivisionTable(sessionResult.session, data.table || "", data);
+            if (tableName === "ERR_400_DIVISI_REQUIRED") {
+                return _errorResponse("ERR_400_DIVISI_REQUIRED");
+            }
+            data.table = tableName;
             return getData(tableName, sessionResult.session, data);
         } else if (action == "simpan_record") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            return simpanRecord(data.table, data.data || {}, sessionResult.session);
+            var tableName = _resolveDivisionTable(sessionResult.session, data.table || "", data.data || {});
+            if (tableName === "ERR_400_DIVISI_REQUIRED") {
+                return _errorResponse("ERR_400_DIVISI_REQUIRED");
+            }
+            data.table = tableName;
+            return simpanRecord(tableName, data.data || {}, sessionResult.session);
         } else if (action == "update_record") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            return updateRecord(data.table, data.id, data.data || {}, sessionResult.session);
+            var tableName = _resolveDivisionTable(sessionResult.session, data.table || "", data.data || {});
+            if (tableName === "ERR_400_DIVISI_REQUIRED") {
+                return _errorResponse("ERR_400_DIVISI_REQUIRED");
+            }
+            data.table = tableName;
+            return updateRecord(tableName, data.id, data.data || {}, sessionResult.session);
         } else if (action == "hapus_record") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            return hapusRecord(data.table, data.id, sessionResult.session);
+            var tableName = _resolveDivisionTable(sessionResult.session, data.table || "", data);
+            if (tableName === "ERR_400_DIVISI_REQUIRED") {
+                return _errorResponse("ERR_400_DIVISI_REQUIRED");
+            }
+            data.table = tableName;
+            return hapusRecord(tableName, data.id, sessionResult.session);
         } else if (action == "upload_chunk") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            return handleUploadChunk(data);
+            return handleUploadChunk(data, sessionResult.session);
         } else if (action == "finalize_upload") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            return finalizeUpload(data);
+            return finalizeUpload(data, sessionResult.session);
 
         // ── RBAC: User Management (v3.0) ──────────────────────────────────────
         } else if (action == "manage_user") {
