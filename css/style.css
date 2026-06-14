@@ -685,3 +685,140 @@ label[for^="input-"] {
   right: auto;
   animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ─── 22. Global Toast Notification System (navigation.js) ──── */
+.sisurat-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 420px;
+  width: calc(100% - 48px);
+}
+
+.sisurat-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  box-shadow:
+    0 20px 40px -10px rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  pointer-events: all;
+  opacity: 0;
+  transform: translateX(100%) scale(0.9);
+  transition: none;
+}
+
+.sisurat-toast--visible {
+  animation: sisuratToastIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.sisurat-toast--exit {
+  animation: sisuratToastOut 0.35s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+.sisurat-toast__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sisurat-toast__message {
+  flex: 1;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.sisurat-toast__close {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+.sisurat-toast__close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Toast type variants */
+.sisurat-toast--success {
+  background: linear-gradient(135deg, rgba(0, 173, 181, 0.95), rgba(0, 147, 156, 0.95));
+  color: #fff;
+}
+.sisurat-toast--error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+  color: #fff;
+}
+.sisurat-toast--warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+  color: #fff;
+}
+.sisurat-toast--info {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+  color: #fff;
+}
+
+@keyframes sisuratToastIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes sisuratToastOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(80px) scale(0.85);
+  }
+}
+
+/* ─── 23. Active Divisi Badge ───────────────────────────────── */
+.divisi-badge-container {
+  display: flex;
+  align-items: center;
+}
+
+/* ─── 24. Fade-in animation ─────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}

@@ -87,7 +87,7 @@
       .map((row, idx) => {
         const nama = row[cfg.namaKey] || "-";
         const aktif = String(row.aktif).toUpperCase() === "TRUE";
-        const rowNum = row.row_number;
+        const rowId = row.id;
         const safeNama = nama.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
         return `
@@ -103,13 +103,13 @@
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onclick="refEdit(${rowNum}, '${safeNama}', '${aktif ? "TRUE" : "FALSE"}')"
+                  onclick="refEdit('${rowId}', '${safeNama}', '${aktif ? "TRUE" : "FALSE"}')"
                   class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-500 text-blue-500 hover:text-white flex items-center justify-center transition-all text-xs"
                   title="Edit">
                   <i class="fas fa-pencil-alt"></i>
                 </button>
                 <button
-                  onclick="refHapus(${rowNum}, '${safeNama}')"
+                  onclick="refHapus('${rowId}', '${safeNama}')"
                   class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-all text-xs"
                   title="Hapus">
                   <i class="fas fa-trash"></i>
@@ -124,6 +124,9 @@
 
   // ─── Update Info Card counter ───────────────────────────────────────────────
   async function loadAllCounts() {
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      return;
+    }
     for (const [key, cfg] of Object.entries(TAB_CONFIG)) {
       try {
         const result = await SisuratApi.getData(cfg.table);
@@ -151,6 +154,35 @@
 
   // ─── Load Data Tab Aktif ───────────────────────────────────────────────────
   async function loadTabData() {
+    // Check if Super Admin has selected an active division
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      setLoading(false);
+      const tbody = document.getElementById("ref-tbody");
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-20 text-center text-amber-600 font-bold">
+              <i class="fas fa-exclamation-triangle mr-2 text-xl"></i>
+              Pilih divisi aktif terlebih dahulu di sidebar.
+            </td>
+          </tr>`;
+      }
+      const tableWrapper = document.getElementById("ref-table-wrapper");
+      if (tableWrapper) {
+        tableWrapper.classList.remove("hidden");
+      }
+      const addBtn = document.getElementById("ref-tambah-btn");
+      if (addBtn) {
+        addBtn.classList.add("hidden");
+      }
+      return;
+    }
+
+    const addBtn = document.getElementById("ref-tambah-btn");
+    if (addBtn) {
+      addBtn.classList.remove("hidden");
+    }
+
     const cfg = TAB_CONFIG[currentTab];
     setLoading(true);
     const searchEl = document.getElementById("ref-search");
@@ -221,14 +253,14 @@
   }
 
   // ─── Buka Modal Edit ────────────────────────────────────────────────────────
-  function refEdit(rowNum, nama, aktif) {
+  function refEdit(rowId, nama, aktif) {
     const cfg = TAB_CONFIG[currentTab];
     document.getElementById("ref-modal-title").textContent = `Edit ${cfg.label}`;
     document.getElementById("ref-modal-icon").className = "fas fa-pencil-alt text-blue-500";
     document.getElementById("ref-field-label").textContent = cfg.fieldLabel;
     document.getElementById("ref-input-nama").placeholder = cfg.placeholder;
     document.getElementById("ref-input-nama").value = nama;
-    document.getElementById("ref-edit-row").value = rowNum;
+    document.getElementById("ref-edit-row").value = rowId;
     const radioAktif = document.querySelector(`input[name="ref-aktif"][value="${aktif}"]`);
     if (radioAktif) radioAktif.checked = true;
     hideModalAlert();
@@ -278,9 +310,9 @@
     const cfg = TAB_CONFIG[currentTab];
     const namaVal = document.getElementById("ref-input-nama").value.trim();
     const aktifVal = document.querySelector('input[name="ref-aktif"]:checked').value;
-    const rowNum = document.getElementById("ref-edit-row").value;
+    const rowId = document.getElementById("ref-edit-row").value;
     const submitBtn = document.getElementById("ref-submit-btn");
-    const isEdit = !!rowNum;
+    const isEdit = !!rowId;
 
     if (!namaVal) {
       showModalAlert("error", "Nama tidak boleh kosong.");
@@ -297,7 +329,7 @@
       payload[cfg.namaKey] = namaVal;
 
       if (isEdit) {
-        result = await SisuratApi.updateRecord(cfg.table, rowNum, payload);
+        result = await SisuratApi.updateRecord(cfg.table, rowId, payload);
       } else {
         result = await SisuratApi.saveRecord(cfg.table, payload);
       }
@@ -325,7 +357,7 @@
   }
 
   // ─── Hapus ─────────────────────────────────────────────────────────────────
-  async function refHapus(rowNum, nama) {
+  async function refHapus(rowId, nama) {
     const cfg = TAB_CONFIG[currentTab];
     const confirmed = window.confirm(
       `Hapus "${nama}" dari ${cfg.label}?\n\nData tidak bisa dikembalikan.`
@@ -333,17 +365,17 @@
     if (!confirmed) return;
 
     try {
-      const result = await SisuratApi.deleteRecord(cfg.table, rowNum);
+      const result = await SisuratApi.deleteRecord(cfg.table, rowId);
       if (result && result.status === "success") {
         SisuratApi.invalidateRef(cfg.table);
         await loadTabData();
         await loadAllCounts();
       } else {
-        alert("Gagal menghapus: " + (result?.message || "Error tidak diketahui"));
+        SisuratUI.showToast("Gagal menghapus: " + (result?.message || "Error tidak diketahui"), "error");
       }
     } catch (err) {
       console.error("[ref-crud] Gagal hapus:", err);
-      alert("Terjadi kesalahan jaringan saat menghapus.");
+      SisuratUI.showToast("Terjadi kesalahan jaringan saat menghapus.", "error");
     }
   }
 

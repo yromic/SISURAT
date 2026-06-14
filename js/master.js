@@ -288,6 +288,30 @@
   async function loadTab() {
     const table = TAB_TABLE[state.activeTab];
     showTableLoading(true);
+
+    // Check if Super Admin has selected an active division
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      showTableLoading(false);
+      const tbody = document.getElementById("master-tbody");
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="py-20 text-center text-amber-600 font-bold">
+              <i class="fas fa-exclamation-triangle mr-2 text-xl"></i>
+              Pilih divisi aktif terlebih dahulu di sidebar.
+            </td>
+          </tr>`;
+      }
+      const addBtn = document.getElementById("btn-tambah");
+      if (addBtn) addBtn.classList.add("hidden");
+      return;
+    }
+
+    const addBtn = document.getElementById("btn-tambah");
+    if (addBtn) {
+      addBtn.classList.remove("hidden");
+    }
+
     try {
       const rows = await SisuratApi.fetchTable(table);
       state.rawData = rows;

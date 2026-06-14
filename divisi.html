@@ -208,6 +208,8 @@
             class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6"
           >
             <div>
+              <!-- Active Divisi Badge -->
+              <div id="active-divisi-badge" class="hidden divisi-badge-container mb-3"></div>
               <div
                 class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm"
               >
@@ -409,29 +411,7 @@
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/navigation.js"></script>
     <script src="js/divisi.js"></script>
-    <script>
-      function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("open");
-        document.getElementById("sidebar-overlay").classList.toggle("open");
-      }
-      function closeSidebar() {
-        document.getElementById("sidebar").classList.remove("open");
-        document.getElementById("sidebar-overlay").classList.remove("open");
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        const nm = document.getElementById("user-name");
-        const nmm = document.getElementById("user-name-mobile");
-        if (nm && nmm) {
-          const obs = new MutationObserver(() => { nmm.textContent = nm.textContent; });
-          obs.observe(nm, { childList: true, characterData: true, subtree: true });
-        }
-
-        if (SisuratAuth.isSuperAdmin()) {
-          const saSection = document.getElementById("sidebar-superadmin-section");
-          if (saSection) saSection.classList.remove("hidden");
-        }
-      });
-    </script>
   </body>
 </html>

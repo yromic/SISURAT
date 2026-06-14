@@ -23,6 +23,11 @@
     if (user && user.role) localStorage.setItem("user_role", user.role);
     if (user && user.scope) localStorage.setItem("user_scope", user.scope);
     if (user && user.nama) localStorage.setItem("user_nama", user.nama);
+    if (user && user.divisi_id) {
+      localStorage.setItem("user_divisi_id", user.divisi_id);
+    } else {
+      localStorage.removeItem("user_divisi_id");
+    }
   }
 
   function clearStoredUser() {
@@ -31,6 +36,131 @@
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_scope");
     localStorage.removeItem("user_nama");
+    localStorage.removeItem("user_divisi_id");
+    localStorage.removeItem("active_divisi");
+  }
+
+  // Helper for Global Division Context
+  global.SisuratDivision = {
+    getActiveDivisi() {
+      const user = getStoredUser();
+      if (!user) return "";
+      const role = String(user.role || "").toLowerCase().replace(/[\s_-]+/g, "_");
+      if (role === "super_admin") {
+        return localStorage.getItem("active_divisi") || "";
+      } else {
+        return user.divisi_id || "";
+      }
+    },
+    setActiveDivisi(kodeDivisi) {
+      const user = getStoredUser();
+      if (!user) return;
+      const role = String(user.role || "").toLowerCase().replace(/[\s_-]+/g, "_");
+      if (role === "super_admin") {
+        if (kodeDivisi) {
+          localStorage.setItem("active_divisi", String(kodeDivisi).toUpperCase());
+        } else {
+          localStorage.removeItem("active_divisi");
+        }
+      }
+    },
+    clearActiveDivisi() {
+      localStorage.removeItem("active_divisi");
+    },
+    requireActiveDivisi() {
+      return this.getActiveDivisi() || null;
+    },
+    isSuperAdmin() {
+      const user = getStoredUser();
+      if (!user || !user.role) return false;
+      const role = user.role.toLowerCase().replace(/[\s_-]+/g, "_");
+      return role === "super_admin";
+    }
+  };
+
+  async function getDivisionsCached() {
+    const cached = localStorage.getItem("sisurat_divisions");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (_) {}
+    }
+    if (global.SisuratApi) {
+      try {
+        const res = await global.SisuratApi.getData("db_divisi");
+        if (res && res.status === "success" && Array.isArray(res.data)) {
+          localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
+          return res.data;
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  async function injectSidebarSwitcher() {
+    const isSA = global.SisuratDivision.isSuperAdmin();
+    if (!isSA) return;
+
+    // Show superadmin section in sidebar if it exists
+    const saSection = document.getElementById("sidebar-superadmin-section");
+    if (saSection) {
+      saSection.classList.remove("hidden");
+    }
+
+    const nav = document.querySelector("#sidebar nav");
+    if (!nav) return;
+
+    // Avoid duplicate injection
+    if (document.getElementById("sidebar-division-switcher-container")) {
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.id = "sidebar-division-switcher-container";
+    wrapper.className = "mb-4 px-2";
+
+    const label = document.createElement("label");
+    label.className = "block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1.5";
+    label.innerText = "Divisi Aktif (Super Admin)";
+    wrapper.appendChild(label);
+
+    const select = document.createElement("select");
+    select.id = "sidebar-division-switcher";
+    select.className = "w-full px-3 py-2 bg-white/10 border border-white/20 text-white font-semibold rounded-xl text-xs outline-none cursor-pointer appearance-none";
+    select.style.color = "#ffffff";
+    select.style.backgroundColor = "#222831";
+
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.innerText = "-- Pilih Divisi Aktif --";
+    defaultOpt.disabled = true;
+    defaultOpt.className = "text-[#222831] bg-white";
+    select.appendChild(defaultOpt);
+
+    const divisions = await getDivisionsCached();
+    divisions.forEach((div) => {
+      if (div.status === "active" || div.status === "Aktif") {
+        const opt = document.createElement("option");
+        opt.value = div.kode_divisi;
+        opt.className = "text-[#222831] bg-white";
+        opt.innerText = `${div.kode_divisi} - ${div.nama_divisi}`;
+        select.appendChild(opt);
+      }
+    });
+
+    const activeDiv = global.SisuratDivision.getActiveDivisi();
+    select.value = activeDiv;
+    if (!activeDiv) {
+      defaultOpt.selected = true;
+    }
+
+    select.onchange = function () {
+      global.SisuratDivision.setActiveDivisi(this.value);
+      window.location.reload();
+    };
+
+    wrapper.appendChild(select);
+    nav.insertBefore(wrapper, nav.firstChild);
   }
 
   function requireAuth(options = {}) {
@@ -52,6 +182,8 @@
     if (userNameEl) {
       userNameEl.innerText = user.nama || user.username || "User";
     }
+
+    injectSidebarSwitcher();
 
     return user;
   }

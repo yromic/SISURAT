@@ -107,6 +107,13 @@
             <i class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
             <span>Kelola User</span>
           </a>
+          <a
+            href="divisi.html"
+            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+          >
+            <i class="fas fa-building w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+            <span>Kelola Divisi</span>
+          </a>
         </div>
       </nav>
 
@@ -210,6 +217,8 @@
           </div>
 
           <div class="flex flex-wrap gap-2 sm:gap-4 shrink-0 items-center">
+            <!-- Active Divisi Badge -->
+            <div id="active-divisi-badge" class="hidden divisi-badge-container"></div>
             <!-- Divisi Switcher -->
             <div id="divisi-switcher-container" class="hidden relative">
               <select
@@ -517,32 +526,7 @@
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/navigation.js"></script>
     <script src="js/dashboard.js"></script>
-    <script>
-      function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("open");
-        document.getElementById("sidebar-overlay").classList.toggle("open");
-      }
-      function closeSidebar() {
-        document.getElementById("sidebar").classList.remove("open");
-        document.getElementById("sidebar-overlay").classList.remove("open");
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        // Sync user name mobile
-        const observer = new MutationObserver(function () {
-          const nm = document.getElementById("user-name");
-          const nmm = document.getElementById("user-name-mobile");
-          if (nm && nmm) nmm.textContent = nm.textContent;
-        });
-        const nm = document.getElementById("user-name");
-        if (nm) observer.observe(nm, { childList: true, characterData: true, subtree: true });
-
-        // Tampilkan menu Super Admin untuk navigasi saja; izin tetap dicek backend.
-        if (SisuratAuth.isSuperAdmin()) {
-          const saSection = document.getElementById("sidebar-superadmin-section");
-          if (saSection) saSection.classList.remove("hidden");
-        }
-      });
-    </script>
   </body>
 </html>

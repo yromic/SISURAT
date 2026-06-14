@@ -13,16 +13,18 @@
   let _sortAsc = true;
   let _currentPage = 1;
   let _rowsPerPage = 10;
+  let _currentUser = null;
+
   const ROLE_OPTIONS = [
-    { id: "role_super_admin", value: "super_admin", label: "Super Admin", color: "#7c3aed", is_super_admin: true },
-    { id: "role_admin", value: "admin", label: "Admin", color: "#00ADB5", is_super_admin: false },
-    { id: "role_operator", value: "operator", label: "Operator", color: "#10b981", is_super_admin: false },
+    { id: "super_admin", value: "super_admin", label: "Super Admin", color: "#7c3aed", is_super_admin: true },
+    { id: "admin_divisi", value: "admin_divisi", label: "Admin Divisi", color: "#00ADB5", is_super_admin: false },
+    { id: "operator", value: "operator", label: "Operator", color: "#10b981", is_super_admin: false },
   ];
 
   // ─── Init ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
-    const user = SisuratAuth.requireAuth({ redirectTo: "index.html" });
-    if (!user) return;
+    _currentUser = SisuratAuth.requireAuth({ redirectTo: "index.html" });
+    if (!_currentUser) return;
 
     // Sync nama mobile
     const nm = document.getElementById("user-name");
@@ -32,8 +34,9 @@
       obs.observe(nm, { childList: true, characterData: true, subtree: true });
     }
 
-    // Populate role dropdown
+    // Populate dropdowns
     _populateRoleDropdown();
+    _populateDivisionDropdown();
 
     // Load users
     _loadUsers();
@@ -57,6 +60,46 @@
       });
     }
   });
+
+  // ─── Division Helpers ──────────────────────────────────────────────────────
+  async function _getDivisions() {
+    const cached = localStorage.getItem("sisurat_divisions");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (_) {}
+    }
+    try {
+      const res = await SisuratApi.getData("db_divisi");
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
+        return res.data;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  async function _populateDivisionDropdown() {
+    const sel = document.getElementById("um-form-divisi");
+    if (!sel) return;
+    const divisions = await _getDivisions();
+    
+    let html = '<option value="">-- Tanpa Divisi (Global/Super Admin) --</option>';
+    divisions.forEach((div) => {
+      if (div.status === "active" || div.status === "Aktif") {
+        html += `<option value="${div.kode_divisi}">${div.kode_divisi} - ${div.nama_divisi}</option>`;
+      }
+    });
+    sel.innerHTML = html;
+
+    const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
+    if (!isSA) {
+      sel.value = _currentUser ? _currentUser.divisi_id || "" : "";
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+    }
+  }
 
   // ─── Load Users dari API ──────────────────────────────────────────────────
   async function _loadUsers() {
@@ -94,16 +137,37 @@
     const totalEl = document.getElementById("stat-total-user");
     if (totalEl) totalEl.textContent = _users.length;
 
+    const row = document.getElementById("stat-cards-row");
+    if (row) {
+      const existingDynamic = row.querySelectorAll(".dynamic-stat-card");
+      if (existingDynamic.length === 0) {
+        ROLE_OPTIONS.forEach((role) => {
+          const div = document.createElement("div");
+          div.className = "dynamic-stat-card bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-gray-100";
+          div.innerHTML = `
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: ${role.color}1a;">
+              <i class="fas ${role.id === "super_admin" ? "fa-crown" : (role.id === "admin_divisi" ? "fa-user-shield" : "fa-user-edit")} text-xl" style="color: ${role.color};"></i>
+            </div>
+            <div>
+              <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">${role.label}</p>
+              <p id="stat-role-${role.id}" class="text-2xl font-extrabold font-outfit text-[#222831]">0</p>
+            </div>
+          `;
+          row.appendChild(div);
+        });
+      }
+    }
+
     const roles = ROLE_OPTIONS;
     roles.forEach((role) => {
       const el = document.getElementById(`stat-role-${role.id}`);
       if (el) {
         const count = _users.filter((u) => {
-          if (Array.isArray(u.role_ids)) return u.role_ids.includes(role.id);
-          if (u.role_id === role.id) return true;
+          if (Array.isArray(u.role_ids)) return u.role_ids.includes(role.id) || u.role_ids.includes(role.value);
+          if (u.role_id === role.id || u.role_id === role.value) return true;
           // backward compat
           const matched = _getRoleByName(u.role || "");
-          return matched && matched.id === role.id;
+          return (matched && matched.id === role.id) || String(u.role).toLowerCase() === role.value;
         }).length;
         el.textContent = count;
       }
@@ -203,12 +267,23 @@
   }
 
   function _getRoleById(roleId) {
-    return ROLE_OPTIONS.find((role) => role.id === roleId || role.value === roleId) || null;
+    let normalized = String(roleId || "").toLowerCase().replace(/[\s_-]+/g, "_");
+    if (normalized === "role_admin" || normalized === "admin") {
+      normalized = "admin_divisi";
+    } else if (normalized === "role_super_admin") {
+      normalized = "super_admin";
+    } else if (normalized === "role_operator") {
+      normalized = "operator";
+    }
+    return ROLE_OPTIONS.find((role) => role.id === normalized || role.value === normalized) || null;
   }
 
   function _getRoleByName(roleName) {
-    const normalized = String(roleName || "").toLowerCase().replace(/[\s-]+/g, "_");
-    return ROLE_OPTIONS.find((role) => role.value === normalized || role.label.toLowerCase().replace(/[\s-]+/g, "_") === normalized) || null;
+    let normalized = String(roleName || "").toLowerCase().replace(/[\s_-]+/g, "_");
+    if (normalized === "admin") {
+      normalized = "admin_divisi";
+    }
+    return ROLE_OPTIONS.find((role) => role.value === normalized || role.label.toLowerCase().replace(/[\s_-]+/g, "_") === normalized) || null;
   }
 
   function _renderPagination(totalPages, totalItems) {
@@ -260,9 +335,13 @@
   function _populateRoleDropdown() {
     const sel = document.getElementById("um-form-role");
     if (!sel) return;
-    const roles = ROLE_OPTIONS;
-    sel.innerHTML = roles
-      .map((r) => `<option value="${r.id}">${r.label}${r.is_super_admin ? " ⭐" : ""}</option>`)
+    const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
+    const filteredRoles = ROLE_OPTIONS.filter((r) => {
+      if (!isSA && r.id === "super_admin") return false;
+      return true;
+    });
+    sel.innerHTML = filteredRoles
+      .map((r) => `<option value="${r.id}">${r.label}</option>`)
       .join("");
   }
 
@@ -276,6 +355,19 @@
     const pwdField = document.getElementById("um-form-password");
     if (pwdField) pwdField.required = mode === "add";
     _setModalAlert("");
+
+    // Lock/Unlock division selection depending on role
+    const divisiEl = document.getElementById("um-form-divisi");
+    if (divisiEl) {
+      const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
+      if (!isSA) {
+        divisiEl.value = _currentUser ? _currentUser.divisi_id || "" : "";
+        divisiEl.disabled = true;
+      } else {
+        divisiEl.disabled = false;
+      }
+    }
+
     document.getElementById("um-modal").classList.remove("hidden");
     document.getElementById("um-form-nama").focus();
   };
@@ -307,6 +399,19 @@
     const roleEl = document.getElementById("um-form-role");
     const roleObj = _getUserRole(u);
     if (roleEl && roleObj) roleEl.value = roleObj.id;
+
+    // Set division
+    const divisiEl = document.getElementById("um-form-divisi");
+    if (divisiEl) {
+      const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
+      if (isSA) {
+        divisiEl.value = u.divisi_id || "";
+        divisiEl.disabled = false;
+      } else {
+        divisiEl.value = _currentUser ? _currentUser.divisi_id || "" : "";
+        divisiEl.disabled = true;
+      }
+    }
   };
 
   function _setModalAlert(msg, type = "error") {
@@ -326,6 +431,7 @@
     const password = document.getElementById("um-form-password").value.trim();
     const roleId   = document.getElementById("um-form-role").value;
     const roleObj  = _getRoleById(roleId);
+    const divisiId = document.getElementById("um-form-divisi").value;
 
     if (!nama || !username) {
       _setModalAlert("Nama dan Username wajib diisi.");
@@ -341,14 +447,17 @@
     submitBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...`;
 
     try {
+      const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
       const isEdit  = !!_editingId;
       const payload = {
         sub_action : isEdit ? "update" : "create",
         nama,
         username,
         email,
-        role    : roleObj ? roleObj.value : "admin",
+        role    : roleObj ? roleObj.value : "admin_divisi",
         role_id : roleId,
+        divisi_id: isSA ? divisiId : (_currentUser ? _currentUser.divisi_id : ""),
+        scope: roleId === "super_admin" ? "global" : "divisi"
       };
       if (isEdit)   payload.row_number = _editingId;
       if (password) payload.password   = password;
@@ -432,4 +541,3 @@
   };
 
 })(window);
-

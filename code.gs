@@ -517,9 +517,14 @@ function _resolveDivisionTable(session, tableName, dataInput) {
     }
 
     var divisionCode = "";
-    if (session && session.role === "super_admin") {
-        if (dataInput && dataInput.divisi_id) {
-            divisionCode = String(dataInput.divisi_id).trim().toUpperCase();
+    var isSA = session && (session.role === "super_admin" || String(session.role).toLowerCase() === "super_admin");
+    if (isSA) {
+        if (dataInput) {
+            if (dataInput.divisi_id) {
+                divisionCode = String(dataInput.divisi_id).trim().toUpperCase();
+            } else if (dataInput.data && dataInput.data.divisi_id) {
+                divisionCode = String(dataInput.data.divisi_id).trim().toUpperCase();
+            }
         }
     } else if (session) {
         divisionCode = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "";
@@ -1478,7 +1483,9 @@ function handleUploadChunk(data, session) {
             return responseJSON({ status: "error", message: "Parameter chunk tidak lengkap" });
         }
 
-        var divisiId = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL";
+        var divisiId = (session.role === "super_admin" && data.divisi_id)
+            ? String(data.divisi_id).trim().toUpperCase()
+            : (session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL");
         var key = "chunk_" + divisiId + "_" + uploadId + "_" + chunkIndex;
         CacheService.getScriptCache().put(key, chunkBase64, 3600); // Expiry 1 jam
 
@@ -1506,7 +1513,9 @@ function finalizeUpload(data, session) {
             return responseJSON({ status: "error", message: "Parameter finalize tidak lengkap" });
         }
 
-        var divisiId = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL";
+        var divisiId = (session.role === "super_admin" && data.divisi_id)
+            ? String(data.divisi_id).trim().toUpperCase()
+            : (session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL");
         var cache = CacheService.getScriptCache();
 
         // Gabungkan semua Base64 chunks menjadi satu string
@@ -1539,9 +1548,11 @@ function finalizeUpload(data, session) {
         }
 
         // Determine destination folder ID authoritatively
-        var folderId = data.folderId || DRIVE_FOLDER_ID;
-        if (session.role !== "super_admin" && session.divisi_id) {
-            folderId = _getFolderIdForDivisi(session.divisi_id);
+        var folderId = DRIVE_FOLDER_ID;
+        if (divisiId !== "GLOBAL") {
+            folderId = _getFolderIdForDivisi(divisiId);
+        } else if (data.folderId) {
+            folderId = data.folderId;
         }
 
         // Buat blob dari Base64 gabungan dan simpan ke Google Drive

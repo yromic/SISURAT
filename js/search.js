@@ -257,6 +257,23 @@
   }
 
   async function runSearch(forceRefresh = false) {
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      const container = document.getElementById("result");
+      if (container) {
+        container.className = "grid grid-cols-1 gap-5";
+        container.innerHTML = `
+          <div class="col-span-full text-center py-20 text-amber-600 font-bold bg-white rounded-xl shadow-sm p-6 border border-amber-100">
+            <i class="fas fa-exclamation-triangle text-3xl mb-3 block"></i>
+            Pilih divisi aktif terlebih dahulu di sidebar.
+          </div>`;
+      }
+      const pager = document.getElementById("search-pagination");
+      if (pager) pager.style.display = "none";
+      const countSpan = document.getElementById("result-count");
+      if (countSpan) countSpan.innerText = "0";
+      return;
+    }
+
     let data = await getCachedAllData(forceRefresh);
 
     const keyword = document.getElementById("search").value.toLowerCase();

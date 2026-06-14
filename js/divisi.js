@@ -215,14 +215,14 @@
     try {
       const res = await SisuratApi.postAction("retry_init_divisi", { kode_divisi });
       if (res && res.status === "success") {
-        alert(`Divisi ${kode_divisi} berhasil di-provision!`);
+        SisuratUI.showToast(`Divisi ${kode_divisi} berhasil di-provision!`, "success");
         loadDivisi();
       } else {
-        alert(res.message || `Gagal retry divisi ${kode_divisi}.`);
+        SisuratUI.showToast(res.message || `Gagal retry divisi ${kode_divisi}.`, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan koneksi.");
+      SisuratUI.showToast("Terjadi kesalahan koneksi.", "error");
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalHTML;
@@ -241,14 +241,14 @@
     try {
       const res = await SisuratApi.postAction("cleanup_divisi", { kode_divisi });
       if (res && res.status === "success") {
-        alert(`Divisi ${kode_divisi} berhasil dibersihkan.`);
+        SisuratUI.showToast(`Divisi ${kode_divisi} berhasil dibersihkan.`, "success");
         loadDivisi();
       } else {
-        alert(res.message || `Gagal membersihkan divisi ${kode_divisi}.`);
+        SisuratUI.showToast(res.message || `Gagal membersihkan divisi ${kode_divisi}.`, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan koneksi.");
+      SisuratUI.showToast("Terjadi kesalahan koneksi.", "error");
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalHTML;

@@ -105,6 +105,26 @@
   let filteredResult = { all: [], byTable: {} };
 
   async function applyFilter() {
+    // Check if Super Admin has selected an active division
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      const countEl = document.getElementById("result-count");
+      if (countEl) countEl.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i>Pilih divisi aktif`;
+      
+      const tbody = document.getElementById("preview-tbody");
+      const thead = document.getElementById("preview-thead");
+      if (thead) thead.innerHTML = "";
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-20 text-center text-amber-600 font-bold">
+              <i class="fas fa-exclamation-triangle text-2xl block mb-2"></i>
+              Pilih divisi aktif terlebih dahulu di sidebar.
+            </td>
+          </tr>`;
+      }
+      return;
+    }
+
     // Tampilkan loading di badge dan tabel saat mulai memuat
     showBadgeLoading();
     showTableLoading();
@@ -414,7 +434,7 @@
       // Satu jenis: export dengan kolom spesifik + kolom Total
       const rows = filteredResult.byTable[jenisVal] || [];
       if (rows.length === 0) {
-        alert("Tidak ada data untuk diexport.");
+        SisuratUI.showToast("Tidak ada data untuk diexport.", "warning");
         return;
       }
       const cols = CSV_COLUMNS[jenisVal];
@@ -434,7 +454,7 @@
       // Semua jenis: gabung semua kolom
       const all = filteredResult.all;
       if (all.length === 0) {
-        alert("Tidak ada data untuk diexport.");
+        SisuratUI.showToast("Tidak ada data untuk diexport.", "warning");
         return;
       }
       const csvRows = all.map((row, idx) => ({
@@ -453,7 +473,7 @@
   async function downloadPdf() {
     const { jsPDF } = global.jspdf || {};
     if (!jsPDF) {
-      alert("Library jsPDF belum dimuat. Pastikan internet tersedia.");
+      SisuratUI.showToast("Library jsPDF belum dimuat. Pastikan internet tersedia.", "warning");
       return;
     }
 
@@ -545,7 +565,7 @@
     const count = filteredResult.all.length;
 
     if (count === 0) {
-      showToast("error", "Tidak ada data untuk dikirim. Silakan filter terlebih dahulu.");
+      SisuratUI.showToast("Tidak ada data untuk dikirim. Silakan filter terlebih dahulu.", "error");
       return;
     }
 
@@ -590,78 +610,20 @@
 
     // ── 4. Tampilkan toast sukses ─────────────────────────────────────────
     if (opened) {
-      showToast(
-        "success",
+      SisuratUI.showToast(
         `📧 Gmail dibuka! CSV (${count} data) sudah terunduh — lampirkan sebelum kirim.`,
+        "success",
         6000,
       );
     } else {
-      showToast(
-        "error",
+      SisuratUI.showToast(
         "Pop-up diblokir browser. Izinkan pop-up untuk membuka Gmail.",
+        "error",
       );
     }
   }
 
-  // ─── Toast Notification ───────────────────────────────────────────────────────
-  function showToast(type, message, duration = 4000) {
-    // Hapus toast lama jika ada
-    const oldToast = document.getElementById("laporan-toast");
-    if (oldToast) oldToast.remove();
-
-    const isSuccess = type === "success";
-    const toast = document.createElement("div");
-    toast.id = "laporan-toast";
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 300px;
-      max-width: 420px;
-      padding: 14px 18px;
-      border-radius: 12px;
-      background: ${isSuccess ? "#16A34A" : "#EF4444"};
-      color: white;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-      transform: translateX(120px);
-      opacity: 0;
-      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
-      cursor: pointer;
-    `;
-    toast.innerHTML = `
-      <i class="fas ${isSuccess ? "fa-check-circle" : "fa-exclamation-circle"}" style="font-size:18px;flex-shrink:0;"></i>
-      <span style="flex:1;line-height:1.4;">${message}</span>
-      <i class="fas fa-times" style="font-size:12px;opacity:0.7;flex-shrink:0;"></i>
-    `;
-    toast.addEventListener("click", () => {
-      clearTimeout(toast._timer);
-      removeToast(toast);
-    });
-    document.body.appendChild(toast);
-
-    // Animate in
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        toast.style.transform = "translateX(0)";
-        toast.style.opacity = "1";
-      });
-    });
-
-    // Auto remove
-    toast._timer = setTimeout(() => removeToast(toast), duration);
-  }
-
-  function removeToast(toast) {
-    toast.style.transform = "translateX(120px)";
-    toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 350);
-  }
+  // ─── (Local showToast removed — using global SisuratUI.showToast via navigation.js) ───
 
   // ─── Utils ────────────────────────────────────────────────────────────────────
   function today() {

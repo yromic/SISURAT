@@ -247,6 +247,26 @@
     const user = SisuratAuth.requireAuth();
     if (!user) return;
 
+    // Check if Super Admin has selected an active division
+    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
+      showMessage("error", "Pilih divisi aktif terlebih dahulu di sidebar.");
+      const form = document.getElementById("piagamForm");
+      if (form) {
+        const elements = form.querySelectorAll("input, button, canvas");
+        elements.forEach((el) => {
+          el.disabled = true;
+          if (el.tagName === "CANVAS" || el.id === "canvas") {
+            el.style.pointerEvents = "none";
+          }
+        });
+      }
+      const submitBtn = document.getElementById("submitBtn");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      return;
+    }
+
     canvas = document.getElementById("canvas");
     if (!canvas) {
       return;

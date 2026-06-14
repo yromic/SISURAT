@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbyHrvgdqmScKaiwQEHwv-y55sxJkqsE4P-jy9R4oEJcJgIRFoD3-9vQqaMnH0q8fWcIog/exec";
+    "https://script.google.com/macros/s/AKfycbx9tcPSI_v9LqW5_0fTf3Gw7GHLT-irpwEgq2QwBdTwWv8OhWpv_Og-x3Utqj47auiw_A/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -139,10 +139,62 @@
     }
   }
 
+  const divisionTables = [
+    "db_surat_masuk",
+    "db_surat_keluar",
+    "db_piagam",
+    "ref_pengambilan",
+    "ref_jenis_perlombaan"
+  ];
+
   async function postAction(action, data = {}) {
     const payloadData = { ...data };
     if (action !== "login" && !payloadData.session_token) {
       payloadData.session_token = getSessionToken();
+    }
+
+    // Determine current user's role and division
+    const userRole = localStorage.getItem("user_role") || "";
+    const userDivisi = localStorage.getItem("user_divisi_id") || "";
+    const isSA = userRole.toLowerCase().replace(/[\s_-]+/g, "_") === "super_admin";
+
+    // Resolve divisi_id context depending on role (Fix 5: Admin Divisi / Operator ignore active_divisi)
+    let activeDiv = "";
+    if (isSA) {
+      activeDiv = localStorage.getItem("active_divisi") || "";
+    } else {
+      activeDiv = userDivisi;
+    }
+
+    // Fix 4: Super Admin Lockout check
+    const isDivisionScopedAction = (action === "simpan_piagam" || action === "upload_chunk" || action === "finalize_upload");
+    const isDivisionScopedTable = (payloadData.table && divisionTables.includes(payloadData.table));
+
+    if (isSA && (isDivisionScopedAction || isDivisionScopedTable)) {
+      if (!activeDiv) {
+        if (typeof SisuratUI !== "undefined") {
+          SisuratUI.showError("ERR_400_DIVISI_REQUIRED");
+        }
+        throw new Error("Pilih divisi aktif terlebih dahulu di sidebar.");
+      }
+    }
+
+    // Fix 2 & Fix 3: Inject division context to division-scoped requests only
+    if (isDivisionScopedAction || isDivisionScopedTable) {
+      if (activeDiv) {
+        payloadData.divisi_id = activeDiv;
+        if (payloadData.data && typeof payloadData.data === "object") {
+          payloadData.data.divisi_id = activeDiv;
+        }
+      }
+    }
+
+    // Fix 7: Debug payload
+    if (
+      (action === "get_data" && (payloadData.table === "db_surat_masuk" || payloadData.table === "ref_pengambilan")) ||
+      (action === "simpan_record" && payloadData.table === "ref_pengambilan")
+    ) {
+      console.log(`[QA][API PAYLOAD] Action: ${action}, Table: ${payloadData.table}, divisi_id: ${payloadData.divisi_id}`);
     }
 
     const response = await fetch(BASE_URL, {
@@ -225,13 +277,6 @@
     return postAction("hapus_record", { table, id });
   }
 
-  async function uploadFile(formData) {
-    const response = await fetch(BASE_URL, {
-      method: "POST",
-      body: formData,
-    });
-    return response.json();
-  }
 
   // ─── Validasi ukuran file ─────────────────────────────────────────────────────
   /**
@@ -524,7 +569,6 @@
     saveRecord,
     updateRecord,
     deleteRecord,
-    uploadFile,
     validateFileSize,
     compressImage,
     uploadFileChunked,
