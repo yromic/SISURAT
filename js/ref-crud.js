@@ -126,9 +126,7 @@
   async function loadAllCounts() {
     for (const [key, cfg] of Object.entries(TAB_CONFIG)) {
       try {
-        const url = `${SisuratApi.BASE_URL}?action=get_data&table=${encodeURIComponent(cfg.table)}`;
-        const res = await fetch(url);
-        const result = await res.json();
+        const result = await SisuratApi.getData(cfg.table);
         const rows = Array.isArray(result.data) ? result.data : [];
         const aktif = rows.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
         const el = document.getElementById(cfg.counterId);
@@ -159,9 +157,7 @@
     if (searchEl) searchEl.value = "";
 
     try {
-      const url = `${SisuratApi.BASE_URL}?action=get_data&table=${encodeURIComponent(cfg.table)}`;
-      const res = await fetch(url);
-      const result = await res.json();
+      const result = await SisuratApi.getData(cfg.table);
       currentData = Array.isArray(result.data) ? result.data : [];
       filteredData = currentData;
       renderTable(filteredData);

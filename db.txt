@@ -1,0 +1,29 @@
+# Sheet: db_divisi
+id,kode_divisi,nama_divisi,status,drive_folder_id,created_at,created_by
+
+# Sheet: db_users
+username,password,role,nama,email,role_id,aktif,divisi_id,scope
+
+# Sheet: db_audit_log
+timestamp,actor,role,divisi_id,action,table_name,record_id,detail
+
+# Sheet: db_summary
+divisi_id,total_surat_masuk,total_surat_keluar,total_piagam,last_updated
+
+# Sheet: ref_sekolah
+id,nama_sekolah,npsn,aktif
+
+# Sheet: {KODE}_surat_masuk
+id,timestamp,email_address,nama_pengupload,divisi_id,asal_surat,nomor_surat,tanggal_surat,perihal,tanggal_diterima,upload_file,is_deleted,deleted_at,deleted_by
+
+# Sheet: {KODE}_surat_keluar
+id,timestamp,email_address,nama_pengupload,divisi_id,nomor_surat,tanggal_surat,perihal,tanggal_share,upload_file,is_deleted,deleted_at,deleted_by
+
+# Sheet: {KODE}_piagam
+id,timestamp,email_address,nama_pengupload,divisi_id,nama_pengambil,jabatan,unit_kerja,npsn,pengambilan,jenis_perlombaan,tahun_perlombaan,nama_siswa,asal_sekolah,ttd_pengambil,is_deleted,deleted_at,deleted_by
+
+# Sheet: {KODE}_ref_pengambilan
+id,nama,aktif
+
+# Sheet: {KODE}_ref_jenis
+id,nama,aktif

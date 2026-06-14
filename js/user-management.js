@@ -1,6 +1,6 @@
 /**
  * user-management.js — CRUD User & Role Assignment (SISURAT)
- * Superadmin mengelola akun user dan assign role via Permission Shield.
+ * Izin operasi diputuskan oleh backend.
  */
 (function initUserManagement(global) {
   "use strict";
@@ -13,6 +13,11 @@
   let _sortAsc = true;
   let _currentPage = 1;
   let _rowsPerPage = 10;
+  const ROLE_OPTIONS = [
+    { id: "role_super_admin", value: "super_admin", label: "Super Admin", color: "#7c3aed", is_super_admin: true },
+    { id: "role_admin", value: "admin", label: "Admin", color: "#00ADB5", is_super_admin: false },
+    { id: "role_operator", value: "operator", label: "Operator", color: "#10b981", is_super_admin: false },
+  ];
 
   // ─── Init ─────────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
@@ -26,20 +31,6 @@
       const obs = new MutationObserver(() => { nmm.textContent = nm.textContent; });
       obs.observe(nm, { childList: true, characterData: true, subtree: true });
     }
-
-    // ShieldGuard
-    ShieldStore.init();
-    ShieldGuard.init(ShieldStore);
-
-    // Hanya superadmin yang boleh akses
-    if (!ShieldGuard.isSuperAdmin()) {
-      document.getElementById("no-access-banner").classList.remove("hidden");
-      document.getElementById("user-main-content").classList.add("hidden");
-      return;
-    }
-
-    // Apply directives
-    ShieldGuard.applyDirectives();
 
     // Populate role dropdown
     _populateRoleDropdown();
@@ -71,9 +62,14 @@
   async function _loadUsers() {
     _setLoading(true);
     try {
-      const url = `${SisuratApi.BASE_URL}?action=get_data&table=db_users`;
-      const res = await fetch(url);
-      const result = await res.json();
+      const result = await SisuratApi.getData("db_users");
+      if (result && result.status !== "success") {
+        if (result.code === "ERR_403_ROLE") {
+          document.getElementById("no-access-banner").classList.remove("hidden");
+          document.getElementById("user-main-content").classList.add("hidden");
+        }
+        throw new Error(result.code || result.message || "Gagal memuat data user");
+      }
       _users = Array.isArray(result.data) ? result.data : [];
     } catch (e) {
       _users = [];
@@ -98,7 +94,7 @@
     const totalEl = document.getElementById("stat-total-user");
     if (totalEl) totalEl.textContent = _users.length;
 
-    const roles = ShieldStore.getAllRoles();
+    const roles = ROLE_OPTIONS;
     roles.forEach((role) => {
       const el = document.getElementById(`stat-role-${role.id}`);
       if (el) {
@@ -106,7 +102,7 @@
           if (Array.isArray(u.role_ids)) return u.role_ids.includes(role.id);
           if (u.role_id === role.id) return true;
           // backward compat
-          const matched = ShieldStore.getRoleByName(u.role || "");
+          const matched = _getRoleByName(u.role || "");
           return matched && matched.id === role.id;
         }).length;
         el.textContent = count;
@@ -198,12 +194,21 @@
 
   function _getUserRole(user) {
     if (Array.isArray(user.role_ids) && user.role_ids.length > 0) {
-      return ShieldStore.getRoleById(user.role_ids[0]);
+      return _getRoleById(user.role_ids[0]);
     }
     if (user.role_id) {
-      return ShieldStore.getRoleById(user.role_id);
+      return _getRoleById(user.role_id);
     }
-    return ShieldStore.getRoleByName(user.role || "");
+    return _getRoleByName(user.role || "");
+  }
+
+  function _getRoleById(roleId) {
+    return ROLE_OPTIONS.find((role) => role.id === roleId || role.value === roleId) || null;
+  }
+
+  function _getRoleByName(roleName) {
+    const normalized = String(roleName || "").toLowerCase().replace(/[\s-]+/g, "_");
+    return ROLE_OPTIONS.find((role) => role.value === normalized || role.label.toLowerCase().replace(/[\s-]+/g, "_") === normalized) || null;
   }
 
   function _renderPagination(totalPages, totalItems) {
@@ -255,7 +260,7 @@
   function _populateRoleDropdown() {
     const sel = document.getElementById("um-form-role");
     if (!sel) return;
-    const roles = ShieldStore.getAllRoles();
+    const roles = ROLE_OPTIONS;
     sel.innerHTML = roles
       .map((r) => `<option value="${r.id}">${r.label}${r.is_super_admin ? " ⭐" : ""}</option>`)
       .join("");
@@ -320,7 +325,7 @@
     const email    = document.getElementById("um-form-email").value.trim();
     const password = document.getElementById("um-form-password").value.trim();
     const roleId   = document.getElementById("um-form-role").value;
-    const roleObj  = ShieldStore.getRoleById(roleId);
+    const roleObj  = _getRoleById(roleId);
 
     if (!nama || !username) {
       _setModalAlert("Nama dan Username wajib diisi.");
@@ -342,21 +347,14 @@
         nama,
         username,
         email,
-        role    : roleObj ? roleObj.label : "Admin",
+        role    : roleObj ? roleObj.value : "admin",
         role_id : roleId,
       };
       if (isEdit)   payload.row_number = _editingId;
       if (password) payload.password   = password;
 
-      const currentUser = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
-      payload.actor = currentUser ? (currentUser.username || currentUser.email || "") : "";
-
       // Panggil action manage_user di backend (bukan saveRecord/updateRecord generik)
-      const res = await fetch(SisuratApi.BASE_URL, {
-        method : "POST",
-        body   : JSON.stringify({ action: "manage_user", data: payload }),
-      });
-      const result = await res.json();
+      const result = await SisuratApi.postAction("manage_user", payload);
 
       if (result && result.status === "success") {
         global.umCloseModalDirect();
@@ -378,18 +376,10 @@
   global.umDelete = async function (rowNum, nama) {
     if (!confirm(`Hapus user "${nama}"? Tindakan ini tidak bisa diurungkan.`)) return;
     try {
-      const res = await fetch(SisuratApi.BASE_URL, {
-        method : "POST",
-        body   : JSON.stringify({
-          action : "manage_user",
-          data   : { 
-            sub_action: "delete", 
-            row_number: rowNum,
-            actor: (typeof SisuratAuth !== "undefined" && SisuratAuth.getStoredUser()) ? (SisuratAuth.getStoredUser().username || "") : ""
-          },
-        }),
+      const result = await SisuratApi.postAction("manage_user", {
+        sub_action: "delete",
+        row_number: rowNum,
       });
-      const result = await res.json();
       if (result && result.status === "success") {
         _showToast(`User "${nama}" berhasil dihapus.`, "success");
         await _loadUsers();
@@ -406,19 +396,11 @@
     const newPass = prompt(`Reset password untuk "${username}":\nMasukkan password baru:`);
     if (!newPass || !newPass.trim()) return;
     try {
-      const res = await fetch(SisuratApi.BASE_URL, {
-        method : "POST",
-        body   : JSON.stringify({
-          action : "reset_password",
-          data   : { 
-            username, 
-            new_password: newPass.trim(), 
-            row_number: rowNum,
-            actor: (typeof SisuratAuth !== "undefined" && SisuratAuth.getStoredUser()) ? (SisuratAuth.getStoredUser().username || "") : ""
-          },
-        }),
+      const result = await SisuratApi.postAction("reset_password", {
+        username,
+        new_password: newPass.trim(),
+        row_number: rowNum,
       });
-      const result = await res.json();
       if (result && result.status === "success") {
         _showToast(`Password "${username}" berhasil direset.`, "success");
       } else {

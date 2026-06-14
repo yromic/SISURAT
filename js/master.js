@@ -377,15 +377,9 @@
     const tab = state.activeTab;
     const allCols = TABLE_COLUMNS[tab];
     const visibleCols = allCols.filter((c) => !isColHidden(tab, c.key));
-    const isSA = SisuratAuth.isSuperAdmin();
-    // ── Permission-based action visibility [BUG-01 fix] ────────────────────
-    const editPerm   = tab === "piagam" ? "edit_piagam"   : "edit_surat";
-    const deletePerm = tab === "piagam" ? "delete_piagam" : "delete_surat";
-    const createPerm = tab === "piagam" ? "create_piagam" : "create_surat";
-    const _guard     = typeof ShieldGuard !== "undefined" ? ShieldGuard : null;
-    const canEdit    = isSA || (_guard !== null && _guard.can(editPerm));
-    const canDelete  = isSA || (_guard !== null && _guard.can(deletePerm));
-    const canCreate  = isSA || (_guard !== null && _guard.can(createPerm));
+    const canEdit = true;
+    const canDelete = true;
+    const canCreate = true;
     const showActions = canEdit || canDelete;
     const total = state.filteredData.length;
     const pageSize = state.pageSize;
@@ -911,14 +905,6 @@
       const pad = (n) => String(n).padStart(2, "0");
       data.timestamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-      // Email Address & Nama Upload: ambil dari sesi login yang tersimpan
-      // PENTING: Prioritaskan username agar RBAC backend versi sebelumnya tetap lolos (karena backend mengambil field ini sebagai 'actor')
-      const currentUser = SisuratAuth.getStoredUser();
-      data.email_address =
-        (currentUser && (currentUser.username || currentUser.email)) || "";
-      // nama_pengupload: tampilkan nama lengkap jika ada, fallback ke username
-      data.nama_pengupload =
-        (currentUser && (currentUser.nama || currentUser.username)) || "";
     }
 
     // TTD piagam — hanya kirim jika user menggambar ulang (canvasDirty)
@@ -971,7 +957,8 @@
         hideUploadProgress();
       } catch (err) {
         hideUploadProgress();
-        showModalAlert("error", "Gagal upload file: " + err.message);
+        console.error("Gagal upload file:", err);
+        showModalAlert("error", "Gagal upload file. Silakan coba lagi.");
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan';
         return;

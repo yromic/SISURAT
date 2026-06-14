@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbz1njCfL9mhDMN_4aTjLGU2twkNAtJOn093bOyURBBBdHLcuByi4lUzVpqY0ljDJ2il/exec";
+    "https://script.google.com/macros/s/AKfycbykLuftJ65RUtn5q8T5i953NMzFiShekGWcMK4-SSGoUWozDW6SB2vVxpAt9E2rqqOOpg/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -104,9 +104,7 @@
 
   async function fetchTable(table) {
     try {
-      const url = `${BASE_URL}?action=get_data&table=${encodeURIComponent(table)}`;
-      const response = await fetch(url);
-      const result = await response.json();
+      const result = await getData(table);
       const rows = Array.isArray(result.data) ? result.data : [];
       return rows.map((row) => normalizeRecord(row, table));
     } catch (error) {
@@ -128,7 +126,23 @@
     return { byTable, all };
   }
 
-  async function postAction(action, data) {
+  function getSessionToken() {
+    try {
+      const rawValue = localStorage.getItem("user");
+      if (!rawValue) return "";
+      const user = JSON.parse(rawValue);
+      return user.session_token || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function postAction(action, data = {}) {
+    const payloadData = { ...data };
+    if (action !== "login" && !payloadData.session_token) {
+      payloadData.session_token = getSessionToken();
+    }
+
     const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
@@ -136,7 +150,7 @@
       },
       body: JSON.stringify({
         action,
-        data,
+        data: payloadData,
       }),
     });
 
@@ -145,6 +159,18 @@
 
   function login(username, password) {
     return postAction("login", { username, password });
+  }
+
+  function logout() {
+    return postAction("logout", {});
+  }
+
+  function verifySession() {
+    return postAction("verify_session", {});
+  }
+
+  function getData(table) {
+    return postAction("get_data", { table });
   }
 
   function savePiagam(data) {
@@ -172,12 +198,9 @@
     if (payload.ttd_base64 && !payload.ttd_folder_id) {
       payload.ttd_folder_id = getFolderId(table, true);
     }
-    // Sertakan identitas aktor untuk validasi RBAC
-    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
-    if (user && user.username) {
-      payload.actor = user.username;
-    }
-    // Struktur: { action, data: { table, data: payload } } — sesuai backend (params.data.table)
+    delete payload.actor;
+    delete payload.email_address;
+    delete payload.nama_pengupload;
     return postAction("simpan_record", { table, data: payload });
   }
 
@@ -190,20 +213,14 @@
     if (payload.ttd_base64 && !payload.ttd_folder_id) {
       payload.ttd_folder_id = getFolderId(table, true);
     }
-    // Sertakan identitas aktor untuk validasi RBAC
-    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
-    if (user && user.username) {
-      payload.actor = user.username;
-    }
-    // Struktur: { action, data: { table, id, data: payload } } — sesuai backend (params.data.table)
+    delete payload.actor;
+    delete payload.email_address;
+    delete payload.nama_pengupload;
     return postAction("update_record", { table, id, data: payload });
   }
 
   function deleteRecord(table, id) {
-    // Sertakan actor agar backend bisa validasi RBAC + tulis audit log
-    const user = typeof SisuratAuth !== "undefined" ? SisuratAuth.getStoredUser() : null;
-    const actor = user ? (user.username || user.email || "") : "";
-    return postAction("hapus_record", { table, id, actor });
+    return postAction("hapus_record", { table, id });
   }
 
   async function uploadFile(formData) {
@@ -406,9 +423,7 @@
     }
 
     try {
-      const url = `${BASE_URL}?action=get_data&table=${encodeURIComponent(tableName)}`;
-      const response = await fetch(url);
-      const result = await response.json();
+      const result = await getData(tableName);
       const rows = Array.isArray(result.data) ? result.data : [];
 
       // Filter hanya baris yang aktif (kolom aktif = "TRUE" atau "true")
@@ -494,11 +509,15 @@
     getFolderId,
     parseDate,
     normalizeRecord,
+    postAction,
+    getData,
     fetchTable,
     fetchAllTables,
     fetchRef,
     invalidateRef,
     login,
+    logout,
+    verifySession,
     savePiagam,
     saveRecord,
     updateRecord,

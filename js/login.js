@@ -32,7 +32,10 @@
       const result = await SisuratApi.login(username, password);
 
       if (result.status === "success") {
-        SisuratAuth.setStoredUser(result.user);
+        SisuratAuth.setStoredUser({
+          ...(result.user || {}),
+          session_token: result.session_token,
+        });
         window.location.href = "dashboard.html";
       } else {
         msgDiv.classList.remove("hidden");

@@ -26,7 +26,7 @@
       options;
 
     const user = getStoredUser();
-    if (!user) {
+    if (!user || !user.session_token) {
       window.location.href = redirectTo;
       return null;
     }
@@ -41,80 +41,56 @@
 
   function isSuperAdmin() {
     const user = getStoredUser();
-    if (!user) return false;
-
-    // Method 1: Cek via ShieldStore (jika tersedia) menggunakan role_ids
-    if (
-      typeof ShieldStore !== "undefined" &&
-      Array.isArray(user.role_ids) &&
-      user.role_ids.length > 0
-    ) {
-      const roles = ShieldStore.getRolesByIds(user.role_ids);
-      if (roles.some((r) => r.is_super_admin)) return true;
-    }
-
-    // Method 2: Fallback ke role string (backward compat)
-    if (!user.role) return false;
-    const role = user.role.toLowerCase().replace(/[\s_-]+/g, "");
-    return role === "superadmin";
+    if (!user || !user.role) return false;
+    const role = user.role.toLowerCase().replace(/[\s-]+/g, "_");
+    return role === "super_admin";
   }
 
-  function logoutToHome() {
-    clearStoredUser();
-    window.location.href = "index.html";
-  }
-
-  /**
-   * [SECURITY] Verifikasi role user aktif terhadap backend (Known Limitation 1 mitigation).
-   * Panggil ini di halaman sensitif (shield.html, user-management.html).
-   * Jika role dari server berbeda dengan localStorage, localStorage diperbarui.
-   *
-   * @param {string} apiUrl - URL Google Apps Script endpoint
-   * @returns {Promise<{valid: boolean, mismatch: boolean, msg: string}>}
-   */
-  async function verifyRoleFromServer(apiUrl) {
-    const user = getStoredUser();
-    if (!user || !apiUrl) {
-      return { valid: false, mismatch: false, msg: "User atau API URL tidak tersedia." };
-    }
+  async function logoutToHome() {
     try {
-      const url = `${apiUrl}?action=verify_session&username=${encodeURIComponent(user.username || "")}`;
-      const resp = await fetch(url, { method: "GET", cache: "no-store" });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
+      if (global.SisuratApi && typeof global.SisuratApi.logout === "function") {
+        await global.SisuratApi.logout();
+      }
+    } catch (error) {
+      console.warn("[SisuratAuth] Logout server gagal:", error);
+    } finally {
+      clearStoredUser();
+      window.location.href = "index.html";
+    }
+  }
 
-      if (data.status !== "success") {
-        return { valid: false, mismatch: false, msg: data.message || "Gagal verifikasi session." };
+  async function verifyRoleFromServer() {
+    const user = getStoredUser();
+    if (!user || !user.session_token || !global.SisuratApi) {
+      return { valid: false, mismatch: false, msg: "ERR_401_SESSION" };
+    }
+
+    try {
+      const data = await global.SisuratApi.verifySession();
+      if (!data || data.status !== "success") {
+        return {
+          valid: false,
+          mismatch: false,
+          msg: (data && (data.code || data.message)) || "ERR_401_SESSION",
+        };
       }
 
-      // Bandingkan role dari server dengan localStorage
-      const serverRole = data.role || null;
-      const localRole  = user.role  || null;
-      const mismatch = serverRole && localRole && serverRole !== localRole;
-
-      if (mismatch) {
-        console.warn(
-          "[SisuratAuth] ⚠️ Role mismatch! Server:", serverRole, "| Local:", localRole,
-          "\nLocalStorage diperbarui ke data server."
-        );
-        // Paksa sinkronisasi dengan data dari server
-        setStoredUser({
-          ...user,
-          role:     serverRole,
-          role_ids: data.role_ids || user.role_ids || [],
-        });
-      }
+      const serverUser = data.user || {};
+      const serverRole = serverUser.role || null;
+      const localRole = user.role || null;
+      const mismatch = !!(serverRole && localRole && serverRole !== localRole);
+      setStoredUser({ ...user, ...serverUser, session_token: user.session_token });
 
       return {
         valid: true,
-        mismatch: !!mismatch,
+        mismatch,
         msg: mismatch
-          ? `Role diperbarui: ${localRole} → ${serverRole} (dari server)`
+          ? `Role diperbarui: ${localRole} -> ${serverRole} (dari server)`
           : "Session valid dan sinkron.",
       };
-    } catch (e) {
-      console.warn("[SisuratAuth] Verifikasi server gagal (offline?):", e.message);
-      return { valid: false, mismatch: false, msg: `Tidak dapat menghubungi server: ${e.message}` };
+    } catch (error) {
+      console.warn("[SisuratAuth] Verifikasi server gagal:", error);
+      return { valid: false, mismatch: false, msg: "ERR_401_SESSION" };
     }
   }
 
@@ -128,4 +104,3 @@
     verifyRoleFromServer,
   };
 })(window);
-

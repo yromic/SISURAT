@@ -1,10 +1,10 @@
 (function initPiagamPage(global) {
   "use strict";
 
-  const { SisuratApi } = global;
+  const { SisuratApi, SisuratAuth } = global;
 
-  if (!SisuratApi) {
-    console.error("Module API belum dimuat.");
+  if (!SisuratApi || !SisuratAuth) {
+    console.error("Module API/Auth belum dimuat.");
     return;
   }
 
@@ -244,6 +244,9 @@
   }
 
   function init() {
+    const user = SisuratAuth.requireAuth();
+    if (!user) return;
+
     canvas = document.getElementById("canvas");
     if (!canvas) {
       return;
