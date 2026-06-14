@@ -95,6 +95,10 @@ var RBAC_RULES = {
     "delete:db_piagam":         ["super_admin", "admin"],
     "manage_user:*":            ["super_admin"],
     "reset_password:*":         ["super_admin"],
+    "init_divisi:*":            ["super_admin"],
+    "retry_init_divisi:*":      ["super_admin"],
+    "cleanup_divisi:*":         ["super_admin"],
+    "migrate_existing_records:*": ["super_admin"],
 };
 
 function _errorResponse(code) {
@@ -238,12 +242,10 @@ function _publicSession(session) {
     };
 }
 
+var DB_DIVISI_HEADERS = ["id", "kode_divisi", "nama_divisi", "status", "drive_folder_id", "created_at", "created_by"];
 var DB_USERS_HEADERS = [
     "username",
     "password",
-    "password_hash",
-    "password_salt",
-    "password_v",
     "role",
     "nama",
     "email",
@@ -251,7 +253,31 @@ var DB_USERS_HEADERS = [
     "aktif",
     "divisi_id",
     "scope",
+    "password_hash",
+    "password_salt",
+    "password_v",
 ];
+var DB_AUDIT_LOG_HEADERS = ["timestamp", "actor", "role", "divisi_id", "action", "table_name", "record_id", "detail"];
+var DB_SUMMARY_HEADERS = ["divisi_id", "total_surat_masuk", "total_surat_keluar", "total_piagam", "last_updated"];
+var REF_SEKOLAH_HEADERS = ["id", "nama_sekolah", "npsn", "aktif"];
+var SURAT_MASUK_HEADERS = ["id", "timestamp", "email_address", "nama_pengupload", "divisi_id", "asal_surat", "nomor_surat", "tanggal_surat", "perihal", "tanggal_diterima", "upload_file", "is_deleted", "deleted_at", "deleted_by"];
+var SURAT_KELUAR_HEADERS = ["id", "timestamp", "email_address", "nama_pengupload", "divisi_id", "nomor_surat", "tanggal_surat", "perihal", "tanggal_share", "upload_file", "is_deleted", "deleted_at", "deleted_by"];
+var PIAGAM_HEADERS = ["id", "timestamp", "email_address", "nama_pengupload", "divisi_id", "nama_pengambil", "jabatan", "unit_kerja", "npsn", "pengambilan", "jenis_perlombaan", "tahun_perlombaan", "nama_siswa", "asal_sekolah", "ttd_pengambil", "is_deleted", "deleted_at", "deleted_by"];
+var REF_DIVISI_HEADERS = ["id", "nama", "aktif"];
+var DIVISI_SHEET_HEADERS = {
+    surat_masuk: SURAT_MASUK_HEADERS,
+    surat_keluar: SURAT_KELUAR_HEADERS,
+    piagam: PIAGAM_HEADERS,
+    ref_pengambilan: REF_DIVISI_HEADERS,
+    ref_jenis: REF_DIVISI_HEADERS,
+};
+var GLOBAL_SHEETS = {
+    db_divisi: DB_DIVISI_HEADERS,
+    db_users: DB_USERS_HEADERS,
+    db_audit_log: DB_AUDIT_LOG_HEADERS,
+    db_summary: DB_SUMMARY_HEADERS,
+    ref_sekolah: REF_SEKOLAH_HEADERS,
+};
 
 function _normalizeHeaderName(header) {
     return String(header || "").toLowerCase().trim();
@@ -261,36 +287,75 @@ function _headerIndex(headers, name) {
     return headers.map(_normalizeHeaderName).indexOf(name);
 }
 
+function _getHeaders(sheet) {
+    if (!sheet || sheet.getLastColumn() < 1) return [];
+    return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(_normalizeHeaderName);
+}
+
+function _getHeaderIndexMap(sheet) {
+    var headers = _getHeaders(sheet);
+    var map = {};
+    headers.forEach(function(header, index) {
+        if (header) map[header] = index;
+    });
+    return map;
+}
+
+function _appendMissingHeaders(sheet, requiredHeaders) {
+    var headers = _getHeaders(sheet);
+    requiredHeaders.forEach(function(header) {
+        var normalized = _normalizeHeaderName(header);
+        if (_headerIndex(headers, normalized) >= 0) return;
+        sheet.insertColumnAfter(Math.max(sheet.getLastColumn(), 1));
+        sheet.getRange(1, sheet.getLastColumn()).setValue(header);
+        headers.push(normalized);
+    });
+    return headers;
+}
+
+function _ensureHeaders(sheet, headers) {
+    if (!sheet) return null;
+    if (sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) {
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.setFrozenRows(1);
+        return headers.map(_normalizeHeaderName);
+    }
+    return _appendMissingHeaders(sheet, headers);
+}
+
+function _ensureSheet(name, headers) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) {
+        sheet = ss.insertSheet(name);
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.setFrozenRows(1);
+        return sheet;
+    }
+    _ensureHeaders(sheet, headers);
+    return sheet;
+}
+
+function _ensureGlobalSheets() {
+    Object.keys(GLOBAL_SHEETS).forEach(function(name) {
+        _ensureSheet(name, GLOBAL_SHEETS[name]);
+    });
+}
+
 function _getUserSheet() {
     return ss.getSheetByName("db_users") || ss.getSheetByName("users");
 }
 
 function _ensureUserPasswordColumns(sheet) {
     if (!sheet) return null;
-    if (sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) {
-        sheet.getRange(1, 1, 1, DB_USERS_HEADERS.length).setValues([DB_USERS_HEADERS]);
-        return DB_USERS_HEADERS.slice();
-    }
-
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(_normalizeHeaderName);
+    if (sheet.getName() === "db_users") return _ensureHeaders(sheet, DB_USERS_HEADERS);
+    var headers = _getHeaders(sheet);
     var usernameIdx = _headerIndex(headers, "username");
     var passwordIdx = _headerIndex(headers, "password");
     if (usernameIdx < 0 || passwordIdx < 0) {
         writeAuditLog("system", "-", "SERVER_ERROR", "db_users", "-", "Header username/password tidak ditemukan");
         return null;
     }
-
-    ["password_hash", "password_salt", "password_v"].forEach(function(name) {
-        if (_headerIndex(headers, name) >= 0) return;
-        var afterName = name === "password_hash" ? "password" : (name === "password_salt" ? "password_hash" : "password_salt");
-        var afterIdx = _headerIndex(headers, afterName);
-        if (afterIdx < 0) afterIdx = passwordIdx;
-        sheet.insertColumnAfter(afterIdx + 1);
-        sheet.getRange(1, afterIdx + 2).setValue(name);
-        headers.splice(afterIdx + 1, 0, name);
-    });
-
-    return headers;
+    return _appendMissingHeaders(sheet, ["password_hash", "password_salt", "password_v"]);
 }
 
 function _hashPassword(password, salt) {
@@ -419,25 +484,21 @@ function _checkRole(actor_username, action, tableName) {
 // Sheet auto-dibuat dengan format header jika belum ada.
 function writeAuditLog(actor, role, action, tableName, recordId, detail) {
     try {
-        var logSheet = ss.getSheetByName("db_audit_log");
-        if (!logSheet) {
-            logSheet = ss.insertSheet("db_audit_log");
-            logSheet.appendRow(["Timestamp", "Actor", "Role", "Action", "Table", "Record ID", "Detail"]);
-            logSheet.setFrozenRows(1);
-            logSheet.getRange(1, 1, 1, 7)
-                .setBackground("#222831")
-                .setFontColor("#FFFFFF")
-                .setFontWeight("bold");
-        }
-        logSheet.appendRow([
-            new Date(),
-            actor     || "system",
-            role      || "-",
-            action    || "-",
-            tableName || "-",
-            recordId  || "-",
-            detail    || "-",
-        ]);
+        var logSheet = _ensureSheet("db_audit_log", DB_AUDIT_LOG_HEADERS);
+        var row = {
+            timestamp: new Date(),
+            actor: actor || "system",
+            role: role || "-",
+            divisi_id: "-",
+            action: action || "-",
+            table_name: tableName || "-",
+            record_id: recordId || "-",
+            detail: detail || "-",
+        };
+        var headers = _getHeaders(logSheet);
+        logSheet.appendRow(headers.map(function(header) {
+            return row[header] !== undefined ? row[header] : "";
+        }));
     } catch (logErr) {
         // Error audit log tidak boleh interrupt request utama
         console.error("writeAuditLog error: " + logErr.toString());
@@ -474,6 +535,10 @@ function doPost(e) {
         var params = JSON.parse(e.postData.contents);
         var action = params.action;
         var data = params.data || {};
+        _ensureGlobalSheets();
+        if (params.session_token && !data.session_token) {
+            data.session_token = params.session_token;
+        }
         if (action == "login") {
             data = params.data && typeof params.data === "object" ? params.data : {};
             data.username = data.username || params.username || "";
@@ -549,6 +614,26 @@ function doPost(e) {
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             return resetPassword(data, sessionResult.session);
+        } else if (action == "init_divisi") {
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return initDivisi(data, sessionResult.session);
+        } else if (action == "retry_init_divisi") {
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return retryInitDivisi(data, sessionResult.session);
+        } else if (action == "cleanup_divisi") {
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return cleanupDivisi(data, sessionResult.session);
+        } else if (action == "migrate_existing_records") {
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return runMigrateExistingRecords(sessionResult.session);
         }
 
         return responseJSON({ status: "error", message: "Action tidak dikenal: " + action });
@@ -688,8 +773,13 @@ function getData(tableName) {
 
     var headers = data[0];
     var rows = data.slice(1);
+    var headerMapByName = _getHeaderIndexMap(sheet);
+    var deletedIdx = headerMapByName.is_deleted;
 
     var result = rows.map(function (row, rowIndex) {
+        if (deletedIdx !== undefined && /^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim())) {
+            return null;
+        }
         var obj = {};
 
         // Sisipkan nomor baris sheet (row 2 = data pertama, dst.)
@@ -712,9 +802,331 @@ function getData(tableName) {
             }
         });
         return obj;
-    });
+    }).filter(function(row) { return row !== null; });
 
     return responseJSON({ status: "success", data: result });
+}
+
+function _isRecordSheetName(sheetName) {
+    return /_(surat_masuk|surat_keluar|piagam)$/i.test(sheetName) ||
+        ["db_surat_masuk", "db_surat_keluar", "db_piagam"].indexOf(sheetName) !== -1;
+}
+
+function _requiredRecordHeaders(sheetName) {
+    var lower = String(sheetName || "").toLowerCase();
+    if (/_surat_masuk$/.test(lower) || lower === "db_surat_masuk") return SURAT_MASUK_HEADERS;
+    if (/_surat_keluar$/.test(lower) || lower === "db_surat_keluar") return SURAT_KELUAR_HEADERS;
+    if (/_piagam$/.test(lower) || lower === "db_piagam") return PIAGAM_HEADERS;
+    return ["id", "is_deleted", "deleted_at", "deleted_by"];
+}
+
+function _migrateSheetRecords(sheetName, headers) {
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return { sheet: sheetName, migrated: 0 };
+    var required = headers || _requiredRecordHeaders(sheetName);
+    _ensureHeaders(sheet, required);
+    var headerMapByName = _getHeaderIndexMap(sheet);
+    var idIdx = headerMapByName.id;
+    var deletedIdx = headerMapByName.is_deleted;
+    if (idIdx === undefined || deletedIdx === undefined || sheet.getLastRow() < 2) {
+        return { sheet: sheetName, migrated: 0 };
+    }
+
+    var range = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
+    var values = range.getValues();
+    var migrated = 0;
+    values.forEach(function(row) {
+        if (!String(row[idIdx] || "").trim()) {
+            row[idIdx] = Utilities.getUuid();
+            migrated += 1;
+        }
+        if (String(row[deletedIdx] || "").trim() === "") {
+            row[deletedIdx] = false;
+        }
+    });
+    range.setValues(values);
+    return { sheet: sheetName, migrated: migrated };
+}
+
+function migrateExistingRecords() {
+    _ensureGlobalSheets();
+    var results = [];
+    ss.getSheets().forEach(function(sheet) {
+        var name = sheet.getName();
+        if (_isRecordSheetName(name)) {
+            results.push(_migrateSheetRecords(name));
+        }
+    });
+    return results;
+}
+
+function runMigrateExistingRecords(session) {
+    var auth = _requireSuperAdmin(session, "migrate_existing_records");
+    if (!auth.ok) return auth.response;
+    var results = migrateExistingRecords();
+    writeAuditLog(session.username, auth.role, "migrate_existing_records", "-", "-", "Migrasi UUID/soft-delete record existing");
+    return responseJSON({ status: "success", results: results });
+}
+
+function _normalizeDivisiCode(code) {
+    return String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function _requireSuperAdmin(session, action) {
+    var rbac = _checkRole(session.username, action, "*");
+    if (!rbac.allowed) {
+        writeAuditLog(session.username, rbac.role, "DENIED:" + action, "db_divisi", "-", rbac.msg);
+        return { ok: false, response: _errorResponse("ERR_403_ROLE"), role: rbac.role };
+    }
+    return { ok: true, role: rbac.role };
+}
+
+function _rowObjectFromValues(headers, rowValues) {
+    var obj = {};
+    headers.forEach(function(header, index) {
+        obj[header] = rowValues[index];
+    });
+    return obj;
+}
+
+function _findDivisiByCode(kode) {
+    var sheet = _ensureSheet("db_divisi", DB_DIVISI_HEADERS);
+    var headers = _getHeaders(sheet);
+    var map = _getHeaderIndexMap(sheet);
+    if (sheet.getLastRow() < 2) return null;
+    var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+    for (var i = 0; i < values.length; i++) {
+        if (String(values[i][map.kode_divisi] || "").trim() === kode) {
+            return {
+                sheet: sheet,
+                rowNumber: i + 2,
+                headers: headers,
+                values: values[i],
+                data: _rowObjectFromValues(headers, values[i]),
+            };
+        }
+    }
+    return null;
+}
+
+function _setDivisiValue(divisi, name, value) {
+    var idx = _headerIndex(divisi.headers, name);
+    if (idx >= 0) {
+        divisi.values[idx] = value;
+        divisi.sheet.getRange(divisi.rowNumber, idx + 1).setValue(value);
+        divisi.data[name] = value;
+    }
+}
+
+function _ensureSummaryRow(divisi_id) {
+    var sheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
+    var map = _getHeaderIndexMap(sheet);
+    if (sheet.getLastRow() >= 2) {
+        var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+        for (var i = 0; i < values.length; i++) {
+            if (String(values[i][map.divisi_id] || "").trim() === String(divisi_id).trim()) {
+                return i + 2;
+            }
+        }
+    }
+    var row = {
+        divisi_id: divisi_id,
+        total_surat_masuk: 0,
+        total_surat_keluar: 0,
+        total_piagam: 0,
+        last_updated: new Date(),
+    };
+    sheet.appendRow(_getHeaders(sheet).map(function(header) {
+        return row[header] !== undefined ? row[header] : "";
+    }));
+    return sheet.getLastRow();
+}
+
+function updateSummary(divisi_id, tipe, delta) {
+    var sheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
+    var rowNumber = _ensureSummaryRow(divisi_id);
+    var map = _getHeaderIndexMap(sheet);
+    var field = "total_" + String(tipe || "").replace(/^db_/, "");
+    if (map[field] === undefined) return;
+    var current = Number(sheet.getRange(rowNumber, map[field] + 1).getValue() || 0);
+    sheet.getRange(rowNumber, map[field] + 1).setValue(current + Number(delta || 0));
+    sheet.getRange(rowNumber, map.last_updated + 1).setValue(new Date());
+}
+
+function _recomputeSummary(divisi_id) {
+    var counts = {
+        total_surat_masuk: 0,
+        total_surat_keluar: 0,
+        total_piagam: 0,
+    };
+    ["surat_masuk", "surat_keluar", "piagam"].forEach(function(tipe) {
+        var sheet = ss.getSheetByName(divisi_id + "_" + tipe);
+        if (!sheet || sheet.getLastRow() < 2) return;
+        var map = _getHeaderIndexMap(sheet);
+        var deletedIdx = map.is_deleted;
+        var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+        counts["total_" + tipe] = values.filter(function(row) {
+            return deletedIdx === undefined || !/^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim());
+        }).length;
+    });
+    var summarySheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
+    var rowNumber = _ensureSummaryRow(divisi_id);
+    var summaryMap = _getHeaderIndexMap(summarySheet);
+    Object.keys(counts).forEach(function(key) {
+        summarySheet.getRange(rowNumber, summaryMap[key] + 1).setValue(counts[key]);
+    });
+    summarySheet.getRange(rowNumber, summaryMap.last_updated + 1).setValue(new Date());
+}
+
+function _ensureDivisiSheets(kode) {
+    _ensureSheet(kode + "_surat_masuk", SURAT_MASUK_HEADERS);
+    _ensureSheet(kode + "_surat_keluar", SURAT_KELUAR_HEADERS);
+    _ensureSheet(kode + "_piagam", PIAGAM_HEADERS);
+    _ensureSheet(kode + "_ref_pengambilan", REF_DIVISI_HEADERS);
+    _ensureSheet(kode + "_ref_jenis", REF_DIVISI_HEADERS);
+}
+
+function _createDivisiFolder(namaDivisi) {
+    return DriveApp.createFolder("Arsip Surat - " + namaDivisi).getId();
+}
+
+function _deletePartialDivisiSheets(kode) {
+    [
+        kode + "_surat_masuk",
+        kode + "_surat_keluar",
+        kode + "_piagam",
+        kode + "_ref_pengambilan",
+        kode + "_ref_jenis",
+    ].forEach(function(name) {
+        var sheet = ss.getSheetByName(name);
+        if (sheet) ss.deleteSheet(sheet);
+    });
+}
+
+function _deleteSummaryRow(divisi_id) {
+    var sheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
+    var map = _getHeaderIndexMap(sheet);
+    if (sheet.getLastRow() < 2) return;
+    var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+    for (var i = values.length - 1; i >= 0; i--) {
+        if (String(values[i][map.divisi_id] || "").trim() === divisi_id) {
+            sheet.deleteRow(i + 2);
+        }
+    }
+}
+
+function initDivisi(data, session) {
+    var auth = _requireSuperAdmin(session, "init_divisi");
+    if (!auth.ok) return auth.response;
+    var kode = _normalizeDivisiCode(data.kode_divisi);
+    var nama = String(data.nama_divisi || "").trim();
+    if (!kode || kode.length > 10 || !nama) return _errorResponse("ERR_400_DIVISI");
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+        _ensureGlobalSheets();
+        if (_findDivisiByCode(kode)) return _errorResponse("ERR_409_DIVISI");
+
+        var sheet = _ensureSheet("db_divisi", DB_DIVISI_HEADERS);
+        var divisiId = kode;
+        var row = {
+            id: divisiId,
+            kode_divisi: kode,
+            nama_divisi: nama,
+            status: "pending",
+            drive_folder_id: "",
+            created_at: new Date(),
+            created_by: session.username,
+        };
+        sheet.appendRow(_getHeaders(sheet).map(function(header) {
+            return row[header] !== undefined ? row[header] : "";
+        }));
+
+        var divisi = _findDivisiByCode(kode);
+        _ensureDivisiSheets(kode);
+        var folderId = _createDivisiFolder(nama);
+        _setDivisiValue(divisi, "drive_folder_id", folderId);
+        _setDivisiValue(divisi, "status", "active");
+        _ensureSummaryRow(divisiId);
+        writeAuditLog(session.username, auth.role, "init_divisi", "db_divisi", divisiId, "Init divisi " + kode);
+        return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisiId, drive_folder_id: folderId });
+    } catch (err) {
+        return _serverError("initDivisi", err);
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+function retryInitDivisi(data, session) {
+    var auth = _requireSuperAdmin(session, "retry_init_divisi");
+    if (!auth.ok) return auth.response;
+    var kode = _normalizeDivisiCode(data.kode_divisi);
+    if (!kode) return _errorResponse("ERR_400_DIVISI");
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+        _ensureGlobalSheets();
+        var divisi = _findDivisiByCode(kode);
+        if (!divisi) return _errorResponse("ERR_404_DIVISI");
+        if (String(divisi.data.status || "").toLowerCase() !== "pending") return _errorResponse("ERR_409_DIVISI_STATUS");
+
+        _ensureDivisiSheets(kode);
+        var folderId = String(divisi.data.drive_folder_id || "").trim();
+        var folderOk = false;
+        if (folderId) {
+            try {
+                DriveApp.getFolderById(folderId).getName();
+                folderOk = true;
+            } catch (_) {
+                folderOk = false;
+            }
+        }
+        if (!folderOk) {
+            folderId = _createDivisiFolder(divisi.data.nama_divisi || kode);
+            _setDivisiValue(divisi, "drive_folder_id", folderId);
+        }
+        _setDivisiValue(divisi, "status", "active");
+        _ensureSummaryRow(divisi.data.id || kode);
+        writeAuditLog(session.username, auth.role, "retry_init_divisi", "db_divisi", divisi.data.id || kode, "Retry init divisi " + kode);
+        return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode, drive_folder_id: folderId });
+    } catch (err) {
+        return _serverError("retryInitDivisi", err);
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+function cleanupDivisi(data, session) {
+    var auth = _requireSuperAdmin(session, "cleanup_divisi");
+    if (!auth.ok) return auth.response;
+    var kode = _normalizeDivisiCode(data.kode_divisi);
+    if (!kode) return _errorResponse("ERR_400_DIVISI");
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+        _ensureGlobalSheets();
+        var divisi = _findDivisiByCode(kode);
+        if (!divisi) return _errorResponse("ERR_404_DIVISI");
+        if (String(divisi.data.status || "").toLowerCase() === "active") return _errorResponse("ERR_409_DIVISI_STATUS");
+        if (String(divisi.data.status || "").toLowerCase() !== "pending") return _errorResponse("ERR_409_DIVISI_STATUS");
+
+        _deletePartialDivisiSheets(kode);
+        var folderId = String(divisi.data.drive_folder_id || "").trim();
+        if (folderId) {
+            try { DriveApp.getFolderById(folderId).setTrashed(true); } catch (_) {}
+        }
+        _deleteSummaryRow(divisi.data.id || kode);
+        _setDivisiValue(divisi, "status", "cleanup");
+        writeAuditLog(session.username, auth.role, "cleanup_divisi", "db_divisi", divisi.data.id || kode, "Cleanup divisi pending " + kode);
+        return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
+    } catch (err) {
+        return _serverError("cleanupDivisi", err);
+    } finally {
+        lock.releaseLock();
+    }
 }
 
 // ─── Helper: Response JSON ────────────────────────────────────────────────────
@@ -744,6 +1156,7 @@ function simpanPiagam(dataInput, session) {
     if (!sheet) {
         return responseJSON({ status: "error", message: "Tabel tidak ditemukan: db_piagam" });
     }
+    _ensureHeaders(sheet, PIAGAM_HEADERS);
 
     var linkTTD = "";
 
@@ -780,21 +1193,24 @@ function simpanPiagam(dataInput, session) {
     delete dataInput.ttd_folder_id;
 
     var now = new Date();
+    var recordId = Utilities.getUuid();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var newRow = headers.map(function(header) {
         var headerNorm = String(header).toLowerCase().trim();
-        if (headerNorm === "id") return Utilities.getUuid();
+        if (headerNorm === "id") return recordId;
         if (headerNorm === "timestamp") return now;
         if (headerNorm === "email address") return dataInput.email_address;
         if (headerNorm === "nama pengupload") return dataInput.nama_pengupload;
         if (headerNorm === "divisi_id") return dataInput.divisi_id;
+        if (headerNorm === "is_deleted") return false;
+        if (headerNorm === "deleted_at" || headerNorm === "deleted_by") return "";
         var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
         if (key === "npsn") return "'" + (dataInput[key] || "-");
         return dataInput[key] !== undefined ? dataInput[key] : "";
     });
 
     sheet.appendRow(newRow);
-    writeAuditLog(actor, rbac.role, "create", "db_piagam", "-", "Tambah piagam");
+    writeAuditLog(actor, rbac.role, "create", "db_piagam", recordId, "Tambah piagam");
 
     return responseJSON({
         status: "success",
@@ -941,19 +1357,28 @@ function deleteFileFromDrive(fileUrl) {
 //   - id berupa angka (misal: 2, 3, 4) → dianggap nomor baris sheet langsung
 //   - id berupa UUID/string            → cari nilai di kolom A
 function getSheetRow(sheet, id) {
-    var num = parseInt(id, 10);
     var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return -1;
 
-    // Mode nomor baris langsung
-    if (!isNaN(num) && String(num) === String(id) && num >= 2 && num <= lastRow) {
-        return num;
+    var headers = _getHeaders(sheet);
+    var idIdx = _headerIndex(headers, "id");
+    if (idIdx >= 0) {
+        var values = sheet.getRange(2, idIdx + 1, lastRow - 1, 1).getDisplayValues();
+        for (var i = 0; i < values.length; i++) {
+            if (String(values[i][0]).trim() === String(id).trim()) {
+                return i + 2;
+            }
+        }
+        return -1;
     }
 
-    // Mode cari UUID / string di kolom pertama
+    var num = parseInt(id, 10);
+    if (!isNaN(num) && String(num) === String(id) && num >= 2 && num <= lastRow) return num;
+
     var colA = sheet.getRange(1, 1, lastRow, 1).getValues();
-    for (var i = 1; i < colA.length; i++) {
-        if (String(colA[i][0]).trim() === String(id).trim()) {
-            return i + 1; // +1: getValues 0-indexed, sheet 1-indexed
+    for (var j = 1; j < colA.length; j++) {
+        if (String(colA[j][0]).trim() === String(id).trim()) {
+            return j + 1;
         }
     }
     return -1;
@@ -980,6 +1405,9 @@ function simpanRecord(tableName, dataInput, session) {
     var sheet = ss.getSheetByName(tableName);
     if (!sheet) {
         return responseJSON({ status: "error", message: "Tabel tidak ditemukan: " + tableName });
+    }
+    if (_isRecordSheetName(tableName)) {
+        _ensureHeaders(sheet, _requiredRecordHeaders(tableName));
     }
 
     // Proses upload file lampiran jika ada (legacy Base64 — hanya jika upload_file belum ada)
@@ -1023,6 +1451,7 @@ function simpanRecord(tableName, dataInput, session) {
     // Waktu input saat ini (untuk kolom Timestamp)
     var now = new Date();
 
+    var recordId = Utilities.getUuid();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var newRow = headers.map(function (header, colIdx) {
         var headerNorm = header.toLowerCase().trim();
@@ -1047,8 +1476,10 @@ function simpanRecord(tableName, dataInput, session) {
 
         // Kolom ID (hanya jika nama kolomnya benar-benar "id") → UUID
         if (headerNorm === "id") {
-            return Utilities.getUuid();
+            return recordId;
         }
+        if (headerNorm === "is_deleted") return false;
+        if (headerNorm === "deleted_at" || headerNorm === "deleted_by") return "";
 
         var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
         return dataInput[key] !== undefined ? dataInput[key] : "";
@@ -1057,7 +1488,7 @@ function simpanRecord(tableName, dataInput, session) {
     sheet.appendRow(newRow);
 
     // ─── Audit Log (Issue 2 fix) ──────────────────────────────────
-    writeAuditLog(actor, rbac.role, "create", tableName, "-",
+    writeAuditLog(actor, rbac.role, "create", tableName, recordId,
         "Tambah data baru ke " + tableName);
 
     return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
@@ -1082,6 +1513,9 @@ function updateRecord(tableName, id, dataInput, session) {
     var sheet = ss.getSheetByName(tableName);
     if (!sheet) {
         return responseJSON({ status: "error", message: "Tabel tidak ditemukan: " + tableName });
+    }
+    if (_isRecordSheetName(tableName)) {
+        _ensureHeaders(sheet, _requiredRecordHeaders(tableName));
     }
 
     var rowNumber = getSheetRow(sheet, id);
@@ -1168,10 +1602,8 @@ function updateRecord(tableName, id, dataInput, session) {
 }
 
 // ─── Hapus record berdasarkan ID ──────────────────────────────────────────────
-// Sebelum menghapus baris di spreadsheet, fungsi ini akan:
-//   1. Membaca URL file dari kolom yang relevan (Upload File, TTD Pengambil)
-//   2. Menghapus file tersebut dari Google Drive via deleteFileFromDrive()
-//   3. Baru menghapus baris di spreadsheet
+// Soft delete record berdasarkan UUID pada kolom id.
+// File Drive tidak dihapus; record ditandai melalui is_deleted/deleted_at/deleted_by.
 function hapusRecord(tableName, id, session) {
     if (tableName == "users" || tableName == "db_users") {
         return responseJSON({ status: "error", message: "Gunakan action manage_user untuk mengelola user" });
@@ -1189,6 +1621,9 @@ function hapusRecord(tableName, id, session) {
     if (!sheet) {
         return responseJSON({ status: "error", message: "Tabel tidak ditemukan: " + tableName });
     }
+    if (_isRecordSheetName(tableName)) {
+        _ensureHeaders(sheet, _requiredRecordHeaders(tableName));
+    }
 
     var rowNumber = getSheetRow(sheet, id);
     if (rowNumber === -1) {
@@ -1198,6 +1633,13 @@ function hapusRecord(tableName, id, session) {
     // ── Baca nilai baris sebelum dihapus ──────────────────────────────────────
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var rowValues = sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0];
+    var headerMapByName = _getHeaderIndexMap(sheet);
+    rowValues[headerMapByName.is_deleted] = true;
+    rowValues[headerMapByName.deleted_at] = new Date();
+    rowValues[headerMapByName.deleted_by] = actor;
+    sheet.getRange(rowNumber, 1, 1, headers.length).setValues([rowValues]);
+    writeAuditLog(actor, rbac.role, "delete", tableName, id, "Soft delete record id=" + id + " dari " + tableName);
+    return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
 
     // Buat objek data dari header + nilai baris
     var rowData = {};
@@ -1209,17 +1651,16 @@ function hapusRecord(tableName, id, session) {
     // ── Hapus file lampiran dari Google Drive (jika ada) ─────────────────────
     // Kolom "Upload File" → rowData.upload_file (surat masuk / surat keluar)
     if (rowData.upload_file && String(rowData.upload_file).trim() !== "") {
-        deleteFileFromDrive(String(rowData.upload_file).trim());
+        // Soft delete keeps the stored Drive file untouched.
     }
 
     // Kolom "TTD Pengambil" → rowData.ttd_pengambil (piagam)
     if (rowData.ttd_pengambil && String(rowData.ttd_pengambil).trim() !== "") {
-        deleteFileFromDrive(String(rowData.ttd_pengambil).trim());
+        // Soft delete keeps the stored TTD file untouched.
     }
 
     // ── Hapus baris spreadsheet ───────────────────────────────────────────────
-    sheet.deleteRow(rowNumber);
-    writeAuditLog(actor, rbac.role, "delete", tableName, id, "Hapus record id=" + id + " dari " + tableName);
+    // Legacy hard delete path is intentionally bypassed by the soft-delete return above.
     return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
 }
 

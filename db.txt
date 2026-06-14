@@ -1,3 +1,5 @@
+# SISURAT MULTI-DIVISI - SPRINT 2 FINAL SCHEMA
+
 # Sheet: db_divisi
 id,kode_divisi,nama_divisi,status,drive_folder_id,created_at,created_by
 
