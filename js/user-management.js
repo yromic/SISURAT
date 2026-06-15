@@ -205,6 +205,17 @@
       const roleColor = roleObj ? roleObj.color : "#6b7280";
       const isSA = roleObj && roleObj.is_super_admin;
       const rowNum = u.row_number || u.id || (start + idx + 1);
+      const isCurrentUserRow = _isCurrentUser(u);
+      const deleteAction = isCurrentUserRow
+        ? `<span class="text-xs text-gray-400 italic px-2" title="Anda tidak dapat mengubah status akun yang sedang digunakan.">Akun aktif</span>`
+        : (!isSA ? `<button onclick="umDelete(this.dataset.row, this.dataset.name, this.dataset.username)"
+                    data-row="${_esc(rowNum)}"
+                    data-name="${_esc(u.nama || u.username)}"
+                    data-username="${_esc(u.username || "")}"
+                    class="action-btn-delete px-3 py-1.5 text-xs rounded-lg font-semibold flex items-center gap-1.5"
+                    title="Hapus User">
+              <i class="fas fa-trash"></i> Hapus
+            </button>` : `<span class="text-xs text-gray-400 italic px-2">Protected</span>`);
 
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50/80 transition-colors border-b border-gray-50";
@@ -235,11 +246,7 @@
                     title="Edit User">
               <i class="fas fa-edit"></i> Edit
             </button>
-            ${!isSA ? `<button onclick="umDelete('${rowNum}', '${_esc(u.nama || u.username)}')"
-                    class="action-btn-delete px-3 py-1.5 text-xs rounded-lg font-semibold flex items-center gap-1.5"
-                    title="Hapus User">
-              <i class="fas fa-trash"></i> Hapus
-            </button>` : `<span class="text-xs text-gray-400 italic px-2">Protected</span>`}
+            ${deleteAction}
           </div>
         </td>`;
       tbody.appendChild(tr);
@@ -307,6 +314,12 @@
 
   function _esc(str) {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function _isCurrentUser(user) {
+    const currentUsername = _currentUser && _currentUser.username ? String(_currentUser.username).trim() : "";
+    const rowUsername = user && user.username ? String(user.username).trim() : "";
+    return !!currentUsername && !!rowUsername && currentUsername === rowUsername;
   }
 
   // ─── Sort ─────────────────────────────────────────────────────────────────
@@ -474,7 +487,14 @@
   };
 
   // ─── Delete ───────────────────────────────────────────────────────────────
-  global.umDelete = async function (rowNum, nama) {
+  global.umDelete = async function (rowNum, nama, username) {
+    const currentUsername = _currentUser && _currentUser.username ? String(_currentUser.username).trim() : "";
+    const targetUsername = username ? String(username).trim() : "";
+    if (currentUsername && targetUsername && currentUsername === targetUsername) {
+      _showToast("Anda tidak dapat menghapus akun sendiri.", "error");
+      return;
+    }
+
     const confirmed = await SisuratUI.showConfirm({
       type: "danger",
       title: "Hapus User",

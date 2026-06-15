@@ -2269,6 +2269,7 @@ function manageUser(data, session) {
 
     var sub = data.sub_action;
     var isSuperAdmin = session.role === "super_admin";
+    var sessionUsername = String(session.username || "").trim();
 
     // ── CREATE ───────────────────────────────────────────────────────────────
     if (sub === "create") {
@@ -2335,6 +2336,19 @@ function manageUser(data, session) {
         var headerMapByName = _getHeaderIndexMap(sheet);
         var existingUsername = String(rowVals[headerMapByName.username] || "").trim();
         var existingDivisiId = String(rowVals[headerMapByName.divisi_id] || "").trim().toUpperCase();
+        var isSelfUpdate = existingUsername && sessionUsername && existingUsername === sessionUsername;
+
+        if (isSelfUpdate && data.aktif !== undefined && data.aktif !== null && data.aktif !== "") {
+            var requestedAktif = String(data.aktif).trim().toLowerCase();
+            if (data.aktif === false || /^(false|0|no|tidak|nonaktif|inactive)$/i.test(requestedAktif)) {
+                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:self_deactivate", "db_users", existingUsername, "Attempt to deactivate own account");
+                return responseJSON({
+                    status: "error",
+                    code: "ERR_400_SELF_DEACTIVATE",
+                    message: "Anda tidak dapat menonaktifkan akun sendiri."
+                });
+            }
+        }
 
         // Cross-division update protection
         if (!isSuperAdmin) {
@@ -2392,6 +2406,15 @@ function manageUser(data, session) {
         var headerMapByName = _getHeaderIndexMap(sheet);
         var existingUsername = String(rowVals[headerMapByName.username] || "").trim();
         var existingDivisiId = String(rowVals[headerMapByName.divisi_id] || "").trim().toUpperCase();
+
+        if (existingUsername && sessionUsername && existingUsername === sessionUsername) {
+            writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:self_delete", "db_users", existingUsername, "Attempt to delete own account");
+            return responseJSON({
+                status: "error",
+                code: "ERR_400_SELF_DELETE",
+                message: "Anda tidak dapat menghapus akun sendiri."
+            });
+        }
 
         // Cross-division delete protection
         if (!isSuperAdmin) {

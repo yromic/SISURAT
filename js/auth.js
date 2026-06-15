@@ -52,7 +52,7 @@
       if (role === "super_admin") {
         return localStorage.getItem("active_divisi") || "";
       } else {
-        return user.divisi_id || "";
+        return localStorage.getItem("user_divisi_id") || user.divisi_id || "";
       }
     },
     setActiveDivisi(kodeDivisi) {

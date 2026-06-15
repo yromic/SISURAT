@@ -63,31 +63,48 @@
   // ─── 4. Active Divisi Badge ─────────────────────────────────────────────────
 
   function showActiveDivisiBadge() {
-    if (typeof global.SisuratDivision === "undefined") return;
-    if (!global.SisuratDivision.isSuperAdmin()) return;
-
-    const activeDivisi = global.SisuratDivision.getActiveDivisi();
-    const badgeContainer = document.getElementById("active-divisi-badge");
+    const badgeContainer = _getOrCreateDivisiBadgeContainer();
     if (!badgeContainer) return;
 
-    badgeContainer.classList.remove("hidden");
+    const currentUser = global.SisuratAuth && typeof global.SisuratAuth.getStoredUser === "function"
+      ? global.SisuratAuth.getStoredUser()
+      : null;
+    const role = currentUser && currentUser.role
+      ? String(currentUser.role).toLowerCase().replace(/[\s_-]+/g, "_")
+      : "";
+    const isSuperAdmin = role === "super_admin";
+    const activeDivisi = isSuperAdmin
+      ? (localStorage.getItem("active_divisi") || "")
+      : (localStorage.getItem("user_divisi_id") || "");
 
     if (activeDivisi) {
+      badgeContainer.classList.remove("hidden");
       badgeContainer.innerHTML =
         '<div class="inline-flex items-center gap-2 px-4 py-2 bg-white/15 rounded-full border border-white/25 text-sm font-bold text-white shadow-sm backdrop-blur-sm">' +
           '<i class="fas fa-building text-[#7fffd4]"></i>' +
-          '<span>Divisi Aktif:</span>' +
+          '<span>' + (isSuperAdmin ? 'Divisi Aktif:' : 'Divisi:') + '</span>' +
           '<span class="px-2 py-0.5 bg-[#00ADB5] rounded-lg text-white font-extrabold tracking-wider text-xs">' +
-            _escapeHTML(activeDivisi) +
+            _escapeHTML(String(activeDivisi).toUpperCase()) +
           '</span>' +
         '</div>';
     } else {
-      badgeContainer.innerHTML =
-        '<div class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 rounded-full border border-amber-400/30 text-sm font-bold text-amber-200 shadow-sm backdrop-blur-sm animate-pulse">' +
-          '<i class="fas fa-exclamation-triangle text-amber-300"></i>' +
-          '<span>Belum memilih divisi aktif</span>' +
-        '</div>';
+      badgeContainer.innerHTML = "";
+      badgeContainer.classList.add("hidden");
     }
+  }
+
+  function _getOrCreateDivisiBadgeContainer() {
+    let badgeContainer = document.getElementById("active-divisi-badge");
+    if (badgeContainer) return badgeContainer;
+
+    const headerFlex = document.querySelector("#settings-main-content .relative.z-10.w-full.flex");
+    if (!headerFlex) return null;
+
+    badgeContainer = document.createElement("div");
+    badgeContainer.id = "active-divisi-badge";
+    badgeContainer.className = "hidden divisi-badge-container";
+    headerFlex.appendChild(badgeContainer);
+    return badgeContainer;
   }
 
   // ─── 5. Error Mapper ────────────────────────────────────────────────────────
@@ -101,6 +118,8 @@
     ERR_413_FILE: "Ukuran file melebihi batas 10 MB per file.",
     ERR_500_SERVER: "Terjadi kesalahan sistem. Hubungi administrator.",
     ERR_400_DIVISI_REQUIRED: "Pilih divisi aktif terlebih dahulu.",
+    ERR_400_SELF_DELETE: "Anda tidak dapat menghapus akun sendiri.",
+    ERR_400_SELF_DEACTIVATE: "Anda tidak dapat menonaktifkan akun sendiri.",
   });
 
   /**
@@ -526,4 +545,3 @@
     installApiInterceptor();
   });
 })(window);
-
