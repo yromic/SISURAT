@@ -1021,3 +1021,186 @@ label[for^="input-"] {
   }
 }
 
+/* ─── 26. Mobile-first hardening ───────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body.flex,
+main {
+  min-width: 0;
+}
+
+main {
+  width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#um-table-wrapper,
+#ref-table-wrapper,
+#div-table-wrapper,
+#trash-table-wrapper,
+#ringkasan-divisi-section .overflow-x-auto,
+main .overflow-x-auto {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#um-table-wrapper table,
+#ref-table-wrapper table,
+#div-table-wrapper table,
+#trash-table-wrapper table,
+#ringkasan-divisi-section table,
+main .overflow-x-auto > table {
+  min-width: 720px;
+}
+
+#um-modal,
+#ref-modal,
+#divisi-modal,
+#master-modal,
+#confirm-modal,
+#modal {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#um-modal > .relative,
+#ref-modal > .relative,
+#divisi-modal > .relative,
+#confirm-modal > .relative {
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+#master-modal > .relative,
+#modal > .glass-modal {
+  max-height: 90dvh;
+  margin: auto;
+}
+
+@media (max-width: 1023px) {
+  #sidebar {
+    width: min(18rem, 85vw);
+    max-width: 85vw;
+  }
+
+  #sidebar-overlay.open {
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 640px) {
+  main h1 {
+    font-size: clamp(1.85rem, 8vw, 2.35rem) !important;
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
+  }
+
+  main h2,
+  main h3 {
+    letter-spacing: 0 !important;
+  }
+
+  .filter-input,
+  .form-input,
+  .rows-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .btn-export {
+    width: 100%;
+    padding: 12px 16px;
+  }
+
+  #um-modal,
+  #ref-modal,
+  #divisi-modal,
+  #master-modal,
+  #confirm-modal,
+  #modal,
+  .sisurat-modal-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  #um-modal > .relative,
+  #ref-modal > .relative,
+  #divisi-modal > .relative {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  #um-form > .flex,
+  #ref-form > .flex,
+  #divisi-form > .flex,
+  #master-form > .flex,
+  .sisurat-modal__actions {
+    flex-direction: column;
+  }
+
+  #um-form > .flex > button,
+  #ref-form > .flex > button,
+  #divisi-form > .flex > button,
+  #master-form > .flex > button,
+  .sisurat-modal__btn {
+    width: 100%;
+  }
+
+  #modal .glass-modal {
+    height: 90dvh;
+    overflow-y: auto;
+    border-radius: 24px;
+  }
+
+  #modal .glass-modal > div {
+    min-height: 0;
+  }
+
+  #modal .glass-modal > div:first-of-type {
+    padding: 20px;
+  }
+
+  #confirm-modal > .relative > div:last-child {
+    padding: 20px;
+  }
+
+  #um-toast-container,
+  .sisurat-toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+  }
+
+  .toast {
+    min-width: 0;
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .divisi-badge-container {
+    max-width: 100%;
+  }
+}

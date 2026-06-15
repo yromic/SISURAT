@@ -449,12 +449,12 @@
     <!-- ─── Modal CRUD Referensi ──────────────────────────────────────────── -->
     <div
       id="ref-modal"
-      class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4"
+      class="hidden fixed inset-0 z-[999] flex items-start sm:items-center justify-center p-4 overflow-y-auto"
       onclick="refCloseModal(event)"
     >
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
       <div
-        class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-md p-8"
+        class="relative z-10 bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] w-full max-w-md p-5 sm:p-8 max-h-[90vh] overflow-y-auto mx-auto my-auto"
       >
         <!-- Header -->
         <div class="flex items-center justify-between mb-6">
@@ -511,7 +511,7 @@
               class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3"
               >Status</label
             >
-            <div class="flex gap-4">
+            <div class="flex flex-col sm:flex-row gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -541,7 +541,7 @@
             class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"
           ></div>
 
-          <div class="flex gap-3">
+          <div class="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onclick="refCloseModalDirect()"

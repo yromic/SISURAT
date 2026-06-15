@@ -89,6 +89,8 @@
           box-shadow 0.3s,
           transform 0.3s;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
         outline: none;
       }
       .input-premium:focus {
@@ -205,6 +207,43 @@
       #unit_kerja_list::-webkit-scrollbar-thumb:hover {
         background: #00adb5;
       }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 16px 12px;
+        }
+
+        h1 {
+          font-size: clamp(1.85rem, 8vw, 2.35rem) !important;
+          line-height: 1.12 !important;
+          letter-spacing: 0 !important;
+        }
+
+        .input-premium {
+          padding: 12px 14px;
+          font-size: 14px;
+        }
+
+        .label-premium {
+          letter-spacing: 0.06em;
+        }
+
+        .canvas-container canvas {
+          height: 160px;
+        }
+      }
     </style>
   </head>
   <body
@@ -228,7 +267,7 @@
     >
       <!-- Header -->
       <div
-        class="bg-gradient-to-r from-[#222831] to-[#393E46] p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden"
+        class="bg-gradient-to-r from-[#222831] to-[#393E46] p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden"
       >
         <!-- Glow effect internal -->
         <div
@@ -275,7 +314,7 @@
       </div>
 
       <!-- Form Section -->
-      <div class="p-8 md:p-12 relative">
+      <div class="p-5 sm:p-8 md:p-12 relative">
         <form
           id="piagamForm"
           onsubmit="
@@ -351,7 +390,7 @@
                 ></ul>
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="group-input">
                   <label class="label-premium"
                     ><i class="fas fa-hashtag text-gray-400 mr-2"></i>Nomor
@@ -506,7 +545,7 @@
 
           <!-- Signature Pad full width -->
           <div class="mt-12 pt-8 border-t border-gray-200">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h3 class="font-outfit font-extrabold text-[#222831] text-lg">
                 Validasi Otentikasi (Tanda Tangan)
               </h3>

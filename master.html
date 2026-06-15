@@ -535,7 +535,7 @@
     <!-- FORM MODAL Edit/Save - SUPER PREMIUM DESIGN -->
     <div
       id="master-modal"
-      class="hidden fixed inset-0 z-[100] items-center justify-center p-4"
+      class="hidden fixed inset-0 z-[100] items-start sm:items-center justify-center p-4 overflow-y-auto"
     >
       <!-- Backdrop blur absolute -->
       <div
@@ -571,7 +571,7 @@
 
         <!-- Scrollable content -->
         <div
-          class="p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30"
+          class="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30"
         >
           <div id="modal-alert" class="hidden mb-6"></div>
           <form
@@ -588,7 +588,7 @@
             <div class="mt-10 mb-2 border-t border-gray-200"></div>
 
             <div
-              class="flex gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4"
+              class="flex flex-col sm:flex-row gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4"
             >
               <button
                 type="submit"
@@ -600,7 +600,7 @@
               <button
                 type="button"
                 onclick="closeModal()"
-                class="px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300"
+                class="w-full sm:w-auto px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300"
               >
                 Batal
               </button>
