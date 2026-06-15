@@ -199,7 +199,7 @@
       <div id="divisi-main-content">
         <!-- Header Banner -->
         <div
-          class="h-64 pt-16 pb-10 mb-20 bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5] relative overflow-hidden flex flex-col justify-center px-8 lg:px-12 rounded-b-[3rem] shadow-xl"
+          class="sisurat-page-header bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5]"
         >
           <div
             class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"
@@ -211,33 +211,33 @@
             class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"
           ></div>
 
-          <div
-            class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6"
-          >
-            <div>
-              <!-- Active Divisi Badge -->
-              <div id="active-divisi-badge" class="hidden divisi-badge-container mb-3"></div>
-              <div
-                class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-bold text-white/90 mb-4 tracking-widest uppercase shadow-sm"
-              >
+          <div class="sisurat-page-header__content">
+            <div class="sisurat-page-header__main">
+              <div class="sisurat-page-kicker">
                 <i class="fas fa-building text-[#00ADB5]"></i> Manajemen Divisi
               </div>
-              <h1
-                class="text-4xl lg:text-5xl font-extrabold text-white font-outfit tracking-wider drop-shadow-lg leading-tight"
-              >
-                Kelola Divisi,<br /><span
-                  class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-white"
-                  >Provisioning &amp; Isolasi Data.</span
-                >
-              </h1>
+              <h1 class="sisurat-page-title">Manajemen Divisi</h1>
+              <p class="sisurat-page-description">
+                Kelola daftar divisi, status provisioning, dan isolasi data operasional.
+              </p>
+              <div class="sisurat-page-meta">
+                <div id="active-divisi-badge" class="hidden divisi-badge-container"></div>
+                <nav class="sisurat-breadcrumb" aria-label="Breadcrumb">
+                  <span>Dashboard</span>
+                  <i class="fas fa-chevron-right text-[10px]"></i>
+                  <span class="sisurat-breadcrumb__current">Manajemen Divisi</span>
+                </nav>
+              </div>
             </div>
+            <div class="sisurat-page-actions">
             <button
               id="btn-tambah-divisi"
               onclick="divOpenModal()"
-              class="flex items-center gap-2 px-6 py-3 bg-white text-[#222831] font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm shrink-0"
+              class="flex items-center justify-center gap-2 px-6 py-3 bg-white text-[#222831] font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm shrink-0"
             >
               <i class="fas fa-plus text-[#00ADB5]"></i> Tambah Divisi Baru
             </button>
+            </div>
           </div>
         </div>
 

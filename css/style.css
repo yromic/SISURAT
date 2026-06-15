@@ -1204,3 +1204,156 @@ main .overflow-x-auto > table {
     max-width: 100%;
   }
 }
+
+/* ─── 27. Unified internal page header ────────────────────────────────────── */
+.sisurat-page-header {
+  min-height: 16rem;
+  padding: 4rem 2rem 2.5rem;
+  margin-bottom: 5rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom-left-radius: 3rem;
+  border-bottom-right-radius: 3rem;
+  box-shadow: 0 20px 35px -18px rgba(0, 0, 0, 0.35);
+}
+
+.sisurat-page-header__content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.sisurat-page-header__main {
+  min-width: 0;
+  max-width: 48rem;
+}
+
+.sisurat-page-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.sisurat-page-title {
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+  text-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.sisurat-page-description {
+  margin-top: 0.75rem;
+  max-width: 42rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.sisurat-page-meta {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.sisurat-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sisurat-breadcrumb__current {
+  color: #fff;
+}
+
+.sisurat-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sisurat-page-actions > * {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .sisurat-page-header__content {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sisurat-page-header {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .sisurat-page-header {
+    min-height: auto;
+    padding: 2rem 1.25rem 2.25rem;
+    margin-bottom: 3.5rem;
+    border-bottom-left-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+  }
+
+  .sisurat-page-header__content {
+    padding-bottom: 0;
+  }
+
+  .sisurat-page-title {
+    font-size: clamp(1.9rem, 9vw, 2.35rem) !important;
+  }
+
+  .sisurat-page-description {
+    font-size: 0.875rem;
+  }
+
+  .sisurat-page-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sisurat-page-actions > a,
+  .sisurat-page-actions > button,
+  .sisurat-page-actions > div,
+  .sisurat-page-actions select {
+    width: 100%;
+  }
+}
