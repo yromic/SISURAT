@@ -79,13 +79,13 @@ var LOGIN_BLOCK_SECONDS = 15 * 60;
 
 // ─── RBAC Rules: permission per action + table [Issue 1 Fix] ─────────────────
 var RBAC_RULES = {
-    "get_data:db_surat_masuk":  ["super_admin", "admin", "operator"],
-    "get_data:db_surat_keluar": ["super_admin", "admin", "operator"],
-    "get_data:db_piagam":       ["super_admin", "admin", "operator"],
-    "get_data:db_users":        ["super_admin", "admin"],
-    "get_data:ref_sekolah":     ["super_admin", "admin", "operator"],
-    "get_data:ref_pengambilan": ["super_admin", "admin", "operator"],
-    "get_data:ref_jenis_perlombaan": ["super_admin", "admin", "operator"],
+    "get_data:db_surat_masuk":  ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_surat_keluar": ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_piagam":       ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_users":        ["super_admin", "admin_divisi", "admin"],
+    "get_data:ref_sekolah":     ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:ref_pengambilan": ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:ref_jenis_perlombaan": ["super_admin", "admin_divisi", "admin", "operator"],
     "read:surat_masuk":         ["super_admin", "admin_divisi", "admin", "operator"],
     "read:surat_keluar":        ["super_admin", "admin_divisi", "admin", "operator"],
     "read:piagam":              ["super_admin", "admin_divisi", "admin", "operator"],
@@ -96,33 +96,35 @@ var RBAC_RULES = {
     "read:db_users":            ["super_admin", "admin_divisi", "admin"],
     "read:db_summary":          ["super_admin", "admin_divisi", "admin", "operator"],
     "read:db_audit_log":        ["super_admin", "admin_divisi", "admin"],
-    "create:surat_masuk":       ["super_admin", "admin", "operator"],
-    "create:surat_keluar":      ["super_admin", "admin", "operator"],
-    "create:piagam":            ["super_admin", "admin", "operator"],
-    "create:ref_pengambilan":   ["super_admin", "admin", "operator"],
-    "create:ref_jenis":         ["super_admin", "admin", "operator"],
-    "create:ref_sekolah":       ["super_admin", "admin", "operator"],
-    "update:surat_masuk":       ["super_admin", "admin"],
-    "update:surat_keluar":      ["super_admin", "admin"],
-    "update:piagam":            ["super_admin", "admin"],
-    "update:ref_pengambilan":   ["super_admin", "admin"],
-    "update:ref_jenis":         ["super_admin", "admin"],
-    "update:ref_sekolah":       ["super_admin", "admin"],
-    "delete:surat_masuk":       ["super_admin", "admin"],
-    "delete:surat_keluar":      ["super_admin", "admin"],
-    "delete:piagam":            ["super_admin", "admin"],
-    "delete:ref_pengambilan":   ["super_admin", "admin"],
-    "delete:ref_jenis":         ["super_admin", "admin"],
-    "delete:ref_sekolah":       ["super_admin", "admin"],
-    "manage_user:*":            ["super_admin"],
-    "reset_password:*":         ["super_admin"],
+    "create:surat_masuk":       ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:surat_keluar":      ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:piagam":            ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_pengambilan":   ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_jenis":         ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_sekolah":       ["super_admin", "admin_divisi", "admin", "operator"],
+    "update:surat_masuk":       ["super_admin", "admin_divisi", "admin"],
+    "update:surat_keluar":      ["super_admin", "admin_divisi", "admin"],
+    "update:piagam":            ["super_admin", "admin_divisi", "admin"],
+    "update:ref_pengambilan":   ["super_admin", "admin_divisi", "admin"],
+    "update:ref_jenis":         ["super_admin", "admin_divisi", "admin"],
+    "update:ref_sekolah":       ["super_admin", "admin_divisi", "admin"],
+    "delete:surat_masuk":       ["super_admin", "admin_divisi", "admin"],
+    "delete:surat_keluar":      ["super_admin", "admin_divisi", "admin"],
+    "delete:piagam":            ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_pengambilan":   ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_jenis":         ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_sekolah":       ["super_admin", "admin_divisi", "admin"],
+    "manage_user:*":            ["super_admin", "admin_divisi", "admin"],
+    "reset_password:*":         ["super_admin", "admin_divisi", "admin"],
     "init_divisi:db_divisi":    ["super_admin"],
     "retry_init_divisi:db_divisi": ["super_admin"],
     "cleanup_divisi:db_divisi": ["super_admin"],
+    "deactivate_divisi:db_divisi": ["super_admin"],
     "migrate_existing_records:db_divisi": ["super_admin"],
     "init_divisi:*":            ["super_admin"],
     "retry_init_divisi:*":      ["super_admin"],
     "cleanup_divisi:*":         ["super_admin"],
+    "deactivate_divisi:*":      ["super_admin"],
     "migrate_existing_records:*": ["super_admin"],
 };
 
@@ -224,6 +226,14 @@ function _getSession(token) {
     if (!user || user.aktif === false) {
         _deleteSession(token);
         return { ok: false, detail: "user inactive or missing" };
+    }
+
+    if (user.role !== "super_admin" && user.divisi_id) {
+        var div = _findDivisiByCode(user.divisi_id);
+        if (div && String(div.data.status || "").toLowerCase() === "inactive") {
+            _deleteSession(token);
+            return { ok: false, detail: "division inactive" };
+        }
     }
 
     session.nama = user.nama;
@@ -903,6 +913,11 @@ function doPost(e) {
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             return cleanupDivisi(data, sessionResult.session);
+        } else if (action == "deactivate_divisi") {
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return deactivateDivisi(data, sessionResult.session);
         } else if (action == "migrate_existing_records") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
@@ -967,6 +982,13 @@ function cekLogin(data) {
             if (!user || user.aktif === false) {
                 writeAuditLog(dbUser || "system", "-", "-", "DENIED:login", "-", "-", "Akun nonaktif atau tidak ditemukan");
                 return responseJSON({ status: "error", message: "Username atau Password salah!" });
+            }
+            if (user.role !== "super_admin" && user.divisi_id) {
+                var div = _findDivisiByCode(user.divisi_id);
+                if (div && String(div.data.status || "").toLowerCase() === "inactive") {
+                    writeAuditLog(dbUser || "system", "-", user.divisi_id, "DENIED:login_inactive_divisi", "-", "-", "Akun diblokir karena divisi inactive");
+                    return responseJSON({ status: "error", message: "Divisi Anda dinonaktifkan. Silakan hubungi Super Admin." });
+                }
             }
             _upgradePasswordIfNeeded(sheet, i + 1, headers, row, password);
             cache.remove(failKey);
@@ -1463,6 +1485,29 @@ function cleanupDivisi(data, session) {
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
     } catch (err) {
         return _serverError("cleanupDivisi", err);
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+function deactivateDivisi(data, session) {
+    var auth = _requireSuperAdmin(session, "deactivate_divisi");
+    if (!auth.ok) return auth.response;
+    var kode = _normalizeDivisiCode(data.kode_divisi);
+    if (!kode) return _errorResponse("ERR_400_DIVISI");
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+        _ensureGlobalSheets();
+        var divisi = _findDivisiByCode(kode);
+        if (!divisi) return _errorResponse("ERR_404_DIVISI");
+
+        _setDivisiValue(divisi, "status", "inactive");
+        writeAuditLog(session.username, auth.role, divisi.data.id || kode, "deactivate_divisi", "db_divisi", divisi.data.id || kode, "Deactivate divisi " + kode);
+        return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
+    } catch (err) {
+        return _serverError("deactivateDivisi", err);
     } finally {
         lock.releaseLock();
     }
@@ -2154,20 +2199,37 @@ function hapusRecord(tableName, id, session) {
         }
     }
 
-    var wasDeleted = headerMapByName.is_deleted !== undefined && /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
-    if (wasDeleted) {
-        return responseJSON({ status: "success", message: "Data sudah dihapus sebelumnya." });
+    var deletedType = ""; // "soft", "deactivate", "hard"
+    if (headerMapByName.is_deleted !== undefined) {
+        var wasDeleted = /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
+        if (wasDeleted) {
+            return responseJSON({ status: "success", message: "Data sudah dihapus sebelumnya." });
+        }
+        rowValues[headerMapByName.is_deleted] = true;
+        rowValues[headerMapByName.deleted_at] = new Date();
+        rowValues[headerMapByName.deleted_by] = session.username;
+        rowRange.setValues([rowValues]);
+        deletedType = "soft";
+    } else if (headerMapByName.aktif !== undefined) {
+        var isAlreadyInactive = /^(false|0|no|tidak|nonaktif)$/i.test(String(rowValues[headerMapByName.aktif]).trim());
+        if (isAlreadyInactive) {
+            return responseJSON({ status: "success", message: "Data sudah dinonaktifkan." });
+        }
+        rowValues[headerMapByName.aktif] = false;
+        if (headerMapByName.deleted_at !== undefined) rowValues[headerMapByName.deleted_at] = new Date();
+        if (headerMapByName.deleted_by !== undefined) rowValues[headerMapByName.deleted_by] = session.username;
+        rowRange.setValues([rowValues]);
+        deletedType = "deactivate";
+    } else {
+        sheet.deleteRow(rowNumber);
+        deletedType = "hard";
     }
 
-    rowValues[headerMapByName.is_deleted] = true;
-    rowValues[headerMapByName.deleted_at] = new Date();
-    rowValues[headerMapByName.deleted_by] = session.username;
-    rowRange.setValues([rowValues]);
-
-    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, "Soft delete record id=" + id + " dari " + tableName);
+    var logDetail = (deletedType === "hard" ? "Hard delete" : (deletedType === "deactivate" ? "Deactivate" : "Soft delete")) + " record id=" + id + " dari " + tableName;
+    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, logDetail);
 
     // Decrement summary count
-    if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
+    if (deletedType === "soft" && targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
         updateSummary(targetDivisi, rbac.tableSuffix, -1);
     }
 

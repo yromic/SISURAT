@@ -79,12 +79,6 @@
   };
 
   async function getDivisionsCached() {
-    const cached = localStorage.getItem("sisurat_divisions");
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (_) {}
-    }
     if (global.SisuratApi) {
       try {
         const res = await global.SisuratApi.getData("db_divisi");
@@ -94,18 +88,45 @@
         }
       } catch (_) {}
     }
+    const cached = localStorage.getItem("sisurat_divisions");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (_) {}
+    }
     return [];
   }
 
   async function injectSidebarSwitcher() {
     const isSA = global.SisuratDivision.isSuperAdmin();
-    if (!isSA) return;
+    const user = getStoredUser();
+    const role = user ? String(user.role || "").toLowerCase().replace(/[\s_-]+/g, "_") : "";
+    const isAdminDiv = (role === "admin_divisi" || role === "admin");
 
-    // Show superadmin section in sidebar if it exists
-    const saSection = document.getElementById("sidebar-superadmin-section");
-    if (saSection) {
-      saSection.classList.remove("hidden");
+    if (isSA || isAdminDiv) {
+      // Show superadmin section in sidebar if it exists
+      const saSection = document.getElementById("sidebar-superadmin-section");
+      if (saSection) {
+        saSection.classList.remove("hidden");
+
+        // Hide Divisi and Settings links for Division Admins
+        if (isAdminDiv) {
+          const links = saSection.querySelectorAll("a");
+          links.forEach((link) => {
+            const href = link.getAttribute("href");
+            if (href === "divisi.html" || href === "settings.html") {
+              link.classList.add("hidden");
+            }
+          });
+          const header = saSection.querySelector("p");
+          if (header) {
+            header.textContent = "Manajemen Akun";
+          }
+        }
+      }
     }
+
+    if (!isSA) return;
 
     const nav = document.querySelector("#sidebar nav");
     if (!nav) return;

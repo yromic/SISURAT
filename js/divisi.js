@@ -40,6 +40,7 @@
       const res = await SisuratApi.getData("db_divisi");
       if (res && res.status === "success" && Array.isArray(res.data)) {
         rawDivisiData = res.data;
+        localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
         renderTable(rawDivisiData);
       } else {
         showError("Gagal mengambil data divisi.");
@@ -69,13 +70,23 @@
     tbody.innerHTML = data.map((div, idx) => {
       const isPending = String(div.status).toLowerCase() === "pending";
       const isActive = String(div.status).toLowerCase() === "active" || String(div.status).toLowerCase() === "aktif";
+      const isInactive = String(div.status).toLowerCase() === "inactive";
 
       let statusBadge = "";
       let actions = "";
 
       if (isActive) {
         statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Aktif</span>';
-        actions = '<span class="text-xs text-gray-400 font-semibold italic">Selesai di-provision</span>';
+        actions = `
+          <div class="flex items-center justify-end gap-2">
+            <button onclick="divDeactivate('${div.kode_divisi}', this)" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border border-amber-200">
+              <i class="fas fa-ban"></i> Nonaktifkan
+            </button>
+          </div>
+        `;
+      } else if (isInactive) {
+        statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Nonaktif</span>';
+        actions = '<span class="text-xs text-gray-400 font-semibold italic">Dinonaktifkan</span>';
       } else if (isPending) {
         statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Pending</span>';
         actions = `
@@ -265,6 +276,38 @@
     }
   }
 
+  async function divDeactivate(kode_divisi, btn) {
+    const confirmed = await SisuratUI.showConfirm({
+      type: "warning",
+      title: "Nonaktifkan Divisi",
+      message: `Apakah Anda yakin ingin menonaktifkan divisi ${kode_divisi}? Operator dan admin divisi ini tidak akan dapat login atau mengakses data.`,
+      confirmText: "Ya, Nonaktifkan",
+      cancelText: "Batal",
+    });
+    if (!confirmed) return;
+
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Memproses...';
+
+    try {
+      const res = await SisuratApi.postAction("deactivate_divisi", { kode_divisi });
+      if (res && res.status === "success") {
+        localStorage.removeItem("sisurat_divisions");
+        SisuratUI.showToast(`Divisi ${kode_divisi} dinonaktifkan.`, "success");
+        loadDivisi();
+      } else {
+        SisuratUI.showToast(res.message || `Gagal menonaktifkan divisi ${kode_divisi}.`, "error");
+      }
+    } catch (error) {
+      console.error(error);
+      SisuratUI.showToast("Terjadi kesalahan koneksi.", "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  }
+
   function logout() {
     SisuratAuth.logoutToHome();
   }
@@ -283,6 +326,7 @@
   global.divFilterTable = divFilterTable;
   global.divRetry = divRetry;
   global.divCleanup = divCleanup;
+  global.divDeactivate = divDeactivate;
   global.logout = logout;
 
   global.addEventListener("load", init);

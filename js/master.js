@@ -1181,8 +1181,31 @@
   }
 
   // Alias untuk dipanggil dari HTML onclick
-  function confirmDelete(rowId) {
-    softDelete(rowId);
+  async function confirmDelete(rowId) {
+    const label = getTabLabel();
+    const confirmed = await SisuratUI.showConfirm({
+      type: "danger",
+      title: `Hapus ${label}`,
+      message: `Apakah Anda yakin ingin menghapus data ini? Data yang dihapus akan dipindahkan ke arsip terhapus.`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+    });
+    if (!confirmed) return;
+
+    try {
+      const table = TAB_TABLE[state.activeTab];
+      const result = await SisuratApi.deleteRecord(table, rowId);
+      if (result && result.status === "success") {
+        SisuratApi.invalidateCache();
+        showToast("success", "Data berhasil dihapus.");
+        await loadTab();
+      } else {
+        showToast("error", (result && result.message) || "Gagal menghapus data.");
+      }
+    } catch (err) {
+      console.error("Gagal hapus:", err);
+      showToast("error", "Terjadi kesalahan jaringan.");
+    }
   }
 
   // ─── UI Helpers ───────────────────────────────────────────────────────────────
