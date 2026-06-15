@@ -300,7 +300,55 @@ var GLOBAL_SHEETS = {
     db_audit_log: DB_AUDIT_LOG_HEADERS,
     db_summary: DB_SUMMARY_HEADERS,
     ref_sekolah: REF_SEKOLAH_HEADERS,
+    db_config: ["key", "value"],
 };
+
+function _getSettings() {
+    var sheet = ss.getSheetByName("db_config");
+    if (!sheet) {
+        sheet = _ensureSheet("db_config", ["key", "value"]);
+    }
+    var data = sheet.getDataRange().getDisplayValues();
+    var settings = {
+        public_piagam_target_divisi: "",
+        nama_instansi: "",
+        logo_url: "",
+        app_name: ""
+    };
+    if (data.length <= 1) {
+        return settings;
+    }
+    for (var i = 1; i < data.length; i++) {
+        var k = String(data[i][0]).trim();
+        var v = String(data[i][1]).trim();
+        if (k) {
+            settings[k] = v;
+        }
+    }
+    return settings;
+}
+
+function _saveSettings(settingsObj) {
+    var sheet = ss.getSheetByName("db_config");
+    if (!sheet) {
+        sheet = _ensureSheet("db_config", ["key", "value"]);
+    }
+    var data = sheet.getDataRange().getDisplayValues();
+    var existingKeys = {};
+    for (var i = 1; i < data.length; i++) {
+        var key = String(data[i][0]).trim();
+        existingKeys[key] = i + 1;
+    }
+    var keys = ["public_piagam_target_divisi", "nama_instansi", "logo_url", "app_name"];
+    keys.forEach(function(k) {
+        var val = settingsObj[k] !== undefined ? String(settingsObj[k]).trim() : "";
+        if (existingKeys[k]) {
+            sheet.getRange(existingKeys[k], 2).setValue(val);
+        } else {
+            sheet.appendRow([k, val]);
+        }
+    });
+}
 
 function _normalizeHeaderName(header) {
     return String(header || "").toLowerCase().trim();
@@ -680,10 +728,17 @@ function doPost(e) {
         var sessionError;
 
         if (action == "simpan_piagam") {
-            sessionResult = _requireSessionFromData(data, action);
-            sessionError = _sessionResponse(sessionResult);
-            if (sessionError) return sessionError;
-            return simpanPiagam(data, sessionResult.session);
+            var session = null;
+            var token = _sessionToken(data);
+            if (token) {
+                var resSession = _getSession(token);
+                if (resSession.ok) {
+                    session = resSession.session;
+                } else {
+                    return _errorResponse("ERR_401_SESSION");
+                }
+            }
+            return simpanPiagam(data, session);
         } else if (action == "login") {
             return cekLogin(data);
         } else if (action == "verify_session") {
@@ -699,15 +754,86 @@ function doPost(e) {
             writeAuditLog(sessionResult.session.username, sessionResult.session.role, "logout", "-", "-", "Logout");
             return responseJSON({ status: "success", message: "Logout berhasil" });
         } else if (action == "get_data") {
+            var isPublicTable = (data.table === "ref_sekolah" || data.table === "ref_pengambilan" || data.table === "ref_jenis" || data.table === "ref_jenis_perlombaan");
+            var session = null;
+            var token = _sessionToken(data);
+            if (token) {
+                var resSession = _getSession(token);
+                if (resSession.ok) {
+                    session = resSession.session;
+                } else {
+                    return _errorResponse("ERR_401_SESSION");
+                }
+            }
+
+            if (!session && !isPublicTable) {
+                return _errorResponse("ERR_401_SESSION");
+            }
+
+            var resolvedTable = "";
+            if (session) {
+                resolvedTable = _resolveDivisionTable(session, data.table || "", data);
+                if (resolvedTable === "ERR_400_DIVISI_REQUIRED") {
+                    return _errorResponse("ERR_400_DIVISI_REQUIRED");
+                }
+            } else {
+                if (data.table === "ref_sekolah") {
+                    resolvedTable = "ref_sekolah";
+                } else {
+                    var settingsObj = _getSettings();
+                    var targetDiv = String(settingsObj.public_piagam_target_divisi || "").trim().toUpperCase();
+                    if (!targetDiv) {
+                        return responseJSON({ status: "success", data: [] });
+                    }
+                    var suffix = "";
+                    if (data.table === "ref_pengambilan") suffix = "ref_pengambilan";
+                    else suffix = "ref_jenis";
+                    resolvedTable = targetDiv + "_" + suffix;
+                }
+            }
+
+            if (!_validateTableName(resolvedTable)) {
+                return responseJSON({ status: "success", data: [] });
+            }
+
+            return getData(resolvedTable, session, data);
+        } else if (action == "get_settings") {
+            var isSA = false;
+            var token = _sessionToken(data);
+            if (token) {
+                var resSession = _getSession(token);
+                if (resSession.ok && resSession.session.role === "super_admin") {
+                    isSA = true;
+                }
+            }
+            var settings = _getSettings();
+            if (!isSA) {
+                return responseJSON({
+                    status: "success",
+                    settings: {
+                        app_name: settings.app_name || "",
+                        nama_instansi: settings.nama_instansi || "",
+                        logo_url: settings.logo_url || ""
+                    }
+                });
+            } else {
+                return responseJSON({
+                    status: "success",
+                    settings: settings
+                });
+            }
+        } else if (action == "update_settings") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            var tableName = _resolveDivisionTable(sessionResult.session, data.table || "", data);
-            if (tableName === "ERR_400_DIVISI_REQUIRED") {
-                return _errorResponse("ERR_400_DIVISI_REQUIRED");
+            if (sessionResult.session.role !== "super_admin") {
+                writeAuditLog(sessionResult.session.username, sessionResult.session.role, "update_settings", "db_config", "-", "DENIED: unauthorized update settings");
+                return _errorResponse("ERR_403_SCOPE");
             }
-            data.table = tableName;
-            return getData(tableName, sessionResult.session, data);
+            var newSettings = data.settings || {};
+            _saveSettings(newSettings);
+            writeAuditLog(sessionResult.session.username, sessionResult.session.role, "update_settings", "db_config", "-", "Update system settings");
+            return responseJSON({ status: "success", message: "Settings updated successfully" });
         } else if (action == "simpan_record") {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
@@ -897,14 +1023,26 @@ function normalizeKey(header) {
 var USER_TABLES = ["db_users", "users"];
 
 function getData(tableName, session, data) {
-    if (!session) {
+    var isPublicTable = false;
+    if (tableName === "ref_sekolah") {
+        isPublicTable = true;
+    } else {
+        var match = tableName.match(/^([A-Z0-9]+)_(ref_pengambilan|ref_jenis)$/i);
+        if (match) {
+            isPublicTable = true;
+        }
+    }
+
+    if (!session && !isPublicTable) {
         return _errorResponse("ERR_401_SESSION");
     }
 
-    var rbac = _checkRole(session, "read", tableName, data || {});
-    if (!rbac.allowed) {
-        writeAuditLog(session.username, session.role || "-", session.divisi_id || "-", "DENIED:read", tableName, "-", rbac.msg);
-        return _errorResponse(rbac.error || "ERR_403_ROLE");
+    if (session) {
+        var rbac = _checkRole(session, "read", tableName, data || {});
+        if (!rbac.allowed) {
+            writeAuditLog(session.username, session.role || "-", session.divisi_id || "-", "DENIED:read", tableName, "-", rbac.msg);
+            return _errorResponse(rbac.error || "ERR_403_ROLE");
+        }
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -925,14 +1063,14 @@ function getData(tableName, session, data) {
     var headerMapByName = _getHeaderIndexMap(sheet);
     var deletedIdx = headerMapByName.is_deleted;
 
-    var isSuperAdmin = session.role === "super_admin";
+    var isSuperAdmin = session ? (session.role === "super_admin") : false;
 
     var result = rows.map(function (row, rowIndex) {
         if (deletedIdx !== undefined && /^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim())) {
             return null;
         }
 
-        if (tableName === "db_users") {
+        if (session && tableName === "db_users") {
             if (session.role === "operator") return null;
             if (!isSuperAdmin) {
                 var divIdx = headerMapByName.divisi_id;
@@ -943,7 +1081,7 @@ function getData(tableName, session, data) {
             }
         }
 
-        if (tableName === "db_summary") {
+        if (session && tableName === "db_summary") {
             if (!isSuperAdmin) {
                 var divIdx = headerMapByName.divisi_id;
                 var summaryDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
@@ -953,7 +1091,7 @@ function getData(tableName, session, data) {
             }
         }
 
-        if (tableName === "db_audit_log") {
+        if (session && tableName === "db_audit_log") {
             if (session.role === "operator") return null;
             if (!isSuperAdmin) {
                 var divIdx = headerMapByName.divisi_id;
@@ -1337,10 +1475,6 @@ function responseJSON(object) {
 
 // ─── Simpan Piagam (legacy – dari piagam.html) ───────────────────────────────
 function simpanPiagam(dataInput, session) {
-    if (!session) {
-        return _errorResponse("ERR_401_SESSION");
-    }
-
     if (!dataInput) {
         return responseJSON({
             status: "error",
@@ -1349,21 +1483,45 @@ function simpanPiagam(dataInput, session) {
     }
 
     var targetDivisi = "";
-    if (session.role === "super_admin") {
-        targetDivisi = dataInput.divisi_id ? String(dataInput.divisi_id).trim().toUpperCase() : "";
+    var isPublicSubmit = !session;
+
+    if (isPublicSubmit) {
+        var settings = _getSettings();
+        targetDivisi = String(settings.public_piagam_target_divisi || "").trim().toUpperCase();
+        if (!targetDivisi) {
+            return responseJSON({
+                status: "error",
+                message: "Pengiriman ditolak: Target divisi belum diatur. Silakan hubungi Administrator."
+            });
+        }
     } else {
-        targetDivisi = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "";
+        if (session.role === "super_admin") {
+            targetDivisi = dataInput.divisi_id ? String(dataInput.divisi_id).trim().toUpperCase() : "";
+        } else {
+            targetDivisi = session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "";
+        }
     }
 
-    if (!targetDivisi || !_findDivisiByCode(targetDivisi)) {
-        writeAuditLog(session.username, session.role, "-", "DENIED:create", "db_piagam", "-", "Invalid division code: " + targetDivisi);
-        return _errorResponse("ERR_403_DIVISI");
+    var div = _findDivisiByCode(targetDivisi);
+    if (!targetDivisi || !div || (String(div.data.status).toLowerCase() !== "active" && String(div.data.status).toLowerCase() !== "aktif")) {
+        if (!isPublicSubmit) {
+            writeAuditLog(session.username, session.role, "-", "DENIED:create", "db_piagam", "-", "Invalid division code: " + targetDivisi);
+            return _errorResponse("ERR_403_DIVISI");
+        } else {
+            return responseJSON({
+                status: "error",
+                message: "Pengiriman ditolak: Divisi target '" + targetDivisi + "' tidak aktif atau tidak ditemukan."
+            });
+        }
     }
 
     var tableName = targetDivisi + "_piagam";
-    var rbac = _checkRole(session, "create", tableName, dataInput);
-    if (!rbac.allowed) {
-        return _errorResponse(rbac.error || "ERR_403_ROLE");
+
+    if (!isPublicSubmit) {
+        var rbac = _checkRole(session, "create", tableName, dataInput);
+        if (!rbac.allowed) {
+            return _errorResponse(rbac.error || "ERR_403_ROLE");
+        }
     }
 
     var sheet = ss.getSheetByName(tableName);
@@ -1398,8 +1556,8 @@ function simpanPiagam(dataInput, session) {
         }
     }
 
-    dataInput.email_address = session.email || session.username;
-    dataInput.nama_pengupload = session.nama || session.username;
+    dataInput.email_address = isPublicSubmit ? "public_user" : (session.email || session.username);
+    dataInput.nama_pengupload = isPublicSubmit ? "Public Piagam Form" : (session.nama || session.username);
     dataInput.divisi_id = targetDivisi;
     dataInput.ttd_pengambil = linkTTD;
     delete dataInput.actor;
@@ -1424,7 +1582,11 @@ function simpanPiagam(dataInput, session) {
     });
 
     sheet.appendRow(newRow);
-    writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+    if (isPublicSubmit) {
+        writeAuditLog("public", "public_user", targetDivisi, "create", tableName, recordId, "Tambah piagam publik");
+    } else {
+        writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+    }
     updateSummary(targetDivisi, "piagam", 1);
 
     return responseJSON({

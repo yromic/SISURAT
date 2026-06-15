@@ -105,6 +105,7 @@ Tiga opsi dievaluasi:
   db_users               Semua user lintas divisi
   db_audit_log           Audit trail semua aksi
   db_summary             Counter agregat untuk dashboard
+  db_config              Menyimpan konfigurasi global sistem SISURAT
   ref_sekolah            Referensi sekolah (NPSN nasional)
 
 ── PER DIVISI (prefix kode divisi) ─────────────────────────────
@@ -231,7 +232,22 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.5 `ref_sekolah` — Referensi sekolah (global)
+### 3.5 `db_config` — Konfigurasi global sistem SISURAT
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `key` | STRING | Kunci konfigurasi (Primary Key) |
+| `value` | STRING | Nilai konfigurasi |
+
+**Daftar Kunci Awal (Initial Keys):**
+- `public_piagam_target_divisi`: Kode divisi tujuan routing piagam publik (source of truth).
+- `nama_instansi`: Nama instansi untuk branding aplikasi.
+- `app_name`: Nama aplikasi (SISURAT).
+- `logo_url`: URL logo instansi untuk branding aplikasi.
+
+---
+
+### 3.6 `ref_sekolah` — Referensi sekolah (global)
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -242,7 +258,7 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.6 `{KODE}_surat_masuk` — Surat masuk per divisi
+### 3.7 `{KODE}_surat_masuk` — Surat masuk per divisi
 
 | Kolom | Tipe | Sumber | Keterangan |
 |---|---|---|---|
@@ -263,7 +279,7 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.7 `{KODE}_surat_keluar` — Surat keluar per divisi
+### 3.8 `{KODE}_surat_keluar` — Surat keluar per divisi
 
 | Kolom | Tipe | Sumber | Keterangan |
 |---|---|---|---|
@@ -283,7 +299,7 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.8 `{KODE}_piagam` — Data piagam per divisi
+### 3.9 `{KODE}_piagam` — Data piagam per divisi
 
 | Kolom | Tipe | Sumber | Keterangan |
 |---|---|---|---|
@@ -308,7 +324,7 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.9 `{KODE}_ref_pengambilan` — Referensi cara pengambilan (per divisi)
+### 3.10 `{KODE}_ref_pengambilan` — Referensi cara pengambilan (per divisi)
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -318,7 +334,7 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.10 `{KODE}_ref_jenis` — Referensi jenis perlombaan (per divisi)
+### 3.11 `{KODE}_ref_jenis` — Referensi jenis perlombaan (per divisi)
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -328,9 +344,9 @@ Dashboard super admin baca dari sheet ini saja — tidak perlu query 10+ sheet b
 
 ---
 
-### 3.11 Ringkasan sheet yang dibuat per divisi baru
+### 3.12 Ringkasan sheet yang dibuat per divisi baru
 
-Setiap kali `initDivisi()` dijalankan, 5 sheet berikut dibuat otomatis:
+Every time `initDivisi()` is run, these 5 sheets are created automatically:
 
 ```
 {KODE}_surat_masuk
@@ -340,7 +356,7 @@ Setiap kali `initDivisi()` dijalankan, 5 sheet berikut dibuat otomatis:
 {KODE}_ref_jenis
 ```
 
-Plus satu folder Google Drive: `Arsip Surat - {NAMA_DIVISI}`.
+Plus one Google Drive folder: `Arsip Surat - {NAMA_DIVISI}`.
 
 ---
 
@@ -500,7 +516,7 @@ cache.remove(failKey);
 ```javascript
 function _extractDivisiFromTable(tableName) {
   // Tabel global tidak punya prefix divisi
-  var GLOBAL_TABLES = ["db_divisi","db_users","db_audit_log","db_summary","ref_sekolah"];
+  var GLOBAL_TABLES = ["db_divisi","db_users","db_audit_log","db_summary","db_config","ref_sekolah"];
   if (GLOBAL_TABLES.indexOf(tableName) !== -1) return "GLOBAL";
 
   // Tabel per divisi: ambil bagian sebelum "_" pertama
@@ -557,6 +573,10 @@ var RBAC_RULES = {
   "init_divisi:db_divisi":    ["super_admin"],
   "read:db_audit_log":        ["super_admin"],
   "read:db_summary":          ["super_admin", "admin_divisi"],
+
+  // ── Settings Module (Sprint 4.2) ────────────────────────────
+  "read:settings":            ["super_admin"],
+  "update:settings":          ["super_admin"],
 };
 
 // Catatan: _checkRole() mengekstrak suffix tabel (bagian setelah prefix divisi)
@@ -592,6 +612,26 @@ if (session.role === "admin_divisi") {
   }
 }
 ```
+
+---
+
+### 5.7 Pengaturan Akses Modul Settings (Sprint 4.2)
+
+Modul Settings (`db_config`) memiliki aturan akses RBAC yang sangat ketat:
+
+#### 1. `get_settings` (Membaca Pengaturan)
+* **Super Admin**: Memiliki akses penuh (*full access*) untuk semua konfigurasi yang tersimpan di dalam `db_config`.
+* **Public / Tamu**: Hanya dapat mengakses informasi branding instansi (*branding only*):
+  - `app_name`
+  - `nama_instansi`
+  - `logo_url`
+* **Admin Divisi / Operator**: Ditolak (*denied*) untuk akses konfigurasi penuh. Hanya diperbolehkan memuat informasi branding dasar (sama dengan Public).
+
+#### 2. `update_settings` (Mengubah Pengaturan)
+* **Super Admin**: Diizinkan (*allowed*) untuk memperbarui seluruh konfigurasi sistem global.
+* **Admin Divisi**: Ditolak (*denied*).
+* **Operator**: Ditolak (*denied*).
+* **Public / Tamu**: Ditolak (*denied*).
 
 ---
 
@@ -1003,6 +1043,31 @@ Invalidate semua cache lokal (data surat, referensi, dll.)
 Reload data dari server dengan konteks Divisi B
 Update breadcrumb dan judul halaman: "Dashboard — Bidang Dikmen"
 ```
+
+### 7.7 Flow Routing Piagam Publik (Sprint 4.2)
+
+Konfigurasi `public_piagam_target_divisi` pada `db_config` bertindak sebagai **source of truth** untuk routing formulir piagam publik.
+
+#### Alur Pengiriman Piagam Publik (Flow)
+```
+Public User
+↓
+Submit Form Piagam
+↓
+Backend
+↓
+Baca db_config.public_piagam_target_divisi
+↓
+Tentukan divisi tujuan
+↓
+Simpan ke {DIVISI}_piagam
+```
+
+#### Kebijakan Keamanan (Anti-Tampering)
+> [!IMPORTANT]
+> **Client tidak boleh menentukan divisi tujuan.** Untuk mencegah serangan manipulasi data lintas divisi (cross-division data tampering), backend memperlakukan target divisi yang didefinisikan di `db_config` sebagai satu-satunya rujukan yang sah.
+>
+> **Payload divisi dari client harus diabaikan.** Backend secara sengaja mengabaikan/menimpa parameter `divisi_id` yang dikirimkan oleh client (misalnya via DevTools browser atau POST request manipulation), lalu merutekannya secara paksa ke divisi target yang terdaftar di `public_piagam_target_divisi`.
 
 ---
 
@@ -1424,6 +1489,27 @@ Super Admin Pusat punya akses ke semua data semua divisi. Perlu ditetapkan sebel
 
 ---
 
+## 13. Sprint 4.2 Changes
+
+Dokumentasi perubahan yang diperkenalkan pada Sprint 4.2 (Settings Module & Public Routing):
+
+### 13.1 Settings Module
+Pengembangan modul pengaturan terpusat khusus untuk Super Admin. Halaman `settings.html` menyediakan antarmuka terpadu berbasis role-based access control (RBAC) untuk mengelola konfigurasi aplikasi secara aman.
+
+### 13.2 Tabel `db_config`
+Tabel database baru berbasis key-value (`key`, `value`) yang bertindak sebagai media penyimpanan konfigurasi global SISURAT. Menyimpan konfigurasi krusial seperti perutean divisi penerima piagam publik serta data branding instansi.
+
+### 13.3 Public Piagam Routing
+Mekanisme pengiriman formulir piagam yang kini dapat diakses oleh publik tanpa otentikasi. Sistem backend secara otomatis mengidentifikasi dan merutekan dokumen piagam ke sheet divisi yang ditunjuk oleh server-side configuration.
+
+### 13.4 Anti-Tampering Protection
+Proteksi keamanan di backend untuk mencegah manipulasi parameter pengiriman. Backend mengabaikan payload divisi yang dikirimkan oleh client dan menggunakan `db_config.public_piagam_target_divisi` di server sebagai rujukan tunggal tujuan penyimpanan data.
+
+### 13.5 Branding API
+Penyediaan endpoint `get_settings` publik yang terisolasi. Jika dipanggil tanpa session token, API ini hanya memaparkan data aman untuk branding frontend (`app_name`, `nama_instansi`, `logo_url`), sementara kunci sensitif lainnya disembunyikan.
+
+---
+
 *Dokumen ini adalah sumber kebenaran tunggal untuk pengembangan SISURAT versi multi-divisi. Setiap perubahan keputusan arsitektur harus diupdate di dokumen ini sebelum diimplementasikan.*
 
-*Versi 2.0 — mencakup: arsitektur multi-divisi, skema database final, sistem auth baru, RBAC lengkap, konsep form input surat custom, flow sistem end-to-end, audit 29 celah beserta fix, roadmap implementasi 5 fase, peta perubahan per file, dan keputusan yang sudah final.*
+*Versi 2.1 — mencakup: arsitektur multi-divisi, skema database final, sistem auth baru, RBAC lengkap, konsep form input surat custom, flow sistem end-to-end, audit 29 celah beserta fix, roadmap implementasi 5 fase, peta perubahan per file, keputusan yang sudah final, serta pemutakhiran modul Settings & Public Routing dari Sprint 4.2.*

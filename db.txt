@@ -12,6 +12,11 @@ timestamp,actor,role,divisi_id,action,table_name,record_id,detail
 # Sheet: db_summary
 divisi_id,total_surat_masuk,total_surat_keluar,total_piagam,last_updated
 
+# Sheet: db_config
+# Fungsi: Menyimpan konfigurasi global sistem SISURAT.
+# Key awal: public_piagam_target_divisi, nama_instansi, app_name, logo_url
+key,value
+
 # Sheet: ref_sekolah
 id,nama_sekolah,npsn,aktif
 

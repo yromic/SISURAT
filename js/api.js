@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbx9tcPSI_v9LqW5_0fTf3Gw7GHLT-irpwEgq2QwBdTwWv8OhWpv_Og-x3Utqj47auiw_A/exec";
+    "https://script.google.com/macros/s/AKfycbxJwFlvEtMBNLxYR3sFBa06CC4BvnfbeVtljeiSEsBSoEEp1KYB9YBv3O0eOTRp05HeHg/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -229,6 +229,14 @@
 
   function savePiagam(data) {
     return postAction("simpan_piagam", data);
+  }
+
+  function getSettings() {
+    return postAction("get_settings", {});
+  }
+
+  function updateSettings(settings) {
+    return postAction("update_settings", { settings });
   }
 
   // ─── Master Data CRUD ────────────────────────────────────────────────────────
@@ -566,6 +574,8 @@
     logout,
     verifySession,
     savePiagam,
+    getSettings,
+    updateSettings,
     saveRecord,
     updateRecord,
     deleteRecord,

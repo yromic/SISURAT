@@ -113,21 +113,6 @@
     }
   }
 
-  function collectFormData() {
-    return {
-      nama_pengambil: document.getElementById("nama_pengambil").value,
-      jabatan: document.getElementById("jabatan").value,
-      unit_kerja: document.getElementById("unit_kerja").value,
-      npsn: document.getElementById("npsn").value,
-      pengambilan: document.getElementById("pengambilan").value,
-      jenis_perlombaan: document.getElementById("jenis_perlombaan").value,
-      tahun_perlombaan: document.getElementById("tahun_perlombaan").value,
-      nama_siswa: document.getElementById("nama_siswa").value,
-      asal_sekolah: document.getElementById("asal_sekolah").value,
-      ttd_base64: canvas.toDataURL("image/png"),
-    };
-  }
-
   function isFormValid(data) {
     for (const key in data) {
       if (key === "ttd_base64") {
@@ -243,28 +228,30 @@
     });
   }
 
-  function init() {
-    const user = SisuratAuth.requireAuth();
-    if (!user) return;
+  async function init() {
+    // Fetch system settings to render branding dynamically
+    try {
+      const res = await SisuratApi.getSettings();
+      if (res && res.status === "success" && res.settings) {
+        const s = res.settings;
+        const appNameEl = document.getElementById("brand-app-name");
+        const instansiEl = document.getElementById("brand-instansi");
+        const logoEl = document.getElementById("brand-logo");
 
-    // Check if Super Admin has selected an active division
-    if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
-      showMessage("error", "Pilih divisi aktif terlebih dahulu di sidebar.");
-      const form = document.getElementById("piagamForm");
-      if (form) {
-        const elements = form.querySelectorAll("input, button, canvas");
-        elements.forEach((el) => {
-          el.disabled = true;
-          if (el.tagName === "CANVAS" || el.id === "canvas") {
-            el.style.pointerEvents = "none";
-          }
-        });
+        if (appNameEl && s.app_name) appNameEl.textContent = s.app_name;
+        if (instansiEl && s.nama_instansi) instansiEl.textContent = s.nama_instansi;
+        if (logoEl && s.logo_url) {
+          logoEl.src = s.logo_url;
+          const fallbackIcon = document.getElementById("brand-icon-fallback");
+          if (fallbackIcon) fallbackIcon.style.display = "none";
+          logoEl.classList.remove("hidden");
+        }
+        if (s.app_name) {
+          document.title = `Upload Piagam | ${s.app_name}`;
+        }
       }
-      const submitBtn = document.getElementById("submitBtn");
-      if (submitBtn) {
-        submitBtn.disabled = true;
-      }
-      return;
+    } catch (err) {
+      console.warn("Gagal memuat pengaturan branding:", err);
     }
 
     canvas = document.getElementById("canvas");

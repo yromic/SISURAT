@@ -237,19 +237,28 @@
 
         <div class="flex items-center gap-5 relative z-10">
           <div
-            class="w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#00ADB5] to-[#7fffd4] flex items-center justify-center shadow-[0_10px_25px_rgba(0,173,181,0.4)] border border-white/20 transform -rotate-6"
+            class="w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#00ADB5] to-[#7fffd4] flex items-center justify-center shadow-[0_10px_25px_rgba(0,173,181,0.4)] border border-white/20 transform -rotate-6 overflow-hidden"
           >
+            <img
+              id="brand-logo"
+              src=""
+              alt="Logo"
+              class="hidden w-full h-full object-cover transform rotate-6"
+            />
             <i
+              id="brand-icon-fallback"
               class="fas fa-trophy text-white text-3xl transform rotate-6 drop-shadow-md"
             ></i>
           </div>
           <div>
             <h1
+              id="brand-app-name"
               class="text-3xl font-extrabold font-outfit text-white tracking-wide"
             >
               Penerimaan Piagam
             </h1>
             <p
+              id="brand-instansi"
               class="text-[#00ADB5] mt-1 font-medium font-outfit uppercase tracking-widest text-xs"
             >
               Arsip Entitas Eksternal
