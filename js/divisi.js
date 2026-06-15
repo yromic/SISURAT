@@ -204,9 +204,14 @@
   }
 
   async function divRetry(kode_divisi, btn) {
-    if (!confirm(`Apakah Anda yakin ingin mencoba ulang provisioning divisi ${kode_divisi}?`)) {
-      return;
-    }
+    const confirmed = await SisuratUI.showConfirm({
+      type: "warning",
+      title: "Retry Provisioning",
+      message: `Apakah Anda yakin ingin mencoba ulang provisioning divisi ${kode_divisi}?`,
+      confirmText: "Ya, Retry",
+      cancelText: "Batal",
+    });
+    if (!confirmed) return;
 
     const originalHTML = btn.innerHTML;
     btn.disabled = true;
@@ -230,9 +235,14 @@
   }
 
   async function divCleanup(kode_divisi, btn) {
-    if (!confirm(`WARNING: Anda akan menghapus provisioning pending untuk ${kode_divisi}. Aksi ini tidak dapat dibatalkan! Lanjutkan?`)) {
-      return;
-    }
+    const confirmed = await SisuratUI.showConfirm({
+      type: "danger",
+      title: "Cleanup Divisi",
+      message: `WARNING: Anda akan menghapus provisioning pending untuk ${kode_divisi}. Aksi ini tidak dapat dibatalkan!`,
+      confirmText: "Ya, Cleanup",
+      cancelText: "Batal",
+    });
+    if (!confirmed) return;
 
     const originalHTML = btn.innerHTML;
     btn.disabled = true;

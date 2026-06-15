@@ -258,11 +258,261 @@
     return div.innerHTML;
   }
 
+  // ─── 8. Confirm / Prompt Modal System ───────────────────────────────────────
+
+  // Ensure a singleton modal container
+  function _getModalContainer() {
+    let el = document.getElementById("sisurat-modal-container");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "sisurat-modal-container";
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  var _activeModalCleanup = null;
+
+  var MODAL_TYPE_CONFIG = {
+    danger: {
+      accent: "#ef4444",
+      accentLight: "rgba(239,68,68,0.1)",
+      icon: "fa-exclamation-triangle",
+      barClass: "bg-red-500",
+    },
+    warning: {
+      accent: "#f59e0b",
+      accentLight: "rgba(245,158,11,0.1)",
+      icon: "fa-exclamation-circle",
+      barClass: "bg-amber-500",
+    },
+    info: {
+      accent: "#3b82f6",
+      accentLight: "rgba(59,130,246,0.1)",
+      icon: "fa-info-circle",
+      barClass: "bg-blue-500",
+    },
+  };
+
+  /**
+   * Tampilkan confirmation modal premium.
+   * @param {Object} opts
+   * @param {string} opts.title
+   * @param {string} opts.message
+   * @param {string} [opts.confirmText="Ya, Lanjutkan"]
+   * @param {string} [opts.cancelText="Batal"]
+   * @param {"danger"|"warning"|"info"} [opts.type="danger"]
+   * @returns {Promise<boolean>}
+   */
+  function showConfirm(opts) {
+    opts = opts || {};
+    var title = opts.title || "Konfirmasi";
+    var message = opts.message || "Apakah Anda yakin?";
+    var confirmText = opts.confirmText || "Ya, Lanjutkan";
+    var cancelText = opts.cancelText || "Batal";
+    var type = opts.type || "danger";
+    var cfg = MODAL_TYPE_CONFIG[type] || MODAL_TYPE_CONFIG.danger;
+
+    // Dismiss any existing modal
+    if (_activeModalCleanup) _activeModalCleanup();
+
+    return new Promise(function (resolve) {
+      var container = _getModalContainer();
+
+      var html =
+        '<div class="sisurat-modal-backdrop">' +
+          '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
+            // Color bar
+            '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
+            '<div class="sisurat-modal__body">' +
+              // Icon
+              '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
+                '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
+              '</div>' +
+              // Title
+              '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
+              // Message
+              '<p class="sisurat-modal__message">' + _escapeHTML(message) + '</p>' +
+              // Buttons
+              '<div class="sisurat-modal__actions">' +
+                '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
+                  _escapeHTML(cancelText) +
+                '</button>' +
+                '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
+                  '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      container.innerHTML = html;
+
+      var backdrop = container.querySelector(".sisurat-modal-backdrop");
+      var dialog = container.querySelector(".sisurat-modal-dialog");
+      var confirmBtn = container.querySelector('[data-action="confirm"]');
+      var cancelBtn = container.querySelector('[data-action="cancel"]');
+
+      // Animate in
+      requestAnimationFrame(function () {
+        backdrop.classList.add("sisurat-modal-backdrop--visible");
+        dialog.classList.add("sisurat-modal-dialog--visible");
+      });
+
+      function cleanup(result) {
+        _activeModalCleanup = null;
+        dialog.classList.remove("sisurat-modal-dialog--visible");
+        dialog.classList.add("sisurat-modal-dialog--exit");
+        backdrop.classList.remove("sisurat-modal-backdrop--visible");
+        backdrop.classList.add("sisurat-modal-backdrop--exit");
+        document.removeEventListener("keydown", onKey);
+        setTimeout(function () {
+          container.innerHTML = "";
+        }, 300);
+        resolve(result);
+      }
+
+      _activeModalCleanup = function () { cleanup(false); };
+
+      confirmBtn.addEventListener("click", function () { cleanup(true); });
+      cancelBtn.addEventListener("click", function () { cleanup(false); });
+
+      // Backdrop click
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop) cleanup(false);
+      });
+
+      // Escape key
+      function onKey(e) {
+        if (e.key === "Escape") cleanup(false);
+      }
+      document.addEventListener("keydown", onKey);
+
+      // Focus confirm button
+      setTimeout(function () { confirmBtn.focus(); }, 100);
+    });
+  }
+
+  /**
+   * Tampilkan prompt modal premium (dengan input field).
+   * @param {Object} opts
+   * @param {string} opts.title
+   * @param {string} [opts.message]
+   * @param {string} [opts.placeholder]
+   * @param {string} [opts.inputType="text"]
+   * @param {string} [opts.confirmText="Simpan"]
+   * @param {string} [opts.cancelText="Batal"]
+   * @param {"danger"|"warning"|"info"} [opts.type="info"]
+   * @returns {Promise<string|null>}
+   */
+  function showPrompt(opts) {
+    opts = opts || {};
+    var title = opts.title || "Input";
+    var message = opts.message || "";
+    var placeholder = opts.placeholder || "";
+    var inputType = opts.inputType || "text";
+    var confirmText = opts.confirmText || "Simpan";
+    var cancelText = opts.cancelText || "Batal";
+    var type = opts.type || "info";
+    var cfg = MODAL_TYPE_CONFIG[type] || MODAL_TYPE_CONFIG.info;
+
+    // Dismiss any existing modal
+    if (_activeModalCleanup) _activeModalCleanup();
+
+    return new Promise(function (resolve) {
+      var container = _getModalContainer();
+
+      var messageHtml = message
+        ? '<p class="sisurat-modal__message">' + _escapeHTML(message) + '</p>'
+        : '';
+
+      var html =
+        '<div class="sisurat-modal-backdrop">' +
+          '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
+            '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
+            '<div class="sisurat-modal__body">' +
+              '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
+                '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
+              '</div>' +
+              '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
+              messageHtml +
+              // Input
+              '<div class="sisurat-modal__input-wrap">' +
+                '<input class="sisurat-modal__input" type="' + inputType + '" placeholder="' + _escapeHTML(placeholder) + '" autocomplete="off" />' +
+              '</div>' +
+              // Buttons
+              '<div class="sisurat-modal__actions">' +
+                '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
+                  _escapeHTML(cancelText) +
+                '</button>' +
+                '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
+                  '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      container.innerHTML = html;
+
+      var backdrop = container.querySelector(".sisurat-modal-backdrop");
+      var dialog = container.querySelector(".sisurat-modal-dialog");
+      var confirmBtn = container.querySelector('[data-action="confirm"]');
+      var cancelBtn = container.querySelector('[data-action="cancel"]');
+      var input = container.querySelector(".sisurat-modal__input");
+
+      requestAnimationFrame(function () {
+        backdrop.classList.add("sisurat-modal-backdrop--visible");
+        dialog.classList.add("sisurat-modal-dialog--visible");
+      });
+
+      function cleanup(result) {
+        _activeModalCleanup = null;
+        dialog.classList.remove("sisurat-modal-dialog--visible");
+        dialog.classList.add("sisurat-modal-dialog--exit");
+        backdrop.classList.remove("sisurat-modal-backdrop--visible");
+        backdrop.classList.add("sisurat-modal-backdrop--exit");
+        document.removeEventListener("keydown", onKey);
+        setTimeout(function () {
+          container.innerHTML = "";
+        }, 300);
+        resolve(result);
+      }
+
+      _activeModalCleanup = function () { cleanup(null); };
+
+      confirmBtn.addEventListener("click", function () {
+        var val = input.value.trim();
+        cleanup(val || null);
+      });
+
+      cancelBtn.addEventListener("click", function () { cleanup(null); });
+
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop) cleanup(null);
+      });
+
+      function onKey(e) {
+        if (e.key === "Escape") cleanup(null);
+        if (e.key === "Enter") {
+          var val = input.value.trim();
+          cleanup(val || null);
+        }
+      }
+      document.addEventListener("keydown", onKey);
+
+      // Focus input
+      setTimeout(function () { input.focus(); }, 100);
+    });
+  }
+
   // ─── Public API ─────────────────────────────────────────────────────────────
 
   global.SisuratUI = {
     showToast: showToast,
     showError: showError,
+    showConfirm: showConfirm,
+    showPrompt: showPrompt,
     mapError: mapError,
     ERROR_MAP: ERROR_MAP,
   };
@@ -276,3 +526,4 @@
     installApiInterceptor();
   });
 })(window);
+

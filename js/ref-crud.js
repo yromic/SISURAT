@@ -359,9 +359,13 @@
   // ─── Hapus ─────────────────────────────────────────────────────────────────
   async function refHapus(rowId, nama) {
     const cfg = TAB_CONFIG[currentTab];
-    const confirmed = window.confirm(
-      `Hapus "${nama}" dari ${cfg.label}?\n\nData tidak bisa dikembalikan.`
-    );
+    const confirmed = await SisuratUI.showConfirm({
+      type: "danger",
+      title: `Hapus ${cfg.label}`,
+      message: `Hapus "${nama}" dari ${cfg.label}? Data tidak bisa dikembalikan.`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+    });
     if (!confirmed) return;
 
     try {

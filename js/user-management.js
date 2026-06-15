@@ -26,14 +26,6 @@
     _currentUser = SisuratAuth.requireAuth({ redirectTo: "index.html" });
     if (!_currentUser) return;
 
-    // Sync nama mobile
-    const nm = document.getElementById("user-name");
-    const nmm = document.getElementById("user-name-mobile");
-    if (nm && nmm) {
-      const obs = new MutationObserver(() => { nmm.textContent = nm.textContent; });
-      obs.observe(nm, { childList: true, characterData: true, subtree: true });
-    }
-
     // Populate dropdowns
     _populateRoleDropdown();
     _populateDivisionDropdown();
@@ -483,7 +475,14 @@
 
   // ─── Delete ───────────────────────────────────────────────────────────────
   global.umDelete = async function (rowNum, nama) {
-    if (!confirm(`Hapus user "${nama}"? Tindakan ini tidak bisa diurungkan.`)) return;
+    const confirmed = await SisuratUI.showConfirm({
+      type: "danger",
+      title: "Hapus User",
+      message: `Hapus user "${nama}"? Tindakan ini tidak bisa diurungkan.`,
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+    });
+    if (!confirmed) return;
     try {
       const result = await SisuratApi.postAction("manage_user", {
         sub_action: "delete",
@@ -502,12 +501,20 @@
 
   // ─── Reset Password ───────────────────────────────────────────────────────
   global.umResetPassword = async function (username, rowNum) {
-    const newPass = prompt(`Reset password untuk "${username}":\nMasukkan password baru:`);
-    if (!newPass || !newPass.trim()) return;
+    const newPass = await SisuratUI.showPrompt({
+      type: "info",
+      title: "Reset Password",
+      message: `Masukkan password baru untuk "${username}":`,
+      placeholder: "Password baru...",
+      inputType: "password",
+      confirmText: "Reset",
+      cancelText: "Batal",
+    });
+    if (!newPass) return;
     try {
       const result = await SisuratApi.postAction("reset_password", {
         username,
-        new_password: newPass.trim(),
+        new_password: newPass,
         row_number: rowNum,
       });
       if (result && result.status === "success") {
