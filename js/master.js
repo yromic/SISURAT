@@ -1386,7 +1386,26 @@
       // search.js akan refresh saat user pindah ke halaman cari
     });
 
-    switchTab("piagam");
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get("type"); // "surat_masuk" or "surat_keluar"
+    const mode = urlParams.get("mode"); // "create"
+
+    let initialTab = "piagam";
+    if (type === "surat_masuk") {
+      initialTab = "masuk";
+    } else if (type === "surat_keluar") {
+      initialTab = "keluar";
+    }
+
+    switchTab(initialTab);
+
+    if (mode === "create") {
+      openAddModal();
+      
+      // Bersihkan query parameter dari URL agar refresh tidak membuka modal terus-menerus
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
 
   // ─── File Preview Helpers ──────────────────────────────────────────────────────
