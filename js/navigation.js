@@ -98,7 +98,7 @@
     ERR_403_DIVISI: "Anda tidak memiliki akses ke data divisi lain.",
     ERR_403_SCOPE: "Fitur ini hanya untuk Super Admin.",
     ERR_409_DIVISI: "Kode divisi sudah digunakan.",
-    ERR_413_FILE: "Ukuran file melebihi batas.",
+    ERR_413_FILE: "Ukuran file melebihi batas 10 MB per file.",
     ERR_500_SERVER: "Terjadi kesalahan sistem. Hubungi administrator.",
     ERR_400_DIVISI_REQUIRED: "Pilih divisi aktif terlebih dahulu.",
   });

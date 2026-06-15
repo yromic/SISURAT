@@ -2,13 +2,13 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbxJwFlvEtMBNLxYR3sFBa06CC4BvnfbeVtljeiSEsBSoEEp1KYB9YBv3O0eOTRp05HeHg/exec";
+    "https://script.google.com/macros/s/AKfycbwdE1Es4db2UHDscnr5Jqc9rUEMZFfsQNxGVqzzj1j4k-I_MDnVj2zKXQ_0h1ngvQRFyQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
   // namun browser mulai tidak stabil saat encode Base64 file >10MB.
-  // Kita batasi di 20MB dan kompres gambar otomatis jika >1MB.
-  const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+  // Kita batasi di 10MB dan kompres gambar otomatis jika >1MB.
+  const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
   const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
   // PENTING: CacheService GAS memiliki batas 100 KB per nilai.
   // Chunk size raw dalam bytes HARUS kelipatan 3 agar bit padding Base64 tidak kacau saat digabungkan.

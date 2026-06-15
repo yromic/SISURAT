@@ -35,7 +35,9 @@ var headerMap = {
     "asal surat": "asal_surat",
     perihal: "perihal",
     "upload file": "upload_file",
-    "tanggal surat diterima": "tanggal_terima",
+    "tanggal surat diterima": "tanggal_diterima",
+    "tanggal terima": "tanggal_diterima",
+    "tanggal_terima": "tanggal_diterima",
     "tanggal surat di share": "tanggal_share",
 
     "nama pengambil": "nama_pengambil",
@@ -130,7 +132,7 @@ function _errorResponse(code) {
 
 function _logServerError(context, error) {
     var detail = context + ": " + (error && error.stack ? error.stack : String(error));
-    writeAuditLog("system", "-", "SERVER_ERROR", context, "-", detail);
+    writeAuditLog("system", "-", "-", "SERVER_ERROR", context, "-", detail);
     console.error(detail);
 }
 
@@ -239,7 +241,7 @@ function _getSession(token) {
 function _requireSessionFromData(data, action) {
     var result = _getSession(_sessionToken(data));
     if (!result.ok) {
-        writeAuditLog("system", "-", "DENIED:session", action || "-", "-", result.detail);
+        writeAuditLog("system", "-", "-", "DENIED:session", action || "-", "-", result.detail);
     }
     return result;
 }
@@ -423,7 +425,7 @@ function _ensureUserPasswordColumns(sheet) {
     var usernameIdx = _headerIndex(headers, "username");
     var passwordIdx = _headerIndex(headers, "password");
     if (usernameIdx < 0 || passwordIdx < 0) {
-        writeAuditLog("system", "-", "SERVER_ERROR", "db_users", "-", "Header username/password tidak ditemukan");
+        writeAuditLog("system", "-", "-", "SERVER_ERROR", "db_users", "-", "Header username/password tidak ditemukan");
         return null;
     }
     return _appendMissingHeaders(sheet, ["password_hash", "password_salt", "password_v"]);
@@ -662,14 +664,14 @@ function _checkRole(session, action, tableName) {
 // ─── Helper: Tulis Audit Log ke sheet db_audit_log [Issue 2 Fix] ─────────────
 // Kolom: Timestamp | Actor | Role | Action | Table | Record ID | Detail
 // Sheet auto-dibuat dengan format header jika belum ada.
-function writeAuditLog(actor, role, action, tableName, recordId, detail) {
+function writeAuditLog(actor, role, divisi_id, action, tableName, recordId, detail) {
     try {
         var logSheet = _ensureSheet("db_audit_log", DB_AUDIT_LOG_HEADERS);
         var row = {
             timestamp: new Date(),
             actor: actor || "system",
             role: role || "-",
-            divisi_id: "-",
+            divisi_id: divisi_id || "-",
             action: action || "-",
             table_name: tableName || "-",
             record_id: recordId || "-",
@@ -751,7 +753,7 @@ function doPost(e) {
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             _deleteSession(sessionResult.session.token);
-            writeAuditLog(sessionResult.session.username, sessionResult.session.role, "logout", "-", "-", "Logout");
+            writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "logout", "-", "-", "Logout");
             return responseJSON({ status: "success", message: "Logout berhasil" });
         } else if (action == "get_data") {
             var isPublicTable = (data.table === "ref_sekolah" || data.table === "ref_pengambilan" || data.table === "ref_jenis" || data.table === "ref_jenis_perlombaan");
@@ -827,12 +829,12 @@ function doPost(e) {
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             if (sessionResult.session.role !== "super_admin") {
-                writeAuditLog(sessionResult.session.username, sessionResult.session.role, "update_settings", "db_config", "-", "DENIED: unauthorized update settings");
+                writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "update_settings", "db_config", "-", "DENIED: unauthorized update settings");
                 return _errorResponse("ERR_403_SCOPE");
             }
             var newSettings = data.settings || {};
             _saveSettings(newSettings);
-            writeAuditLog(sessionResult.session.username, sessionResult.session.role, "update_settings", "db_config", "-", "Update system settings");
+            writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "update_settings", "db_config", "-", "Update system settings");
             return responseJSON({ status: "success", message: "Settings updated successfully" });
         } else if (action == "simpan_record") {
             sessionResult = _requireSessionFromData(data, action);
@@ -933,7 +935,7 @@ function cekLogin(data) {
     // Coba sheet baru "db_users" dulu, fallback ke "users" (backward compat)
     var sheet = _getUserSheet();
     if (!sheet) {
-        writeAuditLog("system", "-", "SERVER_ERROR", "login", "-", "Sheet users tidak ditemukan");
+        writeAuditLog("system", "-", "-", "SERVER_ERROR", "login", "-", "Sheet users tidak ditemukan");
         return _errorResponse("ERR_500_SERVER");
     }
 
@@ -963,13 +965,13 @@ function cekLogin(data) {
 
             var user = _lookupUser(dbUser);
             if (!user || user.aktif === false) {
-                writeAuditLog(dbUser || "system", "-", "DENIED:login", "-", "-", "Akun nonaktif atau tidak ditemukan");
+                writeAuditLog(dbUser || "system", "-", "-", "DENIED:login", "-", "-", "Akun nonaktif atau tidak ditemukan");
                 return responseJSON({ status: "error", message: "Username atau Password salah!" });
             }
             _upgradePasswordIfNeeded(sheet, i + 1, headers, row, password);
             cache.remove(failKey);
             var session = _createSession(user);
-            writeAuditLog(user.username, user.role, "login", "-", "-", "Login berhasil");
+            writeAuditLog(user.username, user.role, user.divisi_id || "-", "login", "-", "-", "Login berhasil");
             return responseJSON({
                 status: "success",
                 message: "Login Berhasil",
@@ -981,7 +983,7 @@ function cekLogin(data) {
 
     failed += 1;
     cache.put(failKey, String(failed), LOGIN_BLOCK_SECONDS);
-    writeAuditLog(username, "-", "DENIED:login", "-", "-", "Login gagal ke-" + failed);
+    writeAuditLog(username, "-", "-", "DENIED:login", "-", "-", "Login gagal ke-" + failed);
     if (failed >= LOGIN_FAIL_LIMIT) {
         return responseJSON({
             status: "error",
@@ -1186,7 +1188,7 @@ function runMigrateExistingRecords(session) {
     var auth = _requireSuperAdmin(session, "migrate_existing_records");
     if (!auth.ok) return auth.response;
     var results = migrateExistingRecords();
-    writeAuditLog(session.username, auth.role, "migrate_existing_records", "-", "-", "Migrasi UUID/soft-delete record existing");
+    writeAuditLog(session.username, auth.role, session.divisi_id || "-", "migrate_existing_records", "-", "-", "Migrasi UUID/soft-delete record existing");
     return responseJSON({ status: "success", results: results });
 }
 
@@ -1386,7 +1388,7 @@ function initDivisi(data, session) {
         _setDivisiValue(divisi, "drive_folder_id", folderId);
         _setDivisiValue(divisi, "status", "active");
         _ensureSummaryRow(divisiId);
-        writeAuditLog(session.username, auth.role, "init_divisi", "db_divisi", divisiId, "Init divisi " + kode);
+        writeAuditLog(session.username, auth.role, divisiId, "init_divisi", "db_divisi", divisiId, "Init divisi " + kode);
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisiId, drive_folder_id: folderId });
     } catch (err) {
         return _serverError("initDivisi", err);
@@ -1426,7 +1428,7 @@ function retryInitDivisi(data, session) {
         }
         _setDivisiValue(divisi, "status", "active");
         _ensureSummaryRow(divisi.data.id || kode);
-        writeAuditLog(session.username, auth.role, "retry_init_divisi", "db_divisi", divisi.data.id || kode, "Retry init divisi " + kode);
+        writeAuditLog(session.username, auth.role, divisi.data.id || kode, "retry_init_divisi", "db_divisi", divisi.data.id || kode, "Retry init divisi " + kode);
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode, drive_folder_id: folderId });
     } catch (err) {
         return _serverError("retryInitDivisi", err);
@@ -1457,7 +1459,7 @@ function cleanupDivisi(data, session) {
         }
         _deleteSummaryRow(divisi.data.id || kode);
         _setDivisiValue(divisi, "status", "cleanup");
-        writeAuditLog(session.username, auth.role, "cleanup_divisi", "db_divisi", divisi.data.id || kode, "Cleanup divisi pending " + kode);
+        writeAuditLog(session.username, auth.role, divisi.data.id || kode, "cleanup_divisi", "db_divisi", divisi.data.id || kode, "Cleanup divisi pending " + kode);
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
     } catch (err) {
         return _serverError("cleanupDivisi", err);
@@ -1758,6 +1760,76 @@ function deleteFileFromDrive(fileUrl) {
     }
 }
 
+// ─── Helper: Hapus file dari Drive dengan validasi folder divisi (Secure) ─────
+function deleteFileFromDriveSecure(fileUrlOrId, session, divisiId) {
+    try {
+        if (!session) return;
+        if (!fileUrlOrId) return;
+
+        var fileId = fileUrlOrId;
+        if (typeof fileUrlOrId === "string" && (fileUrlOrId.indexOf("id=") !== -1 || fileUrlOrId.indexOf("/d/") !== -1)) {
+            var idMatch = fileUrlOrId.match(/[?&]id=([^&]+)/) ||
+                fileUrlOrId.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                fileUrlOrId.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (!idMatch) return;
+            fileId = idMatch[1];
+        }
+
+        // Ambil folder divisi dari divisiId
+        var targetDiv = _normalizeDivisiCode(divisiId);
+        var divFolderId = _getFolderIdForDivisi(targetDiv);
+        var ttdFolderId = _getFolderIdForDivisi(targetDiv, "db_piagam_ttd");
+
+        // Ambil file dari Drive
+        var file = DriveApp.getFileById(fileId);
+        if (!file) return;
+
+        // Validasi parent folder
+        var parents = file.getParents();
+        if (!parents.hasNext()) return;
+        var parentFolder = parents.next();
+        var parentId = parentFolder.getId();
+
+        // Folder yang diizinkan untuk divisi ini
+        var allowedFolders = [];
+        if (divFolderId) allowedFolders.push(divFolderId);
+        if (ttdFolderId) allowedFolders.push(ttdFolderId);
+
+        // Fallback/folder global juga diizinkan jika relevan
+        allowedFolders.push(DRIVE_FOLDER_ID);
+        if (DRIVE_FOLDERS.db_surat_masuk) allowedFolders.push(DRIVE_FOLDERS.db_surat_masuk);
+        if (DRIVE_FOLDERS.db_surat_keluar) allowedFolders.push(DRIVE_FOLDERS.db_surat_keluar);
+        if (DRIVE_FOLDERS.db_piagam_ttd) allowedFolders.push(DRIVE_FOLDERS.db_piagam_ttd);
+
+        // Check if parent folder of the file is in the allowed folders list
+        if (allowedFolders.indexOf(parentId) === -1) {
+            writeAuditLog(
+                session.username || "system",
+                session.role || "-",
+                session.divisi_id || "-",
+                "SECURITY_WARNING",
+                "-",
+                fileId,
+                "Unauthorized delete attempt: parent folder " + parentId + " does not belong to divisi " + divisiId
+            );
+            return;
+        }
+
+        file.setTrashed(true);
+        writeAuditLog(
+            session.username || "system",
+            session.role || "-",
+            session.divisi_id || "-",
+            "delete_file",
+            "-",
+            fileId,
+            "Berhasil menghapus file dari Drive: " + file.getName()
+        );
+    } catch (e) {
+        console.error("deleteFileFromDriveSecure error: " + e.toString());
+    }
+}
+
 // ─── Helper: cari nomor baris di sheet ───────────────────────────────────────
 // Mendukung dua mode:
 //   - id berupa angka (misal: 2, 3, 4) → dianggap nomor baris sheet langsung
@@ -1964,7 +2036,7 @@ function updateRecord(tableName, id, dataInput, session) {
 
     // Proses upload file lampiran baru jika ada
     if (dataInput.upload_file && dataInput.old_file_url) {
-        deleteFileFromDriveSecure(dataInput.old_file_url, fileFolderId);
+        deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
         delete dataInput.old_file_url;
         delete dataInput.file_base64;
         delete dataInput.file_name;
@@ -1972,7 +2044,7 @@ function updateRecord(tableName, id, dataInput, session) {
     } else if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
         try {
             if (dataInput.old_file_url) {
-                deleteFileFromDriveSecure(dataInput.old_file_url, fileFolderId);
+                deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
                 delete dataInput.old_file_url;
             }
             dataInput.upload_file = uploadFileToDrive(
@@ -1994,7 +2066,7 @@ function updateRecord(tableName, id, dataInput, session) {
     if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
         try {
             if (dataInput.old_ttd_url) {
-                deleteFileFromDriveSecure(dataInput.old_ttd_url, ttdFolderId);
+                deleteFileFromDriveSecure(dataInput.old_ttd_url, session, targetDivisi);
                 delete dataInput.old_ttd_url;
             }
             var ttdFileName = "ttd_" + Date.now() + ".png";

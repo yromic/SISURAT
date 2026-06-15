@@ -34,7 +34,7 @@
       { key: "asal_surat", label: "Asal" },
       { key: "perihal", label: "Perihal" },
       { key: "tanggal_surat", label: "Tanggal Surat" },
-      { key: "tanggal_terima", label: "Tanggal Diterima" },
+      { key: "tanggal_diterima", label: "Tanggal Diterima" },
       { key: "nama_pengupload", label: "Nama Upload" },
     ],
     keluar: [
@@ -147,7 +147,7 @@
         placeholder: "",
       },
       {
-        id: "tanggal_terima",
+        id: "tanggal_diterima",
         label: "Tanggal Diterima",
         type: "date",
         icon: "fa-calendar-alt",
