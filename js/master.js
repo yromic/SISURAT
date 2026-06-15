@@ -233,6 +233,7 @@
     // URL file/TTD lama saat mode edit (untuk dihapus jika upload ulang)
     existingFileUrl: null,
     existingTtdUrl: null,
+    selectedFile: null,
   };
 
   // ─── Helper: Ekstrak Google Drive File ID dari berbagai format URL ────────────
@@ -685,7 +686,7 @@
               <div class="flex items-center gap-2 px-3 py-2 bg-emerald-100 border-b border-emerald-200">
                 <i class="fas fa-file-upload text-emerald-500 text-sm"></i>
                 <span class="text-xs font-semibold text-emerald-700 flex-1">Pratinjau File Dipilih</span>
-                <button type="button" onclick="clearNewFilePreview()"
+                <button type="button" onclick="clearSelectedFile()"
                   class="text-xs text-red-400 hover:text-red-600 transition" title="Hapus pilihan">
                   <i class="fas fa-times"></i>
                 </button>
@@ -704,15 +705,30 @@
         </label>
         <div class="space-y-2">
           ${existingFilePreview}
-          <input type="file" id="form-file" accept=".pdf,.jpg,.jpeg,.png"
-            onchange="previewNewFile(this)"
-            class="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
-              file:text-sm file:font-semibold file:bg-[#00ADB5] file:text-white
-              hover:file:bg-[#00939c] file:cursor-pointer cursor-pointer"/>
+          
+          <div class="mt-2 flex items-center gap-2">
+            <!-- Button Camera -->
+            <button type="button" onclick="document.getElementById('form-file-camera').click()"
+              class="px-4 py-2.5 bg-[#393E46] hover:bg-[#222831] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition duration-300 transform active:scale-95 shadow-md">
+              <i class="fas fa-camera text-sm"></i> Ambil Foto
+            </button>
+            
+            <!-- Button File Picker -->
+            <button type="button" onclick="document.getElementById('form-file-picker').click()"
+              class="px-4 py-2.5 bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition duration-300 transform active:scale-95 shadow-md">
+              <i class="fas fa-folder-open text-sm"></i> Pilih File
+            </button>
+
+            <!-- Hidden Input Elements -->
+            <input type="file" id="form-file-camera" accept="image/*" capture="environment" class="hidden"
+              onchange="if(this.files.length) handleFileSelected(this.files[0])" />
+            <input type="file" id="form-file-picker" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+              onchange="if(this.files.length) handleFileSelected(this.files[0])" />
+          </div>
+
           <p class="text-xs text-gray-400">
             <i class="fas fa-info-circle mr-1 text-[#00ADB5]"></i>
-            Format: PDF, JPG, PNG &bull; Maks. <strong>${maxMB} MB</strong>
+            Format: PDF, JPG, JPEG, PNG &bull; Maks. <strong>${maxMB} MB</strong>
             &bull; Gambar dikompres otomatis
           </p>
           <!-- Progress bar chunked upload -->
@@ -745,6 +761,7 @@
     state.editingId = null;
     state.existingFileUrl = null;
     state.existingTtdUrl = null;
+    state.selectedFile = null;
     document.getElementById("modal-title").textContent =
       `Tambah ${getTabLabel()}`;
     document.getElementById("modal-form-body").innerHTML = buildFormHTML(
@@ -770,6 +787,7 @@
     state.existingFileUrl = rowData.upload_file || null;
     state.existingTtdUrl = rowData.ttd_pengambil || null;
     state.canvasDirty = false;
+    state.selectedFile = null;
 
     document.getElementById("modal-title").textContent =
       `Edit ${getTabLabel()}`;
@@ -799,6 +817,7 @@
     state.editingId = null;
     state.existingFileUrl = null;
     state.existingTtdUrl = null;
+    state.selectedFile = null;
     state.canvasDirty = false;
     state.canvas = null;
     state.ctx = null;
@@ -944,16 +963,8 @@
     }
 
     // Upload file — gunakan chunked upload jika user memilih file baru
-    const fileInput = document.getElementById("form-file");
-    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-
-      // Validasi ukuran sebelum mulai upload
-      const validation = SisuratApi.validateFileSize(file);
-      if (!validation.valid) {
-        showModalAlert("error", validation.message);
-        return;
-      }
+    if (state.selectedFile) {
+      const file = state.selectedFile;
 
       try {
         const folderId = SisuratApi.getFolderId(table, false);
@@ -1420,50 +1431,100 @@
     if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
   }
 
-  // Live preview file yang baru dipilih user (sebelum disimpan)
-  function previewNewFile(input) {
+  // Handle file selection and validation from both inputs
+  function handleFileSelected(file) {
+    if (!file) return;
+
+    // Validate format
+    const allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+    const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+    
+    // Fallback: validate MIME types
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+    const isValidExt = allowedExtensions.includes(ext);
+    const isValidMime = allowedMimeTypes.includes(file.type);
+    
+    if (!isValidExt && !isValidMime) {
+      showToast("error", "Format file ditolak! Hanya menerima PDF, JPG, JPEG, PNG.");
+      clearSelectedFile();
+      return;
+    }
+
+    // Validate size: max 10 MB
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("error", "Ukuran file melebihi batas 10 MB per file.");
+      clearSelectedFile();
+      return;
+    }
+
+    // Update state
+    state.selectedFile = file;
+
+    // Render Preview
+    renderFilePreview(file);
+  }
+
+  // Render preview details of the selected file
+  function renderFilePreview(file) {
     const wrap = document.getElementById("new-file-preview-wrap");
     const content = document.getElementById("new-file-preview-content");
     if (!wrap || !content) return;
 
-    if (!input.files || input.files.length === 0) {
-      wrap.classList.add("hidden");
-      content.innerHTML = "";
-      return;
-    }
-
-    const file = input.files[0];
-    const objectUrl = URL.createObjectURL(file);
-    const isImage = file.type.startsWith("image/");
-    const isPdf = file.type === "application/pdf";
-
     wrap.classList.remove("hidden");
+
+    const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    const objectUrl = URL.createObjectURL(file);
+    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png)$/i.test(file.name);
+    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
 
     if (isImage) {
       content.innerHTML = `
-                <img src="${objectUrl}" alt="Pratinjau File Baru"
-                    class="max-h-56 object-contain rounded-lg shadow-sm" />`;
+        <div class="flex flex-col items-center gap-2 p-2">
+          <img src="${objectUrl}" alt="Pratinjau Foto" class="max-h-32 object-contain rounded-lg shadow-sm" />
+          <div class="text-center">
+            <p class="text-xs font-bold text-gray-700 truncate max-w-[200px]" title="${file.name}">${file.name}</p>
+            <p class="text-[10px] text-gray-400 font-semibold">${sizeStr} &bull; Image</p>
+          </div>
+        </div>
+      `;
     } else if (isPdf) {
       content.innerHTML = `
-                <iframe src="${objectUrl}" class="w-full h-56 rounded-lg border-0"></iframe>`;
+        <div class="flex flex-col items-center gap-2 p-2 w-full">
+          <div class="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-xl border border-red-200 animate-pulse">
+            <i class="fas fa-file-pdf text-xl text-red-500"></i>
+            <span class="text-xs font-bold">PDF Document</span>
+          </div>
+          <div class="text-center mt-1">
+            <p class="text-xs font-bold text-gray-700 truncate max-w-[200px]" title="${file.name}">${file.name}</p>
+            <p class="text-[10px] text-gray-400 font-semibold">${sizeStr}</p>
+          </div>
+        </div>
+      `;
     } else {
       content.innerHTML = `
-                <div class="flex flex-col items-center gap-2 py-4">
-                    <i class="fas fa-file text-emerald-400 text-3xl"></i>
-                    <span class="text-xs text-emerald-700">${file.name}</span>
-                    <span class="text-xs text-gray-400">${(file.size / 1024).toFixed(1)} KB</span>
-                </div>`;
+        <div class="flex flex-col items-center gap-2 p-2">
+          <i class="fas fa-file text-[#393E46] text-3xl"></i>
+          <div class="text-center">
+            <p class="text-xs font-bold text-gray-700 truncate max-w-[200px]" title="${file.name}">${file.name}</p>
+            <p class="text-[10px] text-gray-400 font-semibold">${sizeStr} &bull; Document</p>
+          </div>
+        </div>
+      `;
     }
   }
 
-  // Hapus live preview file baru (dan reset input file)
-  function clearNewFilePreview() {
+  // Clear selected file state, hide preview, and reset hidden file inputs
+  function clearSelectedFile() {
+    state.selectedFile = null;
     const wrap = document.getElementById("new-file-preview-wrap");
     const content = document.getElementById("new-file-preview-content");
-    const fileInput = document.getElementById("form-file");
     if (wrap) wrap.classList.add("hidden");
     if (content) content.innerHTML = "";
-    if (fileInput) fileInput.value = "";
+    
+    const camInput = document.getElementById("form-file-camera");
+    const pickInput = document.getElementById("form-file-picker");
+    if (camInput) camInput.value = "";
+    if (pickInput) pickInput.value = "";
   }
 
   // Toggle tampil/sembunyikan pratinjau TTD lama
@@ -1500,8 +1561,8 @@
   global.emptyTrash = emptyTrash;
   // File preview helpers
   global.toggleFilePreview = toggleFilePreview;
-  global.previewNewFile = previewNewFile;
-  global.clearNewFilePreview = clearNewFilePreview;
+  global.handleFileSelected = handleFileSelected;
+  global.clearSelectedFile = clearSelectedFile;
   global.toggleTtdPreview = toggleTtdPreview;
 
   global.addEventListener("load", init);
