@@ -38,6 +38,9 @@
     localStorage.removeItem("user_nama");
     localStorage.removeItem("user_divisi_id");
     localStorage.removeItem("active_divisi");
+    if (global.SisuratCache && typeof global.SisuratCache.clear === "function") {
+      global.SisuratCache.clear();
+    }
   }
 
   // Helper for Global Division Context

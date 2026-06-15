@@ -102,9 +102,17 @@
     };
   }
 
-  async function fetchTable(table) {
+  async function fetchTable(table, options = {}) {
     try {
-      const result = await getData(table);
+      const fetchOptions = { ...options };
+      if (options.onFresh) {
+        fetchOptions.onFresh = (freshResult) => {
+          const freshData = Array.isArray(freshResult.data) ? freshResult.data : [];
+          const normalized = freshData.map((row) => normalizeRecord(row, table));
+          options.onFresh(normalized);
+        };
+      }
+      const result = await getData(table, fetchOptions);
       const rows = Array.isArray(result.data) ? result.data : [];
       return rows.map((row) => normalizeRecord(row, table));
     } catch (error) {
@@ -208,7 +216,14 @@
       }),
     });
 
-    return response.json();
+    const resJson = await response.json();
+    if (resJson && resJson.status === "success" && window.SisuratCache) {
+      if (["init_divisi", "retry_init_divisi", "cleanup_divisi", "deactivate_divisi"].includes(action)) {
+        window.SisuratCache.remove("sisurat:v1:divisi:active-list");
+        window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+      }
+    }
+    return resJson;
   }
 
   function login(username, password) {
@@ -223,20 +238,94 @@
     return postAction("verify_session", {});
   }
 
-  function getData(table) {
-    return postAction("get_data", { table });
+  const CACHE_CONFIGS = Object.freeze({
+    db_divisi: {
+      ttl: 5 * 60 * 1000, // 5 minutes
+      prefix: "sisurat:v1:divisi:active-list"
+    },
+    db_summary: {
+      ttl: 2 * 60 * 1000, // 2 minutes
+      prefix: "sisurat:v1:summary:"
+    },
+    db_surat_masuk: {
+      ttl: 30 * 1000, // 30 seconds
+      prefix: "sisurat:v1:master:db_surat_masuk:"
+    },
+    db_surat_keluar: {
+      ttl: 30 * 1000, // 30 seconds
+      prefix: "sisurat:v1:master:db_surat_keluar:"
+    },
+    db_piagam: {
+      ttl: 30 * 1000, // 30 seconds
+      prefix: "sisurat:v1:master:db_piagam:"
+    }
+  });
+
+  function getData(table, options = {}) {
+    const isCacheable = CACHE_CONFIGS[table];
+    if (!isCacheable) {
+      return postAction("get_data", { table });
+    }
+
+    const userRole = localStorage.getItem("user_role") || "";
+    const userDivisi = localStorage.getItem("user_divisi_id") || "";
+    const isSA = userRole.toLowerCase().replace(/[\s_-]+/g, "_") === "super_admin";
+    let activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
+
+    let cacheKey = "";
+    if (table === "db_divisi") {
+      cacheKey = CACHE_CONFIGS.db_divisi.prefix;
+    } else if (table === "db_summary") {
+      cacheKey = `${CACHE_CONFIGS.db_summary.prefix}${userRole}:${activeDiv}`;
+    } else {
+      cacheKey = `${CACHE_CONFIGS[table].prefix}${userRole}:${activeDiv}`;
+    }
+
+    const ttl = CACHE_CONFIGS[table].ttl;
+    const fetcher = () => postAction("get_data", { table });
+
+    if (window.SisuratCache) {
+      if (options.staleWhileRevalidate) {
+        return window.SisuratCache.staleWhileRevalidate(cacheKey, ttl, fetcher, options.onFresh);
+      } else {
+        return window.SisuratCache.getOrFetch(cacheKey, ttl, fetcher);
+      }
+    } else {
+      return fetcher();
+    }
   }
 
-  function savePiagam(data) {
-    return postAction("simpan_piagam", data);
+  async function savePiagam(data) {
+    const res = await postAction("simpan_piagam", data);
+    if (res && res.status === "success" && window.SisuratCache) {
+      window.SisuratCache.clearByPrefix("sisurat:v1:master:db_piagam:");
+      window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+    }
+    return res;
   }
 
-  function getSettings() {
-    return postAction("get_settings", {});
+  function getSettings(options = {}) {
+    const cacheKey = "sisurat:v1:settings:public";
+    const ttl = 30 * 60 * 1000; // 30 minutes
+    const fetcher = () => postAction("get_settings", {});
+
+    if (window.SisuratCache) {
+      if (options.staleWhileRevalidate) {
+        return window.SisuratCache.staleWhileRevalidate(cacheKey, ttl, fetcher, options.onFresh);
+      } else {
+        return window.SisuratCache.getOrFetch(cacheKey, ttl, fetcher);
+      }
+    } else {
+      return fetcher();
+    }
   }
 
-  function updateSettings(settings) {
-    return postAction("update_settings", { settings });
+  async function updateSettings(settings) {
+    const res = await postAction("update_settings", { settings });
+    if (res && res.status === "success" && window.SisuratCache) {
+      window.SisuratCache.remove("sisurat:v1:settings:public");
+    }
+    return res;
   }
 
   // ─── Master Data CRUD ────────────────────────────────────────────────────────
@@ -251,7 +340,7 @@
     return DRIVE_FOLDERS[table] || null;
   }
 
-  function saveRecord(table, data) {
+  async function saveRecord(table, data) {
     // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
     const payload = { ...data };
     if (payload.file_base64 && !payload.folder_id) {
@@ -263,10 +352,15 @@
     delete payload.actor;
     delete payload.email_address;
     delete payload.nama_pengupload;
-    return postAction("simpan_record", { table, data: payload });
+    const res = await postAction("simpan_record", { table, data: payload });
+    if (res && res.status === "success" && window.SisuratCache) {
+      window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
+      window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+    }
+    return res;
   }
 
-  function updateRecord(table, id, data) {
+  async function updateRecord(table, id, data) {
     // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
     const payload = { ...data };
     if (payload.file_base64 && !payload.folder_id) {
@@ -278,11 +372,21 @@
     delete payload.actor;
     delete payload.email_address;
     delete payload.nama_pengupload;
-    return postAction("update_record", { table, id, data: payload });
+    const res = await postAction("update_record", { table, id, data: payload });
+    if (res && res.status === "success" && window.SisuratCache) {
+      window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
+      window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+    }
+    return res;
   }
 
-  function deleteRecord(table, id) {
-    return postAction("hapus_record", { table, id });
+  async function deleteRecord(table, id) {
+    const res = await postAction("hapus_record", { table, id });
+    if (res && res.status === "success" && window.SisuratCache) {
+      window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
+      window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+    }
+    return res;
   }
 
 
@@ -447,33 +551,27 @@
     return finalRes.fileUrl; // URL publik Google Drive
   }
 
-  // ─── Fetch Tabel Referensi (dengan cache sessionStorage + TTL) ───────────────
-  /**
-   * Ambil data tabel referensi dan cache di sessionStorage selama 10 menit.
-   * Data di-fetch ulang jika cache kosong, kedaluwarsa, atau forceRefresh = true.
-   *
-   * @param {string} tableName       - "ref_sekolah" | "ref_pengambilan" | "ref_jenis_perlombaan"
-   * @param {boolean} [forceRefresh] - Paksa fetch ulang meskipun ada cache
-   * @returns {Promise<Array>}       - Array objek baris (hanya yang aktif = TRUE)
-   */
-  const REF_CACHE_TTL_MS = 10 * 60 * 1000; // 10 menit
-
+  // ─── Fetch Tabel Referensi (dengan cache SisuratCache + TTL) ─────────────────
+  
   async function fetchRef(tableName, forceRefresh = false) {
-    const CACHE_KEY = `sisurat_ref_${tableName}`;
+    const userRole = localStorage.getItem("user_role") || "";
+    const userDivisi = localStorage.getItem("user_divisi_id") || "";
+    const isSA = userRole.toLowerCase().replace(/[\s_-]+/g, "_") === "super_admin";
+    let activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
 
-    // Cek cache dulu (dengan validasi TTL)
-    if (!forceRefresh) {
-      try {
-        const cached = sessionStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          const isExpired = Date.now() - timestamp > REF_CACHE_TTL_MS;
-          if (!isExpired && Array.isArray(data)) {
-            return data;
-          }
-        }
-      } catch (_) {
-        // Abaikan error parsing — fetch ulang
+    let cacheKey = "";
+    let ttl = 10 * 60 * 1000; // 10 minutes default for division-scoped
+    if (tableName === "ref_sekolah") {
+      cacheKey = "sisurat:v1:ref:sekolah";
+      ttl = 30 * 60 * 1000; // 30 minutes for global
+    } else {
+      cacheKey = `sisurat:v1:ref:${tableName}:${activeDiv}`;
+    }
+
+    if (!forceRefresh && window.SisuratCache) {
+      const cached = window.SisuratCache.get(cacheKey);
+      if (cached !== null) {
+        return cached;
       }
     }
 
@@ -486,16 +584,8 @@
         (row) => String(row.aktif).toUpperCase() === "TRUE"
       );
 
-      // Simpan ke cache beserta timestamp (hanya jika ada data)
-      if (activeRows.length > 0) {
-        try {
-          sessionStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ data: activeRows, timestamp: Date.now() })
-          );
-        } catch (_) {
-          // sessionStorage penuh / private mode — abaikan
-        }
+      if (activeRows.length > 0 && window.SisuratCache) {
+        window.SisuratCache.set(cacheKey, activeRows, ttl);
       }
 
       return activeRows;
@@ -505,14 +595,14 @@
     }
   }
 
-  /**
-   * Invalidasi cache tabel referensi tertentu (dipanggil setelah admin CRUD).
-   * @param {string} tableName
-   */
   function invalidateRef(tableName) {
-    try {
-      sessionStorage.removeItem(`sisurat_ref_${tableName}`);
-    } catch (_) {}
+    if (window.SisuratCache) {
+      if (tableName === "ref_sekolah") {
+        window.SisuratCache.remove("sisurat:v1:ref:sekolah");
+      } else {
+        window.SisuratCache.clearByPrefix(`sisurat:v1:ref:${tableName}:`);
+      }
+    }
   }
 
   // ─── Export Helpers ───────────────────────────────────────────────────────────

@@ -10,6 +10,60 @@
 
   let rawDivisiData = [];
 
+  function parseDateSafe(dateStr) {
+    if (!dateStr) return null;
+    let s = String(dateStr).trim();
+    if (!s || s === "—" || s === "-" || s.toLowerCase() === "undefined" || s.toLowerCase() === "null") return null;
+
+    // Coba parse langsung dengan new Date()
+    let d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+
+    // Jika gagal, coba format DD/MM/YYYY atau DD-MM-YYYY
+    let parts = s.split(" ");
+    let datePart = parts[0];
+    let timePart = parts[1] || "";
+
+    let dateSep = datePart.includes("/") ? "/" : (datePart.includes("-") ? "-" : "");
+    if (dateSep) {
+      let dateSplit = datePart.split(dateSep);
+      if (dateSplit.length === 3) {
+        let day = parseInt(dateSplit[0], 10);
+        let month = parseInt(dateSplit[1], 10) - 1;
+        let year = parseInt(dateSplit[2], 10);
+
+        let hour = 0, min = 0, sec = 0;
+        if (timePart) {
+          let timeSplit = timePart.split(":");
+          hour = parseInt(timeSplit[0] || "0", 10);
+          min = parseInt(timeSplit[1] || "0", 10);
+          sec = parseInt(timeSplit[2] || "0", 10);
+        }
+
+        let testDate = new Date(year, month, day, hour, min, sec);
+        if (!isNaN(testDate.getTime())) return testDate;
+      }
+    }
+
+    return null;
+  }
+
+  function formatCreatedAt(dateStr) {
+    const d = parseDateSafe(dateStr);
+    if (!d) return "—";
+    
+    try {
+      const formatted = d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+      return formatted === "Invalid Date" ? "—" : formatted;
+    } catch (_) {
+      return "—";
+    }
+  }
+
   function checkAccess() {
     const isSuper = SisuratAuth.isSuperAdmin();
     const noAccessBanner = document.getElementById("no-access-banner");
@@ -106,11 +160,7 @@
 
       const folderId = div.drive_folder_id || "—";
       const createdBy = div.created_by || "System";
-      const createdAt = div.created_at ? new Date(div.created_at).toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      }) : "—";
+      const createdAt = formatCreatedAt(div.created_at);
 
       return `
         <tr class="hover:bg-gray-50/50 transition-all duration-150">

@@ -229,9 +229,7 @@
   }
 
   async function init() {
-    // Fetch system settings to render branding dynamically
-    try {
-      const res = await SisuratApi.getSettings();
+    const handleBrandingUpdate = (res) => {
       if (res && res.status === "success" && res.settings) {
         const s = res.settings;
         const appNameEl = document.getElementById("brand-app-name");
@@ -250,6 +248,14 @@
           document.title = `Upload Piagam | ${s.app_name}`;
         }
       }
+    };
+
+    try {
+      const res = await SisuratApi.getSettings({
+        staleWhileRevalidate: true,
+        onFresh: handleBrandingUpdate
+      });
+      handleBrandingUpdate(res);
     } catch (err) {
       console.warn("Gagal memuat pengaturan branding:", err);
     }

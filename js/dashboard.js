@@ -305,74 +305,82 @@
     }
   }
 
+  function updateDivisiUI(isSuperAdmin) {
+    if (!isSuperAdmin) return;
+    const switcherContainer = document.getElementById("divisi-switcher-container");
+    const switcherSelect = document.getElementById("divisi-switcher");
+    if (switcherContainer && switcherSelect) {
+      switcherContainer.classList.remove("hidden");
+      
+      const currentSelected = switcherSelect.value || "all";
+      
+      // Clear current options except "Semua Divisi"
+      switcherSelect.innerHTML = '<option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>';
+      
+      dbDivisiData.forEach(divisi => {
+        if (divisi.status === "active" || divisi.status === "Aktif") {
+          const opt = document.createElement("option");
+          opt.value = divisi.kode_divisi;
+          opt.className = "text-[#222831] bg-white";
+          opt.innerText = `${divisi.kode_divisi} - ${divisi.nama_divisi}`;
+          switcherSelect.appendChild(opt);
+        }
+      });
+
+      // Restore selected value
+      switcherSelect.value = currentSelected;
+
+      // Add change listener
+      switcherSelect.onchange = function() {
+        displayStats(this.value);
+      };
+    }
+
+    const ringkasanSection = document.getElementById("ringkasan-divisi-section");
+    if (ringkasanSection) {
+      ringkasanSection.classList.remove("hidden");
+      renderRingkasanDivisiTable();
+    }
+  }
+
   async function loadDashboard() {
     try {
       const isSuperAdmin = SisuratAuth.isSuperAdmin();
 
-      if (isSuperAdmin) {
-        // Fetch summaries and divisions
-        const [summaryRes, divisiRes, auditRes] = await Promise.all([
-          SisuratApi.getData("db_summary"),
-          SisuratApi.getData("db_divisi"),
-          SisuratApi.getData("db_audit_log").catch(err => {
-            console.warn("Gagal fetch audit log:", err);
-            return { data: [] };
-          })
-        ]);
-
+      // Helper function to handle summary updates
+      const handleSummaryUpdate = (summaryRes) => {
         dbSummaryData = Array.isArray(summaryRes.data) ? summaryRes.data : [];
-        dbDivisiData = Array.isArray(divisiRes.data) ? divisiRes.data : [];
-        dbAuditLogs = Array.isArray(auditRes.data) ? auditRes.data : [];
-
-        // Show switcher
-        const switcherContainer = document.getElementById("divisi-switcher-container");
-        const switcherSelect = document.getElementById("divisi-switcher");
-        if (switcherContainer && switcherSelect) {
-          switcherContainer.classList.remove("hidden");
-          
-          // Clear current options except "Semua Divisi"
-          switcherSelect.innerHTML = '<option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>';
-          
-          dbDivisiData.forEach(divisi => {
-            if (divisi.status === "active" || divisi.status === "Aktif") {
-              const opt = document.createElement("option");
-              opt.value = divisi.kode_divisi;
-              opt.className = "text-[#222831] bg-white";
-              opt.innerText = `${divisi.kode_divisi} - ${divisi.nama_divisi}`;
-              switcherSelect.appendChild(opt);
-            }
-          });
-
-          // Add change listener
-          switcherSelect.onchange = function() {
-            displayStats(this.value);
-          };
-        }
-
-        // Show and populate division summary section
-        const ringkasanSection = document.getElementById("ringkasan-divisi-section");
-        if (ringkasanSection) {
-          ringkasanSection.classList.remove("hidden");
+        if (isSuperAdmin) {
+          const switcherSelect = document.getElementById("divisi-switcher");
+          const selectedValue = switcherSelect ? switcherSelect.value : "all";
+          displayStats(selectedValue);
           renderRingkasanDivisiTable();
+        } else {
+          const user = SisuratAuth.getStoredUser();
+          const userDivId = user ? user.divisi_id : "";
+          displayStats(userDivId);
         }
+      };
 
-        displayStats("all");
+      // Helper function to handle divisi updates
+      const handleDivisiUpdate = (divisiRes) => {
+        dbDivisiData = Array.isArray(divisiRes.data) ? divisiRes.data : [];
+        updateDivisiUI(isSuperAdmin);
+      };
 
+      // 1. Fetch Audit Log directly (no cache)
+      if (isSuperAdmin) {
+        SisuratApi.getData("db_audit_log").then(auditRes => {
+          dbAuditLogs = Array.isArray(auditRes.data) ? auditRes.data : [];
+          const switcherSelect = document.getElementById("divisi-switcher");
+          const selectedValue = switcherSelect ? switcherSelect.value : "all";
+          populateAktivitasFromAuditLog(dbAuditLogs, selectedValue);
+        }).catch(err => {
+          console.warn("Gagal fetch audit log:", err);
+          dbAuditLogs = [];
+        });
       } else {
-        // Non-super admin (division level)
-        const summaryRes = await SisuratApi.getData("db_summary");
-        dbSummaryData = Array.isArray(summaryRes.data) ? summaryRes.data : [];
-        
-        // Hide switcher and table
-        const switcherContainer = document.getElementById("divisi-switcher-container");
-        if (switcherContainer) switcherContainer.classList.add("hidden");
-
-        const ringkasanSection = document.getElementById("ringkasan-divisi-section");
-        if (ringkasanSection) ringkasanSection.classList.add("hidden");
-
-        // Try getting audit log (only admin_divisi has access, operator will fail)
-        try {
-          const auditRes = await SisuratApi.getData("db_audit_log");
+        SisuratApi.getData("db_audit_log").then(auditRes => {
           if (auditRes && auditRes.status === "success" && Array.isArray(auditRes.data)) {
             dbAuditLogs = auditRes.data;
             const user = SisuratAuth.getStoredUser();
@@ -381,14 +389,30 @@
           } else {
             showOperatorPlaceholderAktivitas();
           }
-        } catch (_) {
+        }).catch(() => {
           showOperatorPlaceholderAktivitas();
-        }
-
-        const user = SisuratAuth.getStoredUser();
-        const userDivId = user ? user.divisi_id : "";
-        displayStats(userDivId);
+        });
       }
+
+      // 2. Fetch Division list (SWR)
+      if (isSuperAdmin) {
+        SisuratApi.getData("db_divisi", {
+          staleWhileRevalidate: true,
+          onFresh: handleDivisiUpdate
+        }).then(handleDivisiUpdate);
+      } else {
+        const switcherContainer = document.getElementById("divisi-switcher-container");
+        if (switcherContainer) switcherContainer.classList.add("hidden");
+
+        const ringkasanSection = document.getElementById("ringkasan-divisi-section");
+        if (ringkasanSection) ringkasanSection.classList.add("hidden");
+      }
+
+      // 3. Fetch Summary (SWR)
+      SisuratApi.getData("db_summary", {
+        staleWhileRevalidate: true,
+        onFresh: handleSummaryUpdate
+      }).then(handleSummaryUpdate);
 
     } catch (error) {
       console.error("Gagal memuat dashboard:", error);

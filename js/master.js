@@ -314,9 +314,16 @@
     }
 
     try {
-      const rows = await SisuratApi.fetchTable(table);
-      state.rawData = rows;
-      applySearch();
+      const handleDataUpdate = (rows) => {
+        state.rawData = rows;
+        applySearch();
+      };
+
+      const rows = await SisuratApi.fetchTable(table, {
+        staleWhileRevalidate: true,
+        onFresh: handleDataUpdate
+      });
+      handleDataUpdate(rows);
     } catch (e) {
       console.error("Gagal memuat data:", e);
       renderError();
