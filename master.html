@@ -336,9 +336,9 @@
 
           <!-- Utility Toolbar -->
           <div
-            class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2"
+            class="grid grid-cols-1 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] gap-4 p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2"
           >
-            <div class="relative w-full md:w-96 group z-10">
+            <div class="relative w-full group z-10">
               <div
                 class="absolute inset-y-0 left-4 flex items-center pointer-events-none"
               >
@@ -354,9 +354,9 @@
               />
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end items-stretch gap-3 min-w-0">
               <div
-                class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm"
+                class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm min-w-0"
               >
                 <span
                   class="text-xs font-bold text-gray-400 uppercase tracking-widest"
@@ -365,7 +365,7 @@
                 <select
                   id="rows-per-page"
                   onchange="setPageSize(this.value)"
-                  class="rows-select border-0 pl-2 pr-8 focus:ring-0 shadow-none bg-transparent py-1"
+                  class="rows-select sisurat-select bg-white"
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -375,10 +375,10 @@
               </div>
 
               <!-- Columns Dropdown -->
-              <div class="relative flex-shrink-0 z-20" id="col-toggle-wrapper">
+              <div class="relative z-20 min-w-0" id="col-toggle-wrapper">
                 <button
                   onclick="toggleColPanel()"
-                  class="flex items-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm"
+                  class="w-full min-h-11 flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm"
                 >
                   <i class="fas fa-columns"></i> Kolom
                   <i class="fas fa-caret-down text-xs ml-1"></i>

@@ -167,11 +167,105 @@ h6,
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  min-height: 44px;
+  min-width: 0;
 }
 .rows-select:focus {
   border-color: #00adb5;
   box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.15);
   outline: none;
+}
+
+.sisurat-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 42px 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  background-color: #fff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  color-scheme: light;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.25L7 7.25L13 1.25' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px 9px;
+}
+
+.sisurat-select:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.sisurat-select:focus {
+  background-color: #fff;
+  border-color: #00adb5;
+  box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.12);
+}
+
+.sisurat-select option {
+  color: #222831;
+  background: #fff;
+  font-weight: 600;
+}
+
+.sisurat-select--dark {
+  min-height: 44px;
+  border-color: rgba(255, 255, 255, 0.22);
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.25L7 7.25L13 1.25' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+.sisurat-select--dark:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sisurat-select--dark:focus {
+  border-color: #7fffd4;
+  box-shadow: 0 0 0 4px rgba(127, 255, 212, 0.16);
+}
+
+.sisurat-select-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.rows-select.sisurat-select {
+  padding: 10px 42px 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  background-color: #fff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.25L7 7.25L13 1.25' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px 9px;
+}
+
+.rows-select.sisurat-select:focus {
+  border-color: #00adb5;
+  box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.12);
 }
 
 /* ─── 9. Laporan — Filter Inputs ────────────────────────────── */
@@ -424,7 +518,9 @@ label[for^="input-"] {
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   padding: 16px 20px;
+  width: min(36rem, calc(100vw - 32px));
   min-width: 220px;
+  max-width: calc(100vw - 32px);
   z-index: 100;
   transform-origin: top right;
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1121,9 +1217,11 @@ main .overflow-x-auto > table {
 
   .filter-input,
   .form-input,
+  .sisurat-select,
   .rows-select {
     width: 100%;
     min-width: 0;
+    min-height: 48px;
   }
 
   .btn-export {

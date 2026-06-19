@@ -376,7 +376,7 @@
       items.forEach((item) => {
         const li = document.createElement("li");
         li.className =
-          "px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 last:border-0 font-medium";
+          "dropdown-item px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 last:border-0 font-medium";
         li.textContent = item;
 
         li.addEventListener("mousedown", (e) => {
@@ -464,7 +464,7 @@
       if (!nama) return;
       const li = document.createElement("li");
       li.className =
-        "px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium";
+        "dropdown-item px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors border-b border-gray-50 font-medium";
       li.setAttribute("data-value", nama);
       li.textContent = nama;
       list.appendChild(li);
@@ -473,7 +473,7 @@
     // Selalu tambahkan pilihan "Lainnya (Isi Manual)" di paling bawah
     const liOther = document.createElement("li");
     liOther.className =
-      "px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors font-medium";
+      "dropdown-item px-4 py-3 text-sm text-[#334155] hover:bg-[#00ADB5] hover:text-white cursor-pointer transition-colors font-medium";
     liOther.setAttribute("data-value", "Other");
     liOther.textContent = "Lainnya (Isi Manual)";
     list.appendChild(liOther);

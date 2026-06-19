@@ -159,10 +159,20 @@
       return;
     }
 
-    let filteredLogs = logs;
-    if (currentDivisiId && currentDivisiId !== "all") {
-      filteredLogs = logs.filter(log => String(log.divisi_id).toUpperCase() === String(currentDivisiId).toUpperCase());
-    }
+    const filteredLogs = logs.filter(log => {
+      const isCreate = log.action === "create";
+      const isDocTable = log.table_name && (
+        log.table_name.endsWith("_surat_masuk") ||
+        log.table_name.endsWith("_surat_keluar") ||
+        log.table_name.endsWith("_piagam")
+      );
+      if (!isCreate || !isDocTable) return false;
+
+      if (currentDivisiId && currentDivisiId !== "all") {
+        return String(log.divisi_id).toUpperCase() === String(currentDivisiId).toUpperCase();
+      }
+      return true;
+    });
 
     const sorted = [...filteredLogs].sort((a, b) => {
       const dateA = new Date(a.timestamp);
@@ -178,8 +188,8 @@
 
     container.innerHTML = sorted.map(log => {
       let icon = "fa-info-circle";
-      if (log.action && log.action.includes("simpan")) icon = "fa-plus-circle";
-      else if (log.action && log.action.includes("hapus")) icon = "fa-trash-alt";
+      if (log.action && (log.action.includes("simpan") || log.action === "create")) icon = "fa-plus-circle";
+      else if (log.action && (log.action.includes("hapus") || log.action === "delete")) icon = "fa-trash-alt";
       else if (log.action && log.action.includes("update")) icon = "fa-edit";
       else if (log.action && log.action.includes("login")) icon = "fa-sign-in-alt";
 
@@ -198,7 +208,23 @@
       }
 
       const actorName = log.actor || "System";
-      const actionText = log.detail || `${log.action} pada ${log.table_name || 'sistem'}`;
+      let actionText = log.detail || `${log.action} pada ${log.table_name || 'sistem'}`;
+
+      // Beautify actionText for document additions
+      if (actionText.startsWith("Tambah data baru ke ")) {
+        const tableRaw = actionText.replace("Tambah data baru ke ", "");
+        if (tableRaw.endsWith("_surat_masuk")) {
+          actionText = "Tambah Surat Masuk Baru";
+        } else if (tableRaw.endsWith("_surat_keluar")) {
+          actionText = "Tambah Surat Keluar Baru";
+        } else if (tableRaw.endsWith("_piagam")) {
+          actionText = "Tambah Piagam Baru";
+        }
+      } else if (actionText === "Tambah piagam") {
+        actionText = "Tambah Piagam Baru";
+      } else if (actionText === "Tambah piagam publik") {
+        actionText = "Tambah Piagam Publik Baru";
+      }
 
       return `
         <div class="flex items-start gap-3 p-3 bg-[#EEEEEE] rounded-lg hover:bg-gray-200 transition text-left">

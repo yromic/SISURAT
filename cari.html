@@ -377,16 +377,13 @@
               <div class="relative">
                 <select
                   id="jenis"
-                  class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[#222831] font-medium outline-none focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 transition-all appearance-none cursor-pointer"
+                  class="sisurat-select"
                 >
                   <option value="">Semua Kategori</option>
                   <option value="db_surat_masuk">📥 Surat Masuk</option>
                   <option value="db_surat_keluar">📤 Surat Keluar</option>
                   <option value="db_piagam">🏆 Piagam Penghargaan</option>
                 </select>
-                <i
-                  class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                ></i>
               </div>
             </div>
 
@@ -467,7 +464,7 @@
               <select
                 id="search-page-size"
                 onchange="setSearchPageSize(this.value)"
-                class="rows-select bg-white"
+                class="rows-select sisurat-select bg-white"
               >
                 <option value="12">12</option>
                 <option value="24">24</option>

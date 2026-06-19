@@ -391,17 +391,25 @@
     const cols = TABLE_COLUMNS[tab];
     const panel = document.getElementById("col-toggle-panel");
     if (!panel) return;
-    panel.innerHTML = cols
+    const itemsHtml = cols
       .map((c) => {
         const hidden = isColHidden(tab, c.key);
-        return `<label class="flex items-center gap-2 cursor-pointer select-none text-xs py-1">
+        return `<label class="flex items-center gap-3 cursor-pointer select-none text-sm min-h-11 px-3 py-2 rounded-xl hover:bg-[#00ADB5]/10 transition-colors">
                 <input type="checkbox" ${hidden ? "" : "checked"}
                     onchange="toggleColumn('${c.key}')"
-                    class="accent-[#00ADB5] w-3.5 h-3.5">
-                <span class="${hidden ? "text-gray-400 line-through" : "text-[#222831]"}">${c.label}</span>
+                    class="accent-[#00ADB5] w-4 h-4 shrink-0">
+                <span class="font-bold ${hidden ? "text-gray-400 line-through" : "text-[#222831]"}">${c.label}</span>
             </label>`;
       })
       .join("");
+    panel.innerHTML = `
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">
+        Visibilitas Kolom
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+        ${itemsHtml}
+      </div>
+    `;
   }
 
   // ─── Render Table ─────────────────────────────────────────────────────────────

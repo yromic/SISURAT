@@ -179,6 +179,17 @@
         appearance: none;
       }
 
+      .piagam-dropdown-list {
+        max-height: min(13rem, 45vh);
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .piagam-dropdown-list li,
+      .dropdown-item {
+        min-height: 44px;
+      }
+
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -234,6 +245,7 @@
         .input-premium {
           padding: 12px 14px;
           font-size: 14px;
+          min-height: 48px;
         }
 
         .label-premium {
@@ -242,6 +254,10 @@
 
         .canvas-container canvas {
           height: 160px;
+        }
+
+        .piagam-dropdown-list {
+          max-height: min(15rem, 50vh);
         }
       }
     </style>
@@ -386,7 +402,7 @@
 
                 <ul
                   id="unit_kerja_list"
-                  class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                  class="piagam-dropdown-list hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
                 ></ul>
               </div>
 
@@ -427,7 +443,7 @@
 
                   <ul
                     id="pengambilan_list"
-                    class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                    class="piagam-dropdown-list hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
                   >
                     <!-- Item dirender dinamis oleh js/piagam.js dari API ref_pengambilan -->
                   </ul>
@@ -481,7 +497,7 @@
 
                 <ul
                   id="jenis_perlombaan_list"
-                  class="hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
+                  class="piagam-dropdown-list hidden absolute z-[60] w-full mt-2 max-h-52 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-2"
                 >
                   <!-- Item dirender dinamis oleh js/piagam.js dari API ref_jenis_perlombaan -->
                 </ul>

@@ -148,11 +148,12 @@
     label.innerText = "Divisi Aktif (Super Admin)";
     wrapper.appendChild(label);
 
+    const selectWrap = document.createElement("div");
+    selectWrap.className = "sisurat-select-wrap";
+
     const select = document.createElement("select");
     select.id = "sidebar-division-switcher";
-    select.className = "w-full px-3 py-2 bg-white/10 border border-white/20 text-white font-semibold rounded-xl text-xs outline-none cursor-pointer appearance-none";
-    select.style.color = "#ffffff";
-    select.style.backgroundColor = "#222831";
+    select.className = "sisurat-select sisurat-select--dark text-xs";
 
     const defaultOpt = document.createElement("option");
     defaultOpt.value = "";
@@ -183,7 +184,8 @@
       window.location.reload();
     };
 
-    wrapper.appendChild(select);
+    selectWrap.appendChild(select);
+    wrapper.appendChild(selectWrap);
     nav.insertBefore(wrapper, nav.firstChild);
   }
 
