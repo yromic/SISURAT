@@ -1203,6 +1203,25 @@ function migrateExistingRecords() {
             results.push(_migrateSheetRecords(name));
         }
     });
+
+    // Hitung ulang rekapitulasi semua divisi yang aktif
+    var divisionSheet = ss.getSheetByName("db_divisi");
+    if (divisionSheet && divisionSheet.getLastRow() >= 2) {
+        var map = _getHeaderIndexMap(divisionSheet);
+        var values = divisionSheet.getRange(2, 1, divisionSheet.getLastRow() - 1, divisionSheet.getLastColumn()).getValues();
+        values.forEach(function(row) {
+            var divisiId = String(row[map.kode_divisi] || "").trim().toUpperCase();
+            if (divisiId) {
+                try {
+                    _recomputeSummary(divisiId);
+                    results.push({ division: divisiId, summary_recalculated: true });
+                } catch (e) {
+                    results.push({ division: divisiId, summary_recalculated: false, error: e.toString() });
+                }
+            }
+        });
+    }
+
     return results;
 }
 

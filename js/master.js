@@ -901,12 +901,11 @@
     state.drawing = false;
     if (state.ctx) state.ctx.beginPath();
   }
-
   function clearModalCanvas() {
     const c = state.canvas;
     if (!c || !state.ctx) return;
     state.ctx.clearRect(0, 0, c.width, c.height);
-    state.canvasDirty = false; // canvas dikosongkan, tidak ada TTD baru
+    state.canvasDirty = false;
   }
 
   // ─── Form Submit ──────────────────────────────────────────────────────────────
@@ -956,21 +955,16 @@
     }
 
     // ─── Isi otomatis Timestamp, Email Address & Nama Pengupload ─────────
-    // Hanya untuk mode tambah baru (bukan edit), agar metadata terisi dengan benar
     if (state.editingId === null) {
-      // Timestamp: format DD/MM/YYYY HH:MM:SS (sesuai format Google Form)
       const now = new Date();
       const pad = (n) => String(n).padStart(2, "0");
       data.timestamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
     }
 
     // TTD piagam — hanya kirim jika user menggambar ulang (canvasDirty)
-    // Pada mode tambah baru: kirim jika canvas ada (walaupun kosong, backend akan abaikan)
     if (tab === "piagam" && state.canvas) {
       if (state.editingId === null || state.canvasDirty) {
         data.ttd_base64 = state.canvas.toDataURL("image/png");
-        // Sertakan URL TTD lama agar backend hapus dari Drive
         if (state.canvasDirty && state.existingTtdUrl) {
           data.old_ttd_url = state.existingTtdUrl;
         }
@@ -980,26 +974,18 @@
     // Upload file — gunakan chunked upload jika user memilih file baru
     if (state.selectedFile) {
       const file = state.selectedFile;
-
       try {
         const folderId = SisuratApi.getFolderId(table, false);
-
-        // Tampilkan progress bar
         showUploadProgress(`Mengupload "${file.name}"...`);
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i>Mengupload...';
 
-        // Upload via chunked — hasilnya URL publik Google Drive
         const fileUrl = await SisuratApi.uploadFileChunked(
           file,
           folderId,
           (pct) => updateUploadProgress(pct),
         );
-
-        // Simpan URL (bukan Base64) ke payload record
         data.upload_file = fileUrl;
-
-        // Sertakan URL file lama agar backend bisa menghapusnya
         if (state.existingFileUrl) {
           data.old_file_url = state.existingFileUrl;
         }
@@ -1015,41 +1001,65 @@
       }
     }
 
-    submitBtn.disabled = true;
-    submitBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin mr-1"></i>Menyimpan...';
+        // ─── OPTIMISTIC UPDATE LOGIC ───
+    const previousRawData = [...state.rawData];
+    const isEdit = state.editingId !== null;
+    const tempId = isEdit ? state.editingId : `temp_${Date.now()}`;
 
-    try {
-      let result;
-      if (state.editingId !== null) {
-        result = await SisuratApi.updateRecord(table, state.editingId, data);
-      } else {
-        result = await SisuratApi.saveRecord(table, data);
-      }
+    const optimisticRecord = {
+      id: tempId,
+      ...data,
+      nama_pengupload: data.nama_pengupload || (global.SisuratAuth && global.SisuratAuth.getStoredUser() ? (global.SisuratAuth.getStoredUser().nama || global.SisuratAuth.getStoredUser().username) : ""),
+      _table: table,
+      jenis: getTabLabel()
+    };
 
-      if (result && result.status === "success") {
-        closeModal();
-        SisuratApi.invalidateCache(); // Invalidasi cache search.js
-        await loadTab();
-        showToast(
-          "success",
-          state.editingId
-            ? "Data berhasil diupdate!"
-            : "Data berhasil disimpan!",
-        );
-      } else {
-        showModalAlert(
-          "error",
-          (result && result.message) || "Gagal menyimpan.",
-        );
+    if (isEdit) {
+      const idx = state.rawData.findIndex(r => (r.id || r.row_number) === state.editingId);
+      if (idx !== -1) {
+        state.rawData[idx] = { ...state.rawData[idx], ...optimisticRecord };
       }
-    } catch (err) {
-      console.error("Gagal submit form:", err);
-      showModalAlert("error", "Terjadi kesalahan jaringan.");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan';
+    } else {
+      state.rawData.unshift(optimisticRecord);
     }
+
+    applySearch();
+    closeModal();
+    showToast("success", isEdit ? "Pembaruan diterapkan..." : "Data disimpan...");
+
+    // Kirim ke API di background
+    const editingIdSnap = state.editingId;
+    (async () => {
+      try {
+        let result;
+        if (isEdit) {
+          result = await SisuratApi.updateRecord(table, editingIdSnap, data);
+        } else {
+          result = await SisuratApi.saveRecord(table, data);
+        }
+
+        if (result && result.status === "success") {
+          SisuratApi.invalidateCache();
+          if (result.optimistic) {
+            showToast("success", "Tersimpan di antrean offline lokal.");
+          } else {
+            showToast("success", isEdit ? "Data berhasil diupdate!" : "Data berhasil disimpan!");
+            await loadTab();
+          }
+        } else {
+          // Rollback
+          state.rawData = previousRawData;
+          applySearch();
+          showToast("error", (result && result.message) || "Gagal menyimpan ke server.");
+        }
+      } catch (err) {
+        // Rollback
+        state.rawData = previousRawData;
+        applySearch();
+        console.error("Gagal submit form:", err);
+        showToast("error", "Koneksi terputus. Data disimpan secara offline.");
+      }
+    })();
   }
 
   // ─── Soft Delete (Trash) ──────────────────────────────────────────────────────
@@ -1207,19 +1217,37 @@
     });
     if (!confirmed) return;
 
+        // Backup untuk rollback
+    const previousRawData = [...state.rawData];
+
+    // Hapus data secara optimistis dari UI
+    state.rawData = state.rawData.filter(r => (r.id || r.row_number) !== rowId);
+    applySearch();
+    showToast("success", "Menghapus data...");
+
     try {
       const table = TAB_TABLE[state.activeTab];
       const result = await SisuratApi.deleteRecord(table, rowId);
       if (result && result.status === "success") {
         SisuratApi.invalidateCache();
-        showToast("success", "Data berhasil dihapus.");
-        await loadTab();
+        if (result.optimistic) {
+          showToast("success", "Aksi hapus disimpan secara offline.");
+        } else {
+          showToast("success", "Data berhasil dihapus.");
+          await loadTab();
+        }
       } else {
+        // Rollback jika gagal
+        state.rawData = previousRawData;
+        applySearch();
         showToast("error", (result && result.message) || "Gagal menghapus data.");
       }
     } catch (err) {
+      // Rollback jika error jaringan
+      state.rawData = previousRawData;
+      applySearch();
       console.error("Gagal hapus:", err);
-      showToast("error", "Terjadi kesalahan jaringan.");
+      showToast("error", "Koneksi terputus. Aksi hapus disimpan secara offline.");
     }
   }
 
@@ -1420,6 +1448,11 @@
       if (wrapper && panel && !wrapper.contains(e.target)) {
         panel.classList.add("hidden");
       }
+    });
+
+    global.addEventListener("sisurat-sync-completed", () => {
+      console.log("[Sync Event] Sinkronisasi background selesai. Memuat ulang data...");
+      loadTab();
     });
   }
 

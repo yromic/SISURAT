@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbzq677YumRvNx2_zqjM_QegXtI0u9u_RhqQxQBlxmJUZjIzDaq45JDV_CZHPDu7pReEBA/exec";
+    "https://script.google.com/macros/s/AKfycbz5Te6ausn2hmEF6qybuVppFQLUuuu5Vk8A3XCojzYfo-eDd-n4alxK8k9hZBBwNIo_uQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -155,7 +155,7 @@
     "ref_jenis_perlombaan"
   ];
 
-  async function postAction(action, data = {}) {
+  async function postActionRaw(action, data = {}) {
     const payloadData = { ...data };
     if (action !== "login" && !payloadData.session_token) {
       payloadData.session_token = getSessionToken();
@@ -224,6 +224,29 @@
       }
     }
     return resJson;
+  }
+
+  async function postAction(action, data = {}) {
+    const isMutation = ["simpan_record", "update_record", "hapus_record", "simpan_piagam"].includes(action);
+    const isOffline = !navigator.onLine;
+
+    if (isMutation && isOffline && window.SisuratSync) {
+      console.warn(`[API] Offline. Memasukkan aksi ${action} ke antrean sync.`);
+      window.SisuratSync.enqueue(action, data);
+      return { status: "success", optimistic: true };
+    }
+
+    try {
+      const res = await postActionRaw(action, data);
+      return res;
+    } catch (error) {
+      if (isMutation && window.SisuratSync) {
+        console.warn(`[API] Gagal koneksi/timeout. Memasukkan aksi ${action} ke antrean sync.`, error);
+        window.SisuratSync.enqueue(action, data);
+        return { status: "success", optimistic: true };
+      }
+      throw error;
+    }
   }
 
   function login(username, password) {
@@ -552,7 +575,7 @@
   }
 
   // ─── Fetch Tabel Referensi (dengan cache SisuratCache + TTL) ─────────────────
-  
+
   async function fetchRef(tableName, forceRefresh = false) {
     const userRole = localStorage.getItem("user_role") || "";
     const userDivisi = localStorage.getItem("user_divisi_id") || "";
@@ -655,6 +678,7 @@
     parseDate,
     normalizeRecord,
     postAction,
+    postActionRaw,
     getData,
     fetchTable,
     fetchAllTables,
