@@ -28,7 +28,7 @@
     };
   }
 
-  async function getCachedAllData(forceRefresh = false) {
+    async function getCachedAllData(forceRefresh = false, onFresh) {
     const now = Date.now();
     const cacheAge = now - state.cacheFetchedAt;
     const cacheValid =
@@ -38,8 +38,31 @@
       return state.cacheData;
     }
 
+    const fetchOptions = {};
+    if (onFresh) {
+      fetchOptions.staleWhileRevalidate = true;
+      fetchOptions.onFresh = (freshResult) => {
+        state.cacheData = freshResult.all || [];
+        state.cacheFetchedAt = Date.now();
+        onFresh(state.cacheData);
+      };
+    }
+
+    if (!forceRefresh && state.cacheData) {
+      // Trigger background revalidation
+      SisuratApi.fetchAllTables(fetchOptions)
+        .then((result) => {
+          state.cacheData = result.all || [];
+          state.cacheFetchedAt = Date.now();
+        })
+        .catch((err) => {
+          console.warn("Pencarian background revalidation gagal:", err);
+        });
+      return state.cacheData;
+    }
+
     if (!state.cachePromise) {
-      state.cachePromise = SisuratApi.fetchAllTables()
+      state.cachePromise = SisuratApi.fetchAllTables(fetchOptions)
         .then((result) => {
           state.cacheData = result.all || [];
           state.cacheFetchedAt = Date.now();
@@ -256,7 +279,7 @@
     _renderPage();
   }
 
-  async function runSearch(forceRefresh = false) {
+    async function runSearch(forceRefresh = false) {
     if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
       const container = document.getElementById("result");
       if (container) {
@@ -274,47 +297,56 @@
       return;
     }
 
-    let data = await getCachedAllData(forceRefresh);
+    const processAndRender = (rawList) => {
+      let data = [...rawList];
+      const keyword = document.getElementById("search").value.toLowerCase();
+      const jenis = document.getElementById("jenis").value;
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
 
-    const keyword = document.getElementById("search").value.toLowerCase();
-    const jenis = document.getElementById("jenis").value;
-    const from = document.getElementById("from").value;
-    const to = document.getElementById("to").value;
+      if (jenis) {
+        const selectedType = getTypeByTable(jenis);
+        data = data.filter((item) => item.jenis === selectedType);
+      }
 
-    if (jenis) {
-      const selectedType = getTypeByTable(jenis);
-      data = data.filter((item) => item.jenis === selectedType);
-    }
+      if (from) {
+        const fromDate = SisuratApi.parseDate(from);
+        data = data.filter((item) => {
+          const itemDate = SisuratApi.parseDate(item.tanggal);
+          return itemDate && fromDate && itemDate >= fromDate;
+        });
+      }
 
-    if (from) {
-      const fromDate = SisuratApi.parseDate(from);
-      data = data.filter((item) => {
-        const itemDate = SisuratApi.parseDate(item.tanggal);
-        return itemDate && fromDate && itemDate >= fromDate;
+      if (to) {
+        const toDate = SisuratApi.parseDate(to);
+        data = data.filter((item) => {
+          const itemDate = SisuratApi.parseDate(item.tanggal);
+          return itemDate && toDate && itemDate <= toDate;
+        });
+      }
+
+      if (keyword) {
+        data = data.filter((item) =>
+          JSON.stringify(item).toLowerCase().includes(keyword),
+        );
+      }
+
+      const sorted = [...data].sort((a, b) => {
+        const dateA = SisuratApi.parseDate(a.tanggal);
+        const dateB = SisuratApi.parseDate(b.tanggal);
+        return (dateB ? dateB.getTime() : 0) - (dateA ? dateA.getTime() : 0);
       });
-    }
 
-    if (to) {
-      const toDate = SisuratApi.parseDate(to);
-      data = data.filter((item) => {
-        const itemDate = SisuratApi.parseDate(item.tanggal);
-        return itemDate && toDate && itemDate <= toDate;
-      });
-    }
+      render(sorted);
+    };
 
-    if (keyword) {
-      data = data.filter((item) =>
-        JSON.stringify(item).toLowerCase().includes(keyword),
-      );
-    }
+    const handleFreshUpdate = (freshData) => {
+      console.log("[Search SWR] Data fresh diterima dari server. Memperbarui hasil pencarian...");
+      processAndRender(freshData);
+    };
 
-    const sorted = [...data].sort((a, b) => {
-      const dateA = SisuratApi.parseDate(a.tanggal);
-      const dateB = SisuratApi.parseDate(b.tanggal);
-      return (dateB ? dateB.getTime() : 0) - (dateA ? dateA.getTime() : 0);
-    });
-
-    render(sorted);
+    const cachedData = await getCachedAllData(forceRefresh, handleFreshUpdate);
+    processAndRender(cachedData);
   }
 
   function showDetail(data) {

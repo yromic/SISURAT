@@ -121,9 +121,26 @@
     }
   }
 
-  async function fetchAllTables() {
+  async function fetchAllTables(options = {}) {
     const tables = getTables();
-    const results = await Promise.all(tables.map((table) => fetchTable(table)));
+    const freshResults = {};
+
+    const results = await Promise.all(
+      tables.map((table) => {
+        const tableOptions = {};
+        if (options.staleWhileRevalidate && options.onFresh) {
+          tableOptions.staleWhileRevalidate = true;
+          tableOptions.onFresh = (freshData) => {
+            freshResults[table] = freshData;
+            if (Object.keys(freshResults).length === tables.length) {
+              const all = tables.flatMap((t) => freshResults[t]);
+              options.onFresh({ byTable: freshResults, all });
+            }
+          };
+        }
+        return fetchTable(table, tableOptions);
+      })
+    );
 
     const byTable = {};
     tables.forEach((table, index) => {
