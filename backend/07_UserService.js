@@ -17,6 +17,17 @@ function _ensureUserPasswordColumns(sheet) {
 
 function _lookupUser(username) {
     if (!username) return null;
+    
+    var cacheKey = "sisurat:v1:user:" + username;
+    var cached = CacheService.getScriptCache().get(cacheKey);
+    if (cached) {
+        console.log("CACHE HIT: user " + username);
+        try {
+            return JSON.parse(cached);
+        } catch (_) {}
+    }
+    
+    console.log("CACHE MISS: user " + username);
     var sheet = _getUserSheet();
     if (!sheet) return null;
     var data = sheet.getDataRange().getDisplayValues();
@@ -30,7 +41,7 @@ function _lookupUser(username) {
             var idx = headers.indexOf(name);
             return idx >= 0 ? String(row[idx]).trim() : "";
         };
-        return {
+        var userObj = {
             username: get("username"),
             role:     get("role").toLowerCase().replace(/[\s_-]+/g, "_"),
             nama:     get("nama") || username,
@@ -43,6 +54,8 @@ function _lookupUser(username) {
                 return /^(true|1|yes|ya|aktif)$/i.test(String(value).trim());
             })(get("aktif") || get("active")),
         };
+        CacheService.getScriptCache().put(cacheKey, JSON.stringify(userObj), 300); // User Cache TTL: 300 seconds
+        return userObj;
     }
     return null;
 }
@@ -181,6 +194,14 @@ function manageUser(data, session) {
         });
 
         sheet.getRange(rowNum, 1, 1, headers.length).setValues([rowVals]);
+
+        // Invalidate Cache & Force Logout
+        CacheService.getScriptCache().remove("sisurat:v1:user:" + existingUsername);
+        if (data.username && data.username !== existingUsername) {
+            CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
+        }
+        _forceLogoutUser(existingUsername);
+
         var logDivisi = isSuperAdmin ? (data.divisi_id || existingDivisiId) : session.divisi_id;
         writeAuditLog(session.username, rbac.session.role, logDivisi, "update_user", "db_users", data.username || String(data.row_number),
             "Update user row=" + data.row_number);
@@ -222,6 +243,11 @@ function manageUser(data, session) {
         }
 
         sheet.deleteRow(delRow);
+
+        // Invalidate Cache & Force Logout
+        CacheService.getScriptCache().remove("sisurat:v1:user:" + existingUsername);
+        _forceLogoutUser(existingUsername);
+
         writeAuditLog(session.username, rbac.session.role, isSuperAdmin ? existingDivisiId : session.divisi_id, "delete_user", "db_users", existingUsername,
             "Hapus user row=" + delRow);
         return responseJSON({ status: "success", message: "User berhasil dihapus" });
@@ -282,6 +308,11 @@ function resetPassword(data, session) {
             _setRowValueByHeader(sheet, i + 1, headers, "password_hash", passwordFields.password_hash);
             _setRowValueByHeader(sheet, i + 1, headers, "password_salt", passwordFields.password_salt);
             _setRowValueByHeader(sheet, i + 1, headers, "password_v", passwordFields.password_v);
+
+            // Invalidate cache & Force logout
+            CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
+            _forceLogoutUser(data.username);
+
             writeAuditLog(session.username, rbacReset.session.role, isSuperAdmin ? targetUserDivisiId : session.divisi_id, "reset_password", "db_users", data.username,
                 "Password user \"" + data.username + "\" direset oleh " + session.username);
             return responseJSON({ status: "success", message: "Password user \"" + data.username + "\" berhasil direset" });

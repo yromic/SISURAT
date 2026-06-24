@@ -205,11 +205,77 @@ function routeAction(action, data, params) {
             if (sessionError) return sessionError;
             return deactivateDivisi(data, sessionResult.session);
 
+        case "hard_delete_divisi":
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            return hardDeleteDivisi(data, sessionResult.session);
+
         case "migrate_existing_records":
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
             return runMigrateExistingRecords(sessionResult.session);
+
+        case "bootstrap":
+            var tokenBoot = _sessionToken(data);
+            var sessionBoot = null;
+            if (tokenBoot) {
+                var resSessionBoot = _getSession(tokenBoot);
+                if (resSessionBoot.ok) {
+                    sessionBoot = resSessionBoot.session;
+                }
+            }
+            var settingsBoot = _getSettings();
+            var initialData = null;
+            if (sessionBoot && data.table) {
+                var resolvedTable = _resolveDivisionTable(sessionBoot, data.table, data);
+                if (resolvedTable !== "ERR_400_DIVISI_REQUIRED" && _validateTableName(resolvedTable)) {
+                    var page = Number(data.page) || 1;
+                    var limit = Number(data.limit) || 50;
+                    var dataRes = getData(resolvedTable, sessionBoot, data, page, limit);
+                    try {
+                        initialData = JSON.parse(dataRes.getContent());
+                    } catch (_) {}
+                }
+            }
+            var responsePayload = {
+                status: "success",
+                session: sessionBoot ? _publicSession(sessionBoot) : null,
+                settings: sessionBoot && sessionBoot.role === "super_admin" ? settingsBoot : {
+                    app_name: settingsBoot.app_name || "",
+                    nama_instansi: settingsBoot.nama_instansi || "",
+                    logo_url: settingsBoot.logo_url || ""
+                },
+                initialData: initialData
+            };
+            return responseJSON(responsePayload);
+
+        case "upload_file":
+            sessionResult = _requireSessionFromData(data, action);
+            sessionError = _sessionResponse(sessionResult);
+            if (sessionError) return sessionError;
+            
+            var base64DataUrl = data.base64DataUrl;
+            var fileName = data.fileName || ("file_" + Date.now());
+            var folderId = DRIVE_FOLDER_ID;
+            
+            var divisiId = (sessionResult.session.role === "super_admin" && data.divisi_id)
+                ? String(data.divisi_id).trim().toUpperCase()
+                : (sessionResult.session.divisi_id ? String(sessionResult.session.divisi_id).trim().toUpperCase() : "GLOBAL");
+            if (divisiId !== "GLOBAL") {
+                folderId = _getFolderIdForDivisi(divisiId);
+            } else if (data.folderId) {
+                folderId = data.folderId;
+            }
+            
+            var fileUrl = uploadFileToDrive(base64DataUrl, fileName, folderId);
+            writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "upload", "-", "-", "Upload file utuh: " + fileName);
+            return responseJSON({
+                status: "success",
+                message: "File berhasil disimpan ke Drive.",
+                fileUrl: fileUrl
+            });
 
         default:
             return responseJSON({ status: "error", message: "Action tidak dikenal: " + action });

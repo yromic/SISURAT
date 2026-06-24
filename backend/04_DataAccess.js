@@ -65,8 +65,6 @@ function _ensureSheet(name, headers) {
         sheet = ss.insertSheet(name);
         sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
         sheet.setFrozenRows(1);
-    } else {
-        _ensureHeaders(sheet, headers);
     }
     return sheet;
 }

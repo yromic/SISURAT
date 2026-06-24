@@ -89,11 +89,13 @@ var RBAC_RULES = {
     "retry_init_divisi:db_divisi": ["super_admin"],
     "cleanup_divisi:db_divisi": ["super_admin"],
     "deactivate_divisi:db_divisi": ["super_admin"],
+    "hard_delete_divisi:db_divisi": ["super_admin"],
     "migrate_existing_records:db_divisi": ["super_admin"],
     "init_divisi:*":            ["super_admin"],
     "retry_init_divisi:*":      ["super_admin"],
     "cleanup_divisi:*":         ["super_admin"],
     "deactivate_divisi:*":      ["super_admin"],
+    "hard_delete_divisi:*":      ["super_admin"],
     "migrate_existing_records:*": ["super_admin"],
 };
 

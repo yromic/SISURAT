@@ -3,6 +3,7 @@
 // ============================================================
 
 function getData(tableName, session, data, page, limit) {
+    console.time("PERF:getData");
     page = page || 1;
     limit = limit || 50;
 
@@ -39,6 +40,7 @@ function getData(tableName, session, data, page, limit) {
     var totalRows = sheet.getLastRow();
     var lastCol = sheet.getLastColumn();
     if (totalRows <= 1 || lastCol === 0) {
+        console.timeEnd("PERF:getData");
         return responseJSON({
             status: "success",
             data: [],
@@ -82,66 +84,74 @@ function getData(tableName, session, data, page, limit) {
     var endIndex = Math.min(startIndex + limit, activeCount);
     var pageRowNumbers = activeRowNumbers.slice(startIndex, endIndex);
 
-    // 4. Ambil data baris per baris (atau batch) berdasarkan nomor baris yang sudah didapat
+    // 4. Ambil data dengan Bounding Range Read (1x RPC)
     var result = [];
-    var isSuperAdmin = session ? (session.role === "super_admin") : false;
+    if (pageRowNumbers.length > 0) {
+        var startRow = pageRowNumbers[pageRowNumbers.length - 1]; // Terkecil
+        var endRow = pageRowNumbers[0]; // Terbesar
+        var rowCount = endRow - startRow + 1;
 
-    pageRowNumbers.forEach(function(rowNum) {
-        var rowRange = sheet.getRange(rowNum, 1, 1, lastCol);
-        var row = rowRange.getDisplayValues()[0];
+        var chunkValues = sheet.getRange(startRow, 1, rowCount, lastCol).getDisplayValues();
+        var isSuperAdmin = session ? (session.role === "super_admin") : false;
 
-        if (session && tableName === "db_users") {
-            if (session.role === "operator") return;
-            if (!isSuperAdmin) {
-                var divIdx = headerMapByName.divisi_id;
-                var userDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
-                if (userDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return;
+        pageRowNumbers.forEach(function(rowNum) {
+            var localIndex = rowNum - startRow;
+            var row = chunkValues[localIndex];
+
+            if (session && tableName === "db_users") {
+                if (session.role === "operator") return;
+                if (!isSuperAdmin) {
+                    var divIdx = headerMapByName.divisi_id;
+                    var userDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                    if (userDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                        return;
+                    }
                 }
             }
-        }
 
-        if (session && tableName === "db_summary") {
-            if (!isSuperAdmin) {
-                var divIdx = headerMapByName.divisi_id;
-                var summaryDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
-                if (summaryDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return;
+            if (session && tableName === "db_summary") {
+                if (!isSuperAdmin) {
+                    var divIdx = headerMapByName.divisi_id;
+                    var summaryDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                    if (summaryDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                        return;
+                    }
                 }
             }
-        }
 
-        if (session && tableName === "db_audit_log") {
-            if (session.role === "operator") return;
-            if (!isSuperAdmin) {
-                var divIdx = headerMapByName.divisi_id;
-                var auditDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
-                if (auditDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return;
+            if (session && tableName === "db_audit_log") {
+                if (session.role === "operator") return;
+                if (!isSuperAdmin) {
+                    var divIdx = headerMapByName.divisi_id;
+                    var auditDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
+                    if (auditDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
+                        return;
+                    }
                 }
             }
-        }
 
-        var obj = {};
-        obj.row_number = rowNum;
+            var obj = {};
+            obj.row_number = rowNum;
 
-        headers.forEach(function (header, index) {
-            var clean = normalizeHeader(header);
-            var finalKey = headerMap[clean]
-                ? headerMap[clean]
-                : clean.replace(/\s+/g, "_");
+            headers.forEach(function (header, index) {
+                var clean = normalizeHeader(header);
+                var finalKey = headerMap[clean]
+                    ? headerMap[clean]
+                    : clean.replace(/\s+/g, "_");
 
-            if (["password", "password_hash", "password_salt"].indexOf(finalKey) !== -1) return;
+                if (["password", "password_hash", "password_salt"].indexOf(finalKey) !== -1) return;
 
-            if (obj[finalKey] !== undefined && finalKey !== "row_number") {
-                obj[finalKey + "_2"] = row[index];
-            } else {
-                obj[finalKey] = row[index];
-            }
+                if (obj[finalKey] !== undefined && finalKey !== "row_number") {
+                    obj[finalKey + "_2"] = row[index];
+                } else {
+                    obj[finalKey] = row[index];
+                }
+            });
+            result.push(obj);
         });
-        result.push(obj);
-    });
+    }
 
+    console.timeEnd("PERF:getData");
     return responseJSON({
         status: "success",
         data: result,

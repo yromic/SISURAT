@@ -140,7 +140,13 @@
         `;
       } else if (isInactive) {
         statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Nonaktif</span>';
-        actions = '<span class="text-xs text-gray-400 font-semibold italic">Dinonaktifkan</span>';
+        actions = `
+          <div class="flex items-center justify-end gap-2">
+            <button onclick="divHardDelete('${div.kode_divisi}', this)" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border border-red-200">
+              <i class="fas fa-trash-alt"></i> Hapus Permanen
+            </button>
+          </div>
+        `;
       } else if (isPending) {
         statusBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Pending</span>';
         actions = `
@@ -358,6 +364,44 @@
     }
   }
 
+  async function divHardDelete(kode_divisi, btn) {
+    const inputVal = await SisuratUI.showPrompt({
+      type: "danger",
+      title: "Hapus Permanen Divisi",
+      message: `PERINGATAN: Aksi ini akan menghapus seluruh data divisi ${kode_divisi}, folder dokumen di Google Drive, statistik summary, serta menonaktifkan seluruh akun user divisi ini secara permanen. Ketik HAPUS untuk mengonfirmasi:`,
+      placeholder: "HAPUS",
+      confirmText: "Ya, Hapus Permanen",
+      cancelText: "Batal"
+    });
+    if (inputVal !== "HAPUS") {
+      if (inputVal !== null) {
+        SisuratUI.showToast("Konfirmasi salah! Anda harus mengetik kata 'HAPUS' dengan tepat.", "error");
+      }
+      return;
+    }
+
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menghapus...';
+
+    try {
+      const res = await SisuratApi.postAction("hard_delete_divisi", { kode_divisi });
+      if (res && res.status === "success") {
+        localStorage.removeItem("sisurat_divisions");
+        SisuratUI.showToast(`Divisi ${kode_divisi} berhasil dihapus permanen.`, "success");
+        loadDivisi();
+      } else {
+        SisuratUI.showToast(res.message || `Gagal menghapus permanen divisi ${kode_divisi}.`, "error");
+      }
+    } catch (error) {
+      console.error(error);
+      SisuratUI.showToast("Terjadi kesalahan koneksi.", "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  }
+
   function logout() {
     SisuratAuth.logoutToHome();
   }
@@ -377,6 +421,7 @@
   global.divRetry = divRetry;
   global.divCleanup = divCleanup;
   global.divDeactivate = divDeactivate;
+  global.divHardDelete = divHardDelete;
   global.logout = logout;
 
   global.addEventListener("load", init);

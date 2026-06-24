@@ -7,6 +7,20 @@ function _normalizeDivisiCode(code) {
 }
 
 function _findDivisiByCode(kode) {
+    if (!kode) return null;
+    
+    var cacheKey = "sisurat:v1:divisi:" + kode;
+    var cached = CacheService.getScriptCache().get(cacheKey);
+    if (cached) {
+        console.log("CACHE HIT: divisi " + kode);
+        try {
+            var divObj = JSON.parse(cached);
+            divObj.sheet = ss.getSheetByName("db_divisi");
+            return divObj;
+        } catch (_) {}
+    }
+    
+    console.log("CACHE MISS: divisi " + kode);
     var sheet = _ensureSheet("db_divisi", DB_DIVISI_HEADERS);
     var headers = _getHeaders(sheet);
     var map = _getHeaderIndexMap(sheet);
@@ -14,13 +28,15 @@ function _findDivisiByCode(kode) {
     var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
     for (var i = 0; i < values.length; i++) {
         if (String(values[i][map.kode_divisi] || "").trim() === kode) {
-            return {
-                sheet: sheet,
+            var result = {
                 rowNumber: i + 2,
                 headers: headers,
                 values: values[i],
                 data: _rowObjectFromValues(headers, values[i]),
             };
+            CacheService.getScriptCache().put(cacheKey, JSON.stringify(result), 600); // Division Cache TTL: 600 seconds
+            result.sheet = sheet;
+            return result;
         }
     }
     return null;
@@ -32,6 +48,9 @@ function _setDivisiValue(divisi, name, value) {
         divisi.values[idx] = value;
         divisi.sheet.getRange(divisi.rowNumber, idx + 1).setValue(value);
         divisi.data[name] = value;
+        if (divisi.data && divisi.data.kode_divisi) {
+            CacheService.getScriptCache().remove("sisurat:v1:divisi:" + divisi.data.kode_divisi);
+        }
     }
 }
 
@@ -60,14 +79,19 @@ function _ensureSummaryRow(divisi_id) {
 }
 
 function updateSummary(divisi_id, tipe, delta) {
+    console.time("PERF:updateSummary");
     var sheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
     var rowNumber = _ensureSummaryRow(divisi_id);
     var map = _getHeaderIndexMap(sheet);
     var field = "total_" + String(tipe || "").replace(/^db_/, "");
-    if (map[field] === undefined) return;
+    if (map[field] === undefined) {
+        console.timeEnd("PERF:updateSummary");
+        return;
+    }
     var current = Number(sheet.getRange(rowNumber, map[field] + 1).getValue() || 0);
     sheet.getRange(rowNumber, map[field] + 1).setValue(current + Number(delta || 0));
     sheet.getRange(rowNumber, map.last_updated + 1).setValue(new Date());
+    console.timeEnd("PERF:updateSummary");
 }
 
 function _recomputeSummary(divisi_id) {
@@ -237,6 +261,11 @@ function cleanupDivisi(data, session) {
         }
         _deleteSummaryRow(divisi.data.id || kode);
         _setDivisiValue(divisi, "status", "cleanup");
+
+        // Invalidate Cache & Force Logout Users
+        CacheService.getScriptCache().remove("sisurat:v1:divisi:" + kode);
+        _forceLogoutDivisionUsers(divisi.data.id || kode);
+
         writeAuditLog(session.username, auth.role, divisi.data.id || kode, "cleanup_divisi", "db_divisi", divisi.data.id || kode, "Cleanup divisi pending " + kode);
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
     } catch (err) {
@@ -260,10 +289,90 @@ function deactivateDivisi(data, session) {
         if (!divisi) return _errorResponse("ERR_404_DIVISI");
 
         _setDivisiValue(divisi, "status", "inactive");
+
+        // Invalidate Cache & Force Logout Users
+        CacheService.getScriptCache().remove("sisurat:v1:divisi:" + kode);
+        _forceLogoutDivisionUsers(divisi.data.id || kode);
+
         writeAuditLog(session.username, auth.role, divisi.data.id || kode, "deactivate_divisi", "db_divisi", divisi.data.id || kode, "Deactivate divisi " + kode);
         return responseJSON({ status: "success", kode_divisi: kode, divisi_id: divisi.data.id || kode });
     } catch (err) {
         return _serverError("deactivateDivisi", err);
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+function hardDeleteDivisi(data, session) {
+    var auth = _requireSuperAdmin(session, "hard_delete_divisi");
+    if (!auth.ok) return auth.response;
+    var kode = _normalizeDivisiCode(data.kode_divisi);
+    if (!kode) return _errorResponse("ERR_400_DIVISI");
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+        _ensureGlobalSheets();
+        var divisi = _findDivisiByCode(kode);
+        if (!divisi) return _errorResponse("ERR_404_DIVISI");
+
+        // Safety barrier: must be inactive
+        if (String(divisi.data.status || "").toLowerCase() !== "inactive") {
+            return _errorResponse("ERR_409_DIVISI_STATUS_NOT_INACTIVE");
+        }
+
+        // 1. Trash Drive Folder
+        var folderId = String(divisi.data.drive_folder_id || "").trim();
+        if (folderId) {
+            try {
+                DriveApp.getFolderById(folderId).setTrashed(true);
+            } catch (e) {
+                console.warn("Gagal menghapus folder Drive divisi: " + e.toString());
+            }
+        }
+
+        // 2. Delete Division Sheets
+        _deletePartialDivisiSheets(kode);
+
+        // 3. Delete Summary Row
+        _deleteSummaryRow(divisi.data.id || kode);
+
+        // 4. Clean up / Dissociate and deactivate division users in db_users
+        var userSheet = _getUserSheet();
+        if (userSheet && userSheet.getLastRow() >= 2) {
+            var userHeaders = _getHeaders(userSheet);
+            var userMap = _getHeaderIndexMap(userSheet);
+            var userValuesRange = userSheet.getRange(2, 1, userSheet.getLastRow() - 1, userSheet.getLastColumn());
+            var userValues = userValuesRange.getValues();
+            var userUpdated = false;
+            for (var u = 0; u < userValues.length; u++) {
+                if (String(userValues[u][userMap.divisi_id] || "").trim().toUpperCase() === kode) {
+                    if (userMap.divisi_id !== undefined) {
+                        userValues[u][userMap.divisi_id] = "";
+                    }
+                    if (userMap.aktif !== undefined) {
+                        userValues[u][userMap.aktif] = false;
+                    }
+                    userUpdated = true;
+                }
+            }
+            if (userUpdated) {
+                userValuesRange.setValues(userValues);
+            }
+        }
+
+        // 5. Invalidate Cache & Force Logout Users
+        CacheService.getScriptCache().remove("sisurat:v1:divisi:" + kode);
+        _forceLogoutDivisionUsers(divisi.data.id || kode);
+
+        // 6. Delete Division Row from db_divisi
+        var divisionSheet = divisi.sheet;
+        divisionSheet.deleteRow(divisi.rowNumber);
+
+        writeAuditLog(session.username, auth.role, divisi.data.id || kode, "hard_delete_divisi", "db_divisi", divisi.data.id || kode, "Hard delete divisi " + kode);
+        return responseJSON({ status: "success", kode_divisi: kode });
+    } catch (err) {
+        return _serverError("hardDeleteDivisi", err);
     } finally {
         lock.releaseLock();
     }

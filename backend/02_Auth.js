@@ -3,7 +3,7 @@
 // ============================================================
 
 function _sessionKey(token) {
-    return "session_" + token;
+    return "sisurat:v1:session:" + token;
 }
 
 function _sessionToken(data) {
@@ -27,7 +27,7 @@ function _sessionJson(session) {
 function _storeSession(session) {
     var key = _sessionKey(session.token);
     var json = _sessionJson(session);
-    CacheService.getScriptCache().put(key, json, SESSION_TTL_SECONDS);
+    CacheService.getScriptCache().put(key, json, 300); // Session Cache TTL: 300 seconds
     PropertiesService.getScriptProperties().setProperty(key, json);
 }
 
@@ -55,16 +55,26 @@ function _createSession(user) {
 }
 
 function _getSession(token) {
+    console.time("PERF:_getSession");
     if (!token) {
+        console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "missing token" };
     }
 
     var key = _sessionKey(token);
     var raw = CacheService.getScriptCache().get(key);
-    if (!raw) {
+    if (raw) {
+        console.log("CACHE HIT: session " + token);
+    } else {
+        console.log("CACHE MISS: session " + token);
         raw = PropertiesService.getScriptProperties().getProperty(key);
+        if (raw) {
+            CacheService.getScriptCache().put(key, raw, 300);
+        }
     }
+
     if (!raw) {
+        console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "token not found" };
     }
 
@@ -73,18 +83,20 @@ function _getSession(token) {
         session = JSON.parse(raw);
     } catch (err) {
         _deleteSession(token);
+        console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "session parse failed" };
     }
 
     if (!session.expires || Number(session.expires) <= Date.now()) {
         _deleteSession(token);
+        console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "token expired" };
     }
 
-    // Direct access to DataAccess / local helper rather than UserService to avoid coupling
     var user = _lookupUser(session.username);
     if (!user || user.aktif === false) {
         _deleteSession(token);
+        console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "user inactive or missing" };
     }
 
@@ -92,6 +104,7 @@ function _getSession(token) {
         var div = _findDivisiByCode(user.divisi_id);
         if (div && String(div.data.status || "").toLowerCase() === "inactive") {
             _deleteSession(token);
+            console.timeEnd("PERF:_getSession");
             return { ok: false, detail: "division inactive" };
         }
     }
@@ -105,6 +118,7 @@ function _getSession(token) {
     session.expires = Date.now() + SESSION_TTL_SECONDS * 1000;
     _storeSession(session);
 
+    console.timeEnd("PERF:_getSession");
     return { ok: true, session: session };
 }
 
@@ -278,4 +292,44 @@ function cekLogin(data) {
         status: "error",
         message: "Username atau Password salah!",
     });
+}
+
+function _forceLogoutUser(username) {
+    if (!username) return;
+    try {
+        var props = PropertiesService.getScriptProperties().getProperties();
+        for (var k in props) {
+            if (k.indexOf("sisurat:v1:session:") === 0 || k.indexOf("session_") === 0) {
+                var raw = props[k];
+                try {
+                    var session = JSON.parse(raw);
+                    if (session && String(session.username).toLowerCase() === String(username).toLowerCase()) {
+                        _deleteSession(session.token);
+                    }
+                } catch (_) {}
+            }
+        }
+    } catch (e) {
+        console.error("Gagal _forceLogoutUser: " + e.toString());
+    }
+}
+
+function _forceLogoutDivisionUsers(divisiId) {
+    if (!divisiId) return;
+    try {
+        var props = PropertiesService.getScriptProperties().getProperties();
+        for (var k in props) {
+            if (k.indexOf("sisurat:v1:session:") === 0 || k.indexOf("session_") === 0) {
+                var raw = props[k];
+                try {
+                    var session = JSON.parse(raw);
+                    if (session && String(session.divisi_id).toUpperCase() === String(divisiId).toUpperCase()) {
+                        _deleteSession(session.token);
+                    }
+                } catch (_) {}
+            }
+        }
+    } catch (e) {
+        console.error("Gagal _forceLogoutDivisionUsers: " + e.toString());
+    }
 }

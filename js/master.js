@@ -1444,7 +1444,7 @@
     });
   }
 
-  function init() {
+  async function init() {
     const user = SisuratAuth.requireAuth();
     if (!user) return;
 
@@ -1466,6 +1466,27 @@
       initialTab = "masuk";
     } else if (type === "surat_keluar") {
       initialTab = "keluar";
+    }
+
+    const table = TAB_TABLE[initialTab];
+    showTableLoading(true);
+    try {
+      // Bootstrapping API tunggal: session, settings, dan data halaman awal sekaligus
+      const bootRes = await SisuratApi.bootstrapApp(table);
+      if (bootRes && bootRes.status === "success") {
+        if (bootRes.session) {
+          // Sync update status/role user jika ada
+          SisuratAuth.setStoredUser({
+            ...user,
+            ...bootRes.session,
+            session_token: user.session_token
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[Bootstrap] Gagal inisialisasi cepat, fallback ke pemuatan normal:", e);
+    } finally {
+      showTableLoading(false);
     }
 
     switchTab(initialTab);
@@ -1595,7 +1616,21 @@
     area.classList.toggle("hidden", !isHidden);
     if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
   }
+
+  async function refreshData() {
+    try {
+      SisuratApi.clearClientCache();
+      showToast("success", "Cache dibersihkan. Memuat data terbaru...");
+      await loadTab();
+      showToast("success", "Data berhasil diperbarui dari server!");
+    } catch (e) {
+      console.error("Gagal memperbarui data:", e);
+      showToast("error", "Gagal memperbarui data dari server.");
+    }
+  }
+
   // ─── Expose ke global (dipanggil dari HTML onclick) ───────────────────────────
+  global.refreshData = refreshData;
   global.switchTab = switchTab;
   global.loadTab = loadTab;
   global.openAddModal = openAddModal;

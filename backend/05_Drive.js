@@ -11,8 +11,12 @@ function _getFolderIdForDivisi(divisiId, tableName) {
 }
 
 function uploadFileToDrive(base64DataUrl, fileName, folderId) {
+    console.time("PERF:uploadFileToDrive");
     var parts = base64DataUrl.split(",");
-    if (parts.length < 2) throw new Error("Format base64 tidak valid");
+    if (parts.length < 2) {
+        console.timeEnd("PERF:uploadFileToDrive");
+        throw new Error("Format base64 tidak valid");
+    }
 
     var meta = parts[0];
     var contentMatch = meta.match(/data:([^;]+);/);
@@ -28,7 +32,9 @@ function uploadFileToDrive(base64DataUrl, fileName, folderId) {
     var folder = DriveApp.getFolderById(targetFolderId);
     var file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return "https://drive.google.com/uc?export=view&id=" + file.getId();
+    var url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+    console.timeEnd("PERF:uploadFileToDrive");
+    return url;
 }
 
 function deleteFileFromDrive(fileUrl) {

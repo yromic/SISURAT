@@ -235,6 +235,14 @@
             <i class="fas fa-plus text-[#00ADB5]"></i> Tambah Surat
           </button>
           <button
+            id="btn-refresh"
+            onclick="refreshData()"
+            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
+          >
+            <i class="fas fa-sync-alt text-[#00ADB5] mr-2 group-hover:rotate-180 transition-transform duration-500"></i>
+            Refresh
+          </button>
+          <button
             onclick="
               document.getElementById('infoMaster').classList.toggle('hidden')
             "

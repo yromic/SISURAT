@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbz5Te6ausn2hmEF6qybuVppFQLUuuu5Vk8A3XCojzYfo-eDd-n4alxK8k9hZBBwNIo_uQ/exec";
+    "https://script.google.com/macros/s/AKfycbwKmRQo7vuHd7OXOtV3kIxuDDlqgh3GIeuiQ56QpZg8d5kyQ7wkLbFfuxxthhuf5bMbPg/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -12,8 +12,8 @@
   const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
   // PENTING: CacheService GAS memiliki batas 100 KB per nilai.
   // Chunk size raw dalam bytes HARUS kelipatan 3 agar bit padding Base64 tidak kacau saat digabungkan.
-  // 48 KB = 49152 bytes (kelipatan 3). Base64 = 65536 karakter (~64 KB). Sangat aman di bawah limit 100 KB.
-  const CHUNK_SIZE_BYTES = 48 * 1024; // Wajib kelipatan 3!
+  // 72 KB = 73728 bytes (kelipatan 3). Base64 = 98304 karakter (~96 KB). Sangat aman di bawah limit 100 KB.
+  const CHUNK_SIZE_BYTES = 72 * 1024; // Wajib kelipatan 3!
 
   let paginationState = {
     currentPage: 1,
@@ -519,6 +519,15 @@
     });
   }
 
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   // ─── Chunked File Upload ──────────────────────────────────────────────────────
   /**
    * Upload file ke Google Drive via Apps Script dalam potongan (chunks).
@@ -539,7 +548,25 @@
     // 2. Kompres gambar jika perlu
     const processedFile = await compressImage(file);
 
-    // 3. Konversi ke ArrayBuffer → Base64 (split per chunk)
+    // 3. Direct upload (bypass chunking) jika file kecil (< 500 KB)
+    if (processedFile.size < 500 * 1024) {
+      console.log("Direct upload (bypass chunking) for file: " + processedFile.name);
+      const base64DataUrl = await fileToDataURL(processedFile);
+      const token = getSessionToken();
+      const finalRes = await postAction("upload_file", {
+        base64DataUrl,
+        fileName: processedFile.name,
+        folderId,
+        session_token: token
+      });
+      if (!finalRes || finalRes.status !== "success") {
+        throw new Error((finalRes && finalRes.message) || "Gagal menyelesaikan upload file.");
+      }
+      if (typeof onProgress === "function") onProgress(100);
+      return finalRes.fileUrl;
+    }
+
+    // 4. Konversi ke ArrayBuffer → Base64 (split per chunk)
     const arrayBuffer = await processedFile.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     const totalBytes = bytes.length;
@@ -689,11 +716,45 @@
     _cacheInvalidateHandlers.push(fn);
   }
 
-  async function loadData(table, page = 1) {
+  function invalidateCache() {
+    _cacheInvalidateHandlers.forEach((fn) => fn());
+  }
+
+
+  const _clientCache = {};
+  const CLIENT_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+  function clearClientCache() {
+    for (const k in _clientCache) delete _clientCache[k];
+    console.log("CLIENT CACHE: cleared");
+  }
+
+  // Hook invalidasi cache untuk membersihkan cache lokal
+  onCacheInvalidate(() => {
+    clearClientCache();
+  });
+
+  async function loadData(table, page = 1, forceRefresh = false) {
     if (table !== paginationState.currentTable) {
       page = 1;
       paginationState.currentTable = table;
     }
+
+    const cacheKey = `${table}_${page}_${paginationState.itemsPerPage}`;
+    if (!forceRefresh && _clientCache[cacheKey]) {
+      const cached = _clientCache[cacheKey];
+      if (Date.now() - cached.timestamp < CLIENT_CACHE_TTL_MS) {
+        console.log("CLIENT CACHE HIT: " + cacheKey);
+        const res = cached.data;
+        paginationState.currentPage = res.page || page;
+        paginationState.totalPages = res.totalPages || 0;
+        paginationState.total = res.total || 0;
+        updatePaginationUI();
+        return res;
+      }
+    }
+
+    console.log("CLIENT CACHE MISS/FORCE: " + cacheKey);
     const token = getSessionToken();
     const res = await postAction("get_data", {
       table: table,
@@ -707,6 +768,35 @@
       paginationState.totalPages = res.totalPages || 0;
       paginationState.total = res.total || 0;
       updatePaginationUI();
+      _clientCache[cacheKey] = {
+        timestamp: Date.now(),
+        data: res
+      };
+    }
+    return res;
+  }
+
+  async function bootstrapApp(initialTable) {
+    const token = getSessionToken();
+    const res = await postAction("bootstrap", {
+      session_token: token,
+      table: initialTable,
+      page: 1,
+      limit: paginationState.itemsPerPage
+    });
+
+    if (res && res.status === "success") {
+      if (res.initialData && res.initialData.status === "success") {
+        const cacheKey = `${initialTable}_1_${paginationState.itemsPerPage}`;
+        _clientCache[cacheKey] = {
+          timestamp: Date.now(),
+          data: res.initialData
+        };
+        paginationState.currentPage = res.initialData.page || 1;
+        paginationState.totalPages = res.initialData.totalPages || 0;
+        paginationState.total = res.initialData.total || 0;
+        updatePaginationUI();
+      }
     }
     return res;
   }
@@ -773,9 +863,13 @@
     loadData,
     goToPage,
     updatePaginationUI,
+    bootstrapApp,
+    clearClientCache,
   };
   global.paginationState = paginationState;
   global.loadData = loadData;
   global.goToPage = goToPage;
   global.updatePaginationUI = updatePaginationUI;
+  global.bootstrapApp = bootstrapApp;
+  global.clearClientCache = clearClientCache;
 })(window);

@@ -3,8 +3,10 @@
 // ============================================================
 
 function handleUploadChunk(data, session) {
+    console.time("PERF:handleUploadChunk");
     try {
         if (!session) {
+            console.timeEnd("PERF:handleUploadChunk");
             return _errorResponse("ERR_401_SESSION");
         }
 
@@ -13,6 +15,7 @@ function handleUploadChunk(data, session) {
         var chunkBase64 = data.chunkBase64;
 
         if (!uploadId || chunkIndex === undefined || !chunkBase64) {
+            console.timeEnd("PERF:handleUploadChunk");
             return responseJSON({ status: "error", message: "Parameter chunk tidak lengkap" });
         }
 
@@ -22,15 +25,19 @@ function handleUploadChunk(data, session) {
         var key = "chunk_" + divisiId + "_" + uploadId + "_" + chunkIndex;
         CacheService.getScriptCache().put(key, chunkBase64, 3600);
 
+        console.timeEnd("PERF:handleUploadChunk");
         return responseJSON({ status: "success", message: "Chunk " + chunkIndex + " diterima" });
     } catch (err) {
+        console.timeEnd("PERF:handleUploadChunk");
         return _serverError("handleUploadChunk", err);
     }
 }
 
 function finalizeUpload(data, session) {
+    console.time("PERF:finalizeUpload");
     try {
         if (!session) {
+            console.timeEnd("PERF:finalizeUpload");
             return _errorResponse("ERR_401_SESSION");
         }
 
@@ -40,6 +47,7 @@ function finalizeUpload(data, session) {
         var mimeType    = data.mimeType  || "application/octet-stream";
 
         if (!uploadId || !totalChunks) {
+            console.timeEnd("PERF:finalizeUpload");
             return responseJSON({ status: "error", message: "Parameter finalize tidak lengkap" });
         }
 
@@ -48,14 +56,19 @@ function finalizeUpload(data, session) {
             : (session.divisi_id ? String(session.divisi_id).trim().toUpperCase() : "GLOBAL");
         var cache = CacheService.getScriptCache();
 
+        var keys = [];
+        for (var i = 0; i < totalChunks; i++) {
+            keys.push("chunk_" + divisiId + "_" + uploadId + "_" + i);
+        }
+
+        var chunksMap = cache.getAll(keys);
         var fullBase64 = "";
         for (var i = 0; i < totalChunks; i++) {
-            var key = "chunk_" + divisiId + "_" + uploadId + "_" + i;
-            var chunk = cache.get(key);
+            var key = keys[i];
+            var chunk = chunksMap[key];
             if (!chunk) {
-                for (var j = 0; j < i; j++) {
-                    cache.remove("chunk_" + divisiId + "_" + uploadId + "_" + j);
-                }
+                cache.removeAll(keys);
+                console.timeEnd("PERF:finalizeUpload");
                 return responseJSON({
                     status: "error",
                     message: "Chunk " + i + " tidak ditemukan. Coba upload ulang."
@@ -64,12 +77,11 @@ function finalizeUpload(data, session) {
             fullBase64 += chunk;
         }
 
-        for (var k = 0; k < totalChunks; k++) {
-            cache.remove("chunk_" + divisiId + "_" + uploadId + "_" + k);
-        }
+        cache.removeAll(keys);
 
         var totalBytes = Math.floor(fullBase64.length * 0.75);
         if (totalBytes > 10 * 1024 * 1024) {
+            console.timeEnd("PERF:finalizeUpload");
             return _errorResponse("ERR_413_FILE");
         }
 
@@ -93,12 +105,14 @@ function finalizeUpload(data, session) {
 
         writeAuditLog(session.username, session.role, session.divisi_id || "-", "upload", "-", "-", "Upload file: " + fileName);
 
+        console.timeEnd("PERF:finalizeUpload");
         return responseJSON({
             status: "success",
             message: "File berhasil disimpan ke Drive.",
             fileUrl: fileUrl
         });
     } catch (err) {
+        console.timeEnd("PERF:finalizeUpload");
         return _serverError("finalizeUpload", err);
     }
 }

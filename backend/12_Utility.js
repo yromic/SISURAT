@@ -136,3 +136,11 @@ function _rowObjectFromValues(headers, rowValues) {
     });
     return obj;
 }
+
+function runMigrateExistingRecords(session) {
+    var auth = _requireSuperAdmin(session, "migrate_existing_records");
+    if (!auth.ok) return auth.response;
+    var results = migrateExistingRecords();
+    writeAuditLog(session.username, auth.role, session.divisi_id || "-", "migrate_existing_records", "-", "-", "Migrasi UUID/soft-delete record existing");
+    return responseJSON({ status: "success", results: results });
+}
