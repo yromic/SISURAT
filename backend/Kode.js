@@ -808,7 +808,10 @@ function doPost(e) {
                 return responseJSON({ status: "success", data: [] });
             }
 
-            return getData(resolvedTable, session, data);
+            var page = Number(data.page) || 1;
+            var limit = Number(data.limit) || 50;
+
+            return getData(resolvedTable, session, data, page, limit);
         } else if (action == "get_settings") {
             var isSA = false;
             var token = _sessionToken(data);
@@ -1046,7 +1049,10 @@ function normalizeKey(header) {
 // Tabel users yang boleh di-read oleh admin (password akan di-strip)
 var USER_TABLES = ["db_users", "users"];
 
-function getData(tableName, session, data) {
+function getData(tableName, session, data, page, limit) {
+    page = page || 1;
+    limit = limit || 50;
+
     var isPublicTable = false;
     if (tableName === "ref_sekolah") {
         isPublicTable = true;
@@ -1077,30 +1083,69 @@ function getData(tableName, session, data) {
         });
     }
 
-    var data = sheet.getDataRange().getDisplayValues();
-    if (data.length <= 1) {
-        return responseJSON({ status: "success", data: [] });
+    var totalRows = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (totalRows <= 1 || lastCol === 0) {
+        return responseJSON({
+            status: "success",
+            data: [],
+            total: 0,
+            page: page,
+            limit: limit,
+            totalPages: 0
+        });
     }
 
-    var headers = data[0];
-    var rows = data.slice(1);
+    // 1. Bangun daftar nomor baris yang AKTIF (dari bawah ke atas)
+    var activeRowNumbers = [];
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
     var headerMapByName = _getHeaderIndexMap(sheet);
     var deletedIdx = headerMapByName.is_deleted;
 
+    if (deletedIdx === undefined || deletedIdx === -1) {
+        // Jika tidak ada kolom is_deleted, anggap semua aktif, loop dari bawah ke atas
+        for (var i = totalRows; i >= 2; i--) {
+            activeRowNumbers.push(i);
+        }
+    } else {
+        // Baca HANYA kolom is_deleted (1 kolom, cepat!)
+        var deletedRange = sheet.getRange(2, deletedIdx + 1, totalRows - 1, 1).getValues();
+        for (var i = totalRows - 2; i >= 0; i--) { // loop dari bawah ke atas
+            var rowNum = i + 2;
+            var isDel = String(deletedRange[i][0]).trim();
+            if (!/^(true|1|yes|ya)$/i.test(isDel)) {
+                activeRowNumbers.push(rowNum); // Simpan nomor baris yang aktif
+            }
+        }
+    }
+
+    // 2. Hitung paginasi berdasarkan daftar aktif
+    var activeCount = activeRowNumbers.length;
+    var totalPages = Math.ceil(activeCount / limit);
+    if (page > totalPages && totalPages > 0) {
+        page = totalPages;
+    }
+
+    // 3. Ambil potongan nomor baris untuk halaman yang diminta
+    var startIndex = (page - 1) * limit;
+    var endIndex = Math.min(startIndex + limit, activeCount);
+    var pageRowNumbers = activeRowNumbers.slice(startIndex, endIndex);
+
+    // 4. Ambil data baris per baris (atau batch) berdasarkan nomor baris yang sudah didapat
+    var result = [];
     var isSuperAdmin = session ? (session.role === "super_admin") : false;
 
-    var result = rows.map(function (row, rowIndex) {
-        if (deletedIdx !== undefined && /^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim())) {
-            return null;
-        }
+    pageRowNumbers.forEach(function(rowNum) {
+        var rowRange = sheet.getRange(rowNum, 1, 1, lastCol);
+        var row = rowRange.getDisplayValues()[0];
 
         if (session && tableName === "db_users") {
-            if (session.role === "operator") return null;
+            if (session.role === "operator") return;
             if (!isSuperAdmin) {
                 var divIdx = headerMapByName.divisi_id;
                 var userDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
                 if (userDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return null;
+                    return;
                 }
             }
         }
@@ -1110,27 +1155,24 @@ function getData(tableName, session, data) {
                 var divIdx = headerMapByName.divisi_id;
                 var summaryDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
                 if (summaryDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return null;
+                    return;
                 }
             }
         }
 
         if (session && tableName === "db_audit_log") {
-            if (session.role === "operator") return null;
+            if (session.role === "operator") return;
             if (!isSuperAdmin) {
                 var divIdx = headerMapByName.divisi_id;
                 var auditDivId = (divIdx !== undefined) ? String(row[divIdx] || "").trim() : "";
                 if (auditDivId.toUpperCase() !== String(session.divisi_id).toUpperCase()) {
-                    return null;
+                    return;
                 }
             }
         }
 
         var obj = {};
-
-        // Sisipkan nomor baris sheet (row 2 = data pertama, dst.)
-        // Frontend menggunakan ini sebagai ID untuk delete/update
-        obj.row_number = rowIndex + 2;
+        obj.row_number = rowNum;
 
         headers.forEach(function (header, index) {
             var clean = normalizeHeader(header);
@@ -1147,10 +1189,17 @@ function getData(tableName, session, data) {
                 obj[finalKey] = row[index];
             }
         });
-        return obj;
-    }).filter(function(row) { return row !== null; });
+        result.push(obj);
+    });
 
-    return responseJSON({ status: "success", data: result });
+    return responseJSON({
+        status: "success",
+        data: result,
+        total: activeCount,
+        page: page,
+        limit: limit,
+        totalPages: totalPages
+    });
 }
 
 function _isRecordSheetName(sheetName) {

@@ -421,26 +421,26 @@
 
           <!-- Pagination Bar -->
           <div
+            id="pagination-controls"
             class="flex flex-wrap items-center justify-between gap-4 px-8 py-5 border-t border-gray-100 bg-gray-50/50 rounded-b-[2rem] z-0"
           >
             <span
               id="page-info"
               class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white px-4 py-2 border border-gray-200 rounded-lg shadow-sm"
-              >—</span
+              >Halaman 1 dari 1</span
             >
             <div class="flex items-center gap-2 font-bold font-outfit">
               <button
                 id="btn-prev"
-                onclick="prevPage()"
+                onclick="goToPage(paginationState.currentPage - 1)"
                 disabled
                 class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all"
               >
                 <i class="fas fa-arrow-left"></i>
               </button>
-              <div id="page-numbers" class="flex items-center gap-1"></div>
               <button
                 id="btn-next"
-                onclick="nextPage()"
+                onclick="goToPage(paginationState.currentPage + 1)"
                 disabled
                 class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all"
               >

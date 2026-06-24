@@ -314,16 +314,15 @@
     }
 
     try {
-      const handleDataUpdate = (rows) => {
-        state.rawData = rows;
+      const res = await SisuratApi.loadData(table, SisuratApi.paginationState.currentPage);
+      if (res && res.status === "success") {
+        const rows = Array.isArray(res.data) ? res.data : [];
+        const normalized = rows.map((row) => SisuratApi.normalizeRecord(row, table));
+        state.rawData = normalized;
         applySearch();
-      };
-
-      const rows = await SisuratApi.fetchTable(table, {
-        staleWhileRevalidate: true,
-        onFresh: handleDataUpdate
-      });
-      handleDataUpdate(rows);
+      } else {
+        renderError();
+      }
     } catch (e) {
       console.error("Gagal memuat data:", e);
       renderError();
@@ -421,15 +420,13 @@
     const canDelete = true;
     const canCreate = true;
     const showActions = canEdit || canDelete;
-    const total = state.filteredData.length;
-    const pageSize = state.pageSize;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const page = Math.min(state.currentPage, totalPages);
-    state.currentPage = page;
+    const total = SisuratApi.paginationState.total;
+    const totalPages = SisuratApi.paginationState.totalPages || 1;
+    const page = SisuratApi.paginationState.currentPage;
 
-    const start = (page - 1) * pageSize;
-    const end = Math.min(start + pageSize, total);
-    const pageData = state.filteredData.slice(start, end);
+    const start = (page - 1) * SisuratApi.paginationState.itemsPerPage;
+    const end = start + state.filteredData.length;
+    const pageData = state.filteredData;
 
     // Render header dengan sort
     const thead = document.getElementById("master-thead");
@@ -505,16 +502,7 @@
     }
 
     // Pagination info & buttons
-    const pageInfoEl = document.getElementById("page-info");
-    if (pageInfoEl) {
-      pageInfoEl.textContent =
-        total === 0 ? "0 data" : `${start + 1}–${end} dari ${total} data`;
-    }
-    document.getElementById("btn-prev").disabled = page <= 1;
-    document.getElementById("btn-next").disabled = page >= totalPages;
-
-    // Render page number buttons
-    renderPageButtons(page, totalPages);
+    SisuratApi.updatePaginationUI();
 
     // Tambah button visibility
     const addBtn = document.getElementById("btn-tambah");
@@ -1609,6 +1597,7 @@
   }
   // ─── Expose ke global (dipanggil dari HTML onclick) ───────────────────────────
   global.switchTab = switchTab;
+  global.loadTab = loadTab;
   global.openAddModal = openAddModal;
   global.openEditModal = openEditModal;
   global.closeModal = closeModal;

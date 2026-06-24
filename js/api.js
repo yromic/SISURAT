@@ -15,6 +15,14 @@
   // 48 KB = 49152 bytes (kelipatan 3). Base64 = 65536 karakter (~64 KB). Sangat aman di bawah limit 100 KB.
   const CHUNK_SIZE_BYTES = 48 * 1024; // Wajib kelipatan 3!
 
+  let paginationState = {
+    currentPage: 1,
+    itemsPerPage: 50,
+    currentTable: null,
+    totalPages: 0,
+    total: 0
+  };
+
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
   const DRIVE_FOLDERS = Object.freeze({
@@ -681,8 +689,53 @@
     _cacheInvalidateHandlers.push(fn);
   }
 
-  function invalidateCache() {
-    _cacheInvalidateHandlers.forEach((fn) => fn());
+  async function loadData(table, page = 1) {
+    if (table !== paginationState.currentTable) {
+      page = 1;
+      paginationState.currentTable = table;
+    }
+    const token = getSessionToken();
+    const res = await postAction("get_data", {
+      table: table,
+      page: page,
+      limit: paginationState.itemsPerPage,
+      session_token: token
+    });
+
+    if (res && res.status === "success") {
+      paginationState.currentPage = res.page || page;
+      paginationState.totalPages = res.totalPages || 0;
+      paginationState.total = res.total || 0;
+      updatePaginationUI();
+    }
+    return res;
+  }
+
+  function goToPage(newPage) {
+    if (newPage >= 1 && newPage <= paginationState.totalPages) {
+      if (typeof window.loadTab === "function") {
+        paginationState.currentPage = newPage;
+        window.loadTab();
+      } else {
+        loadData(paginationState.currentTable, newPage);
+      }
+    }
+  }
+
+  function updatePaginationUI() {
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+
+    if (btnPrev) {
+      btnPrev.disabled = (paginationState.currentPage <= 1);
+    }
+    if (btnNext) {
+      btnNext.disabled = (paginationState.currentPage >= paginationState.totalPages);
+    }
+    if (pageInfo) {
+      pageInfo.innerText = `Halaman ${paginationState.currentPage} dari ${paginationState.totalPages || 1}`;
+    }
   }
 
   global.SisuratApi = {
@@ -716,5 +769,13 @@
     exportCsv,
     onCacheInvalidate,
     invalidateCache,
+    paginationState,
+    loadData,
+    goToPage,
+    updatePaginationUI,
   };
+  global.paginationState = paginationState;
+  global.loadData = loadData;
+  global.goToPage = goToPage;
+  global.updatePaginationUI = updatePaginationUI;
 })(window);
