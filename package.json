@@ -1,0 +1,11 @@
+{
+  "name": "sisurat",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./css/input.css -o ./css/output.css --minify",
+    "watch:css": "tailwindcss -i ./css/input.css -o ./css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

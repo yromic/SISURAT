@@ -79,6 +79,14 @@
   }
 
   function init() {
+    if (SisuratApi && SisuratApi.BASE_URL) {
+      fetch(SisuratApi.BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "ping", origin: window.location.origin }),
+      }).catch(function () {});
+    }
+
     const existingUser = SisuratAuth.getStoredUser();
     if (existingUser) {
       window.location.href = "dashboard.html";

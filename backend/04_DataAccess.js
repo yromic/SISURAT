@@ -19,11 +19,17 @@ function _getHeaders(sheet) {
     return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(_normalizeHeaderName);
 }
 
-function _getHeaderIndexMap(sheet) {
-    var headers = _getHeaders(sheet);
+function _getHeaderIndexMap(sheet, existingHeaders) {
+    var headers;
+    if (existingHeaders && existingHeaders.length > 0) {
+        headers = existingHeaders;
+    } else {
+        headers = _getHeaders(sheet);
+    }
     var map = {};
     headers.forEach(function(header, index) {
-        if (header) map[header] = index;
+        var clean = _normalizeHeaderName(header);
+        if (clean) map[clean] = index;
     });
     return map;
 }

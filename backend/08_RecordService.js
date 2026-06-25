@@ -2,59 +2,65 @@
 // SISURAT — Document & Record Management Service
 // ============================================================
 
-function getData(tableName, session, data, page, limit) {
-    console.time("PERF:getData");
-    page = page || 1;
-    limit = limit || 50;
+function _buildDataCacheKey(tableName, page, limit, divisionFilter) {
+    return "data:" + tableName + ":p" + page + ":l" + limit +
+           (divisionFilter ? ":d" + divisionFilter : "");
+}
 
-    var isPublicTable = false;
-    if (tableName === "ref_sekolah") {
-        isPublicTable = true;
-    } else {
-        var match = tableName.match(/^([A-Z0-9]+)_(ref_pengambilan|ref_jenis)$/i);
-        if (match) {
-            isPublicTable = true;
+function _invalidateDataCache(tableName) {
+    var cache = CacheService.getScriptCache();
+    var limits = [25, 50, 100];
+    var pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    var keys = [];
+    var divisionsList = [];
+    try {
+        var divSheet = ss.getSheetByName("db_divisi");
+        if (divSheet) {
+            var divData = divSheet.getDataRange().getValues();
+            for (var i = 1; i < divData.length; i++) {
+                if (divData[i][1]) {
+                    divisionsList.push(String(divData[i][1]).trim().toUpperCase());
+                }
+            }
         }
-    }
+    } catch (_) {}
+    divisionsList.push("");
 
-    if (!session && !isPublicTable) {
-        return _errorResponse("ERR_401_SESSION");
-    }
+    pages.forEach(function (p) {
+        limits.forEach(function (l) {
+            divisionsList.forEach(function (d) {
+                keys.push("data:" + tableName + ":p" + p + ":l" + l + (d ? ":d" + d : ""));
+            });
+        });
+    });
+    cache.removeAll(keys);
+}
 
-    if (session) {
-        var rbac = _checkRole(session, "read", tableName, data || {});
-        if (!rbac.allowed) {
-            writeAuditLog(session.username, session.role || "-", session.divisi_id || "-", "DENIED:read", tableName, "-", rbac.msg);
-            return _errorResponse(rbac.error || "ERR_403_ROLE");
-        }
-    }
-
+function _fetchDataFromSheets(tableName, session, data, page, limit) {
     var sheet = ss.getSheetByName(tableName);
     if (!sheet) {
-        return responseJSON({
+        return {
             status: "error",
             message: "Tabel tidak ditemukan: " + tableName,
-        });
+        };
     }
 
     var totalRows = sheet.getLastRow();
     var lastCol = sheet.getLastColumn();
     if (totalRows <= 1 || lastCol === 0) {
-        console.timeEnd("PERF:getData");
-        return responseJSON({
+        return {
             status: "success",
             data: [],
             total: 0,
             page: page,
             limit: limit,
             totalPages: 0
-        });
+        };
     }
 
-    // 1. Bangun daftar nomor baris yang AKTIF (dari bawah ke atas)
     var activeRowNumbers = [];
     var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-    var headerMapByName = _getHeaderIndexMap(sheet);
+    var headerMapByName = _getHeaderIndexMap(sheet, headers);
     var deletedIdx = headerMapByName.is_deleted;
 
     if (deletedIdx === undefined || deletedIdx === -1) {
@@ -72,23 +78,20 @@ function getData(tableName, session, data, page, limit) {
         }
     }
 
-    // 2. Hitung paginasi berdasarkan daftar aktif
     var activeCount = activeRowNumbers.length;
     var totalPages = Math.ceil(activeCount / limit);
     if (page > totalPages && totalPages > 0) {
         page = totalPages;
     }
 
-    // 3. Ambil potongan nomor baris untuk halaman yang diminta
     var startIndex = (page - 1) * limit;
     var endIndex = Math.min(startIndex + limit, activeCount);
     var pageRowNumbers = activeRowNumbers.slice(startIndex, endIndex);
 
-    // 4. Ambil data dengan Bounding Range Read (1x RPC)
     var result = [];
     if (pageRowNumbers.length > 0) {
-        var startRow = pageRowNumbers[pageRowNumbers.length - 1]; // Terkecil
-        var endRow = pageRowNumbers[0]; // Terbesar
+        var startRow = pageRowNumbers[pageRowNumbers.length - 1];
+        var endRow = pageRowNumbers[0];
         var rowCount = endRow - startRow + 1;
 
         var chunkValues = sheet.getRange(startRow, 1, rowCount, lastCol).getDisplayValues();
@@ -151,15 +154,65 @@ function getData(tableName, session, data, page, limit) {
         });
     }
 
-    console.timeEnd("PERF:getData");
-    return responseJSON({
+    return {
         status: "success",
         data: result,
         total: activeCount,
         page: page,
         limit: limit,
         totalPages: totalPages
-    });
+    };
+}
+
+function getData(tableName, session, data, page, limit) {
+    console.time("PERF:getData");
+    page = page || 1;
+    limit = limit || 50;
+
+    var isPublicTable = false;
+    if (tableName === "ref_sekolah") {
+        isPublicTable = true;
+    } else {
+        var match = tableName.match(/^([A-Z0-9]+)_(ref_pengambilan|ref_jenis)$/i);
+        if (match) {
+            isPublicTable = true;
+        }
+    }
+
+    if (!session && !isPublicTable) {
+        return _errorResponse("ERR_401_SESSION");
+    }
+
+    if (session) {
+        var rbac = _checkRole(session, "read", tableName, data || {});
+        if (!rbac.allowed) {
+            writeAuditLog(session.username, session.role || "-", session.divisi_id || "-", "DENIED:read", tableName, "-", rbac.msg);
+            return _errorResponse(rbac.error || "ERR_403_ROLE");
+        }
+    }
+
+    var userDivisi = (session && session.role !== "super_admin") ? (session.divisi_id || "") : ((data && data.divisi_id) || "");
+    var cacheKey = _buildDataCacheKey(tableName, page, limit, userDivisi);
+    var cache = CacheService.getScriptCache();
+    var cached = cache.get(cacheKey);
+    if (cached) {
+        console.log("CACHE HIT (GAS): " + cacheKey);
+        console.timeEnd("PERF:getData");
+        return responseJSON(JSON.parse(cached));
+    }
+
+    var fetchResult = _fetchDataFromSheets(tableName, session, data, page, limit);
+
+    if (fetchResult && fetchResult.status === "success") {
+        try {
+            cache.put(cacheKey, JSON.stringify(fetchResult), 60);
+        } catch (e) {
+            console.warn("Cache put failed for " + cacheKey + ": " + e.message);
+        }
+    }
+
+    console.timeEnd("PERF:getData");
+    return responseJSON(fetchResult);
 }
 
 function simpanRecord(tableName, dataInput, session) {
@@ -261,6 +314,8 @@ function simpanRecord(tableName, dataInput, session) {
         updateSummary(targetDivisi, rbac.tableSuffix, 1);
     }
 
+    _invalidateDataCache(tableName);
+
     return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
 }
 
@@ -294,7 +349,7 @@ function updateRecord(tableName, id, dataInput, session) {
     var headers = _getHeaders(sheet);
     var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
     var rowValues = rowRange.getValues()[0];
-    var headerMapByName = _getHeaderIndexMap(sheet);
+    var headerMapByName = _getHeaderIndexMap(sheet, headers);
 
     var targetDivisi = rbac.targetDivisi || "";
     var isSuperAdmin = session.role === "super_admin";
@@ -376,6 +431,8 @@ function updateRecord(tableName, id, dataInput, session) {
     writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "update", tableName, id,
         "Update record id=" + id + " di " + tableName);
 
+    _invalidateDataCache(tableName);
+
     return responseJSON({ status: "success", message: "Data berhasil diupdate!" });
 }
 
@@ -409,7 +466,7 @@ function hapusRecord(tableName, id, session) {
     var headers = _getHeaders(sheet);
     var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
     var rowValues = rowRange.getValues()[0];
-    var headerMapByName = _getHeaderIndexMap(sheet);
+    var headerMapByName = _getHeaderIndexMap(sheet, headers);
 
     var targetDivisi = rbac.targetDivisi || "";
     var isSuperAdmin = session.role === "super_admin";
@@ -458,6 +515,8 @@ function hapusRecord(tableName, id, session) {
     if (deletedType === "soft" && targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
         updateSummary(targetDivisi, rbac.tableSuffix, -1);
     }
+
+    _invalidateDataCache(tableName);
 
     return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
 }

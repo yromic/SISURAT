@@ -290,23 +290,23 @@
 
   const CACHE_CONFIGS = Object.freeze({
     db_divisi: {
-      ttl: 5 * 60 * 1000, // 5 minutes
+      ttl: 60 * 60 * 1000, // 60 minutes (1 hour)
       prefix: "sisurat:v1:divisi:active-list"
     },
     db_summary: {
-      ttl: 2 * 60 * 1000, // 2 minutes
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:summary:"
     },
     db_surat_masuk: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_surat_masuk:"
     },
     db_surat_keluar: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_surat_keluar:"
     },
     db_piagam: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_piagam:"
     }
   });
@@ -637,10 +637,10 @@
     let activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
 
     let cacheKey = "";
-    let ttl = 10 * 60 * 1000; // 10 minutes default for division-scoped
+    let ttl = 60 * 60 * 1000; // 60 minutes (1 hour) default for division-scoped static refs
     if (tableName === "ref_sekolah") {
       cacheKey = "sisurat:v1:ref:sekolah";
-      ttl = 30 * 60 * 1000; // 30 minutes for global
+      ttl = 60 * 60 * 1000; // 60 minutes (1 hour) for global
     } else {
       cacheKey = `sisurat:v1:ref:${tableName}:${activeDiv}`;
     }

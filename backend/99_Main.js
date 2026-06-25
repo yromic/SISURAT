@@ -25,6 +25,11 @@ function doPost(e) {
         }
 
         var params = JSON.parse(e.postData.contents);
+        var action = params.action;
+
+        if (action === "ping") {
+            return responseJSON({ status: "ok", ts: Date.now() });
+        }
 
         // Origin validation
         var requestOrigin = params.origin || "";
