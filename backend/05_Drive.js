@@ -7,6 +7,9 @@ function _getFolderIdForDivisi(divisiId, tableName) {
     if (divisi && divisi.data && divisi.data.drive_folder_id) {
         return String(divisi.data.drive_folder_id).trim();
     }
+    if (tableName && DRIVE_FOLDER_MAP[tableName]) {
+        return DRIVE_FOLDER_MAP[tableName];
+    }
     return DRIVE_FOLDER_ID;
 }
 
@@ -82,9 +85,9 @@ function deleteFileFromDriveSecure(fileUrlOrId, session, divisiId) {
         if (ttdFolderId) allowedFolders.push(ttdFolderId);
 
         allowedFolders.push(DRIVE_FOLDER_ID);
-        if (DRIVE_FOLDERS.db_surat_masuk) allowedFolders.push(DRIVE_FOLDERS.db_surat_masuk);
-        if (DRIVE_FOLDERS.db_surat_keluar) allowedFolders.push(DRIVE_FOLDERS.db_surat_keluar);
-        if (DRIVE_FOLDERS.db_piagam_ttd) allowedFolders.push(DRIVE_FOLDERS.db_piagam_ttd);
+        if (DRIVE_FOLDER_MAP.db_surat_masuk) allowedFolders.push(DRIVE_FOLDER_MAP.db_surat_masuk);
+        if (DRIVE_FOLDER_MAP.db_surat_keluar) allowedFolders.push(DRIVE_FOLDER_MAP.db_surat_keluar);
+        if (DRIVE_FOLDER_MAP.db_piagam_ttd) allowedFolders.push(DRIVE_FOLDER_MAP.db_piagam_ttd);
 
         if (allowedFolders.indexOf(parentId) === -1) {
             writeAuditLog(
@@ -112,4 +115,11 @@ function deleteFileFromDriveSecure(fileUrlOrId, session, divisiId) {
     } catch (e) {
         console.error("deleteFileFromDriveSecure error: " + e.toString());
     }
+}
+
+function _resolveDriveFolder(categoryOrFolderId) {
+    if (categoryOrFolderId && DRIVE_FOLDER_MAP[categoryOrFolderId]) {
+        return DRIVE_FOLDER_MAP[categoryOrFolderId];
+    }
+    return categoryOrFolderId || DRIVE_FOLDER_ID;
 }

@@ -41,6 +41,20 @@ var DRIVE_FOLDERS = {
     db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG",
 };
 
+var DRIVE_FOLDER_MAP = {
+    db_surat_masuk: "18hTuZTOgGuB1bfaEq-5VK8n-7g04Ku6KwKEx5DZ5X5HPbGsexHgx-6Tu-Lj93jQKD6rMdYIO",
+    db_surat_keluar: "1V190s7wG2iJE4v5JDe5uvhMkziYOnTzJRQlpY23VVr4GWA92RPwI21vp8E8m9znHsXD5qsXj",
+    db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG",
+};
+
+var ALLOWED_ORIGINS = [
+    "https://sisuratpkl.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+];
+
 var DRIVE_FOLDER_ID = "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG";
 
 var SESSION_TTL_SECONDS = 2 * 60 * 60;

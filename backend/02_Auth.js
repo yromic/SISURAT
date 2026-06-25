@@ -20,6 +20,7 @@ function _sessionJson(session) {
         role_id: session.role_id || "",
         divisi_id: session.divisi_id || "",
         scope: session.scope || "",
+        fp: session.fp || "",
         expires: session.expires,
     });
 }
@@ -28,17 +29,15 @@ function _storeSession(session) {
     var key = _sessionKey(session.token);
     var json = _sessionJson(session);
     CacheService.getScriptCache().put(key, json, 300); // Session Cache TTL: 300 seconds
-    PropertiesService.getScriptProperties().setProperty(key, json);
 }
 
 function _deleteSession(token) {
     if (!token) return;
     var key = _sessionKey(token);
     CacheService.getScriptCache().remove(key);
-    PropertiesService.getScriptProperties().deleteProperty(key);
 }
 
-function _createSession(user) {
+function _createSession(user, fp) {
     var session = {
         token: Utilities.getUuid(),
         username: user.username,
@@ -48,13 +47,14 @@ function _createSession(user) {
         role_id: user.role_id || "",
         divisi_id: user.divisi_id || "",
         scope: user.scope || "",
+        fp: fp || "",
         expires: Date.now() + SESSION_TTL_SECONDS * 1000,
     };
     _storeSession(session);
     return session;
 }
 
-function _getSession(token) {
+function _getSession(token, params) {
     console.time("PERF:_getSession");
     if (!token) {
         console.timeEnd("PERF:_getSession");
@@ -67,10 +67,6 @@ function _getSession(token) {
         console.log("CACHE HIT: session " + token);
     } else {
         console.log("CACHE MISS: session " + token);
-        raw = PropertiesService.getScriptProperties().getProperty(key);
-        if (raw) {
-            CacheService.getScriptCache().put(key, raw, 300);
-        }
     }
 
     if (!raw) {
@@ -85,6 +81,12 @@ function _getSession(token) {
         _deleteSession(token);
         console.timeEnd("PERF:_getSession");
         return { ok: false, detail: "session parse failed" };
+    }
+
+    if (session.fp && params && params.fp && session.fp !== params.fp) {
+        _deleteSession(token);
+        console.timeEnd("PERF:_getSession");
+        return { ok: false, detail: "fingerprint mismatch" };
     }
 
     if (!session.expires || Number(session.expires) <= Date.now()) {
@@ -123,7 +125,7 @@ function _getSession(token) {
 }
 
 function _requireSessionFromData(data, action) {
-    var result = _getSession(_sessionToken(data));
+    var result = _getSession(_sessionToken(data), data);
     if (!result.ok) {
         writeAuditLog("system", "-", "-", "DENIED:session", action || "-", "-", result.detail);
     }
@@ -219,6 +221,14 @@ function cekLogin(data) {
     var cache = CacheService.getScriptCache();
     var failed = parseInt(cache.get(failKey) || "0", 10);
 
+    if (failed >= LOGIN_FAIL_LIMIT) {
+        return responseJSON({
+            status: "error",
+            code: "ERR_429_LOGIN",
+            message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
+        });
+    }
+
     if (!username || !password) {
         return responseJSON({ status: "error", message: "Username atau Password salah!" });
     }
@@ -266,7 +276,7 @@ function cekLogin(data) {
             }
             _upgradePasswordIfNeeded(sheet, i + 1, headers, row, password);
             cache.remove(failKey);
-            var session = _createSession(user);
+            var session = _createSession(user, data.fp || "");
             writeAuditLog(user.username, user.role, user.divisi_id || "-", "login", "-", "-", "Login berhasil");
             return responseJSON({
                 status: "success",
@@ -280,13 +290,6 @@ function cekLogin(data) {
     failed += 1;
     cache.put(failKey, String(failed), LOGIN_BLOCK_SECONDS);
     writeAuditLog(username, "-", "-", "DENIED:login", "-", "-", "Login gagal ke-" + failed);
-    if (failed >= LOGIN_FAIL_LIMIT) {
-        return responseJSON({
-            status: "error",
-            code: "ERR_429_LOGIN",
-            message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
-        });
-    }
 
     return responseJSON({
         status: "error",
@@ -332,4 +335,16 @@ function _forceLogoutDivisionUsers(divisiId) {
     } catch (e) {
         console.error("Gagal _forceLogoutDivisionUsers: " + e.toString());
     }
+}
+
+function purgeOldSessionsFromProperties() {
+    var props = PropertiesService.getScriptProperties().getProperties();
+    var prefix = "sisurat:v1:session:";
+    var keys = Object.keys(props).filter(function(k) {
+        return k.indexOf(prefix) === 0;
+    });
+    keys.forEach(function(k) {
+        PropertiesService.getScriptProperties().deleteProperty(k);
+    });
+    console.log("Purged " + keys.length + " old session keys.");
 }

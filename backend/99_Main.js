@@ -25,6 +25,19 @@ function doPost(e) {
         }
 
         var params = JSON.parse(e.postData.contents);
+
+        // Origin validation
+        var requestOrigin = params.origin || "";
+        var isOriginAllowed = ALLOWED_ORIGINS.some(function(allowed) {
+            return allowed === requestOrigin;
+        });
+        if (!isOriginAllowed) {
+            return responseJSON({
+                status: "error",
+                code: "ERR_403_ORIGIN",
+                message: "Akses tidak diizinkan.",
+            });
+        }
         var action = params.action;
         var data = params.data || {};
         _ensureGlobalSheets();

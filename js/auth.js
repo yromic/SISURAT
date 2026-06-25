@@ -38,6 +38,7 @@
     localStorage.removeItem("user_nama");
     localStorage.removeItem("user_divisi_id");
     localStorage.removeItem("active_divisi");
+    localStorage.removeItem("sisurat_fp");
     if (global.SisuratCache && typeof global.SisuratCache.clear === "function") {
       global.SisuratCache.clear();
     }
@@ -270,6 +271,23 @@
     }
   }
 
+  async function generateFingerprint() {
+    const raw = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + "x" + screen.height,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      navigator.hardwareConcurrency || "",
+    ].join("|");
+    const buffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(raw)
+    );
+    return Array.from(new Uint8Array(buffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
   global.SisuratAuth = {
     getStoredUser,
     setStoredUser,
@@ -278,5 +296,6 @@
     isSuperAdmin,
     logoutToHome,
     verifyRoleFromServer,
+    generateFingerprint,
   };
 })(window);

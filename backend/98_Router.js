@@ -264,9 +264,9 @@ function routeAction(action, data, params) {
                 ? String(data.divisi_id).trim().toUpperCase()
                 : (sessionResult.session.divisi_id ? String(sessionResult.session.divisi_id).trim().toUpperCase() : "GLOBAL");
             if (divisiId !== "GLOBAL") {
-                folderId = _getFolderIdForDivisi(divisiId);
+                folderId = _getFolderIdForDivisi(divisiId, data.folderId);
             } else if (data.folderId) {
-                folderId = data.folderId;
+                folderId = _resolveDriveFolder(data.folderId);
             }
             
             var fileUrl = uploadFileToDrive(base64DataUrl, fileName, folderId);

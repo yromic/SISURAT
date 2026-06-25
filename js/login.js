@@ -40,6 +40,12 @@
         if (token) {
           localStorage.setItem("session_token", token);
         }
+        try {
+          const fp = await SisuratAuth.generateFingerprint();
+          localStorage.setItem("sisurat_fp", fp);
+        } catch (fpErr) {
+          console.warn("Failed to generate fingerprint:", fpErr);
+        }
         const user = result.user || {};
         if (user.role) localStorage.setItem("user_role", user.role);
         if (user.scope) localStorage.setItem("user_scope", user.scope);

@@ -87,9 +87,9 @@ function finalizeUpload(data, session) {
 
         var folderId = DRIVE_FOLDER_ID;
         if (divisiId !== "GLOBAL") {
-            folderId = _getFolderIdForDivisi(divisiId);
+            folderId = _getFolderIdForDivisi(divisiId, data.folderId);
         } else if (data.folderId) {
-            folderId = data.folderId;
+            folderId = _resolveDriveFolder(data.folderId);
         }
 
         var blob = Utilities.newBlob(

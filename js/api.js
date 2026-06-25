@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbwKmRQo7vuHd7OXOtV3kIxuDDlqgh3GIeuiQ56QpZg8d5kyQ7wkLbFfuxxthhuf5bMbPg/exec";
+    "https://script.google.com/macros/s/AKfycby8YvDsIgoQSn49ARhPRhZuFIqDVI1DeqGTwGU3JNymsIsIDEoja1RhGZqibh-mbrpYyw/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -25,13 +25,7 @@
  
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
-  const DRIVE_FOLDERS = Object.freeze({
-    db_surat_masuk:
-      "18hTuZTOgGuB1bfaEq-5VK8n-7g04Ku6KwKEx5DZ5X5HPbGsexHgx-6Tu-Lj93jQKD6rMdYIO",
-    db_surat_keluar:
-      "1V190s7wG2iJE4v5JDe5uvhMkziYOnTzJRQlpY23VVr4GWA92RPwI21vp8E8m9znHsXD5qsXj",
-    db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG", // folder khusus TTD piagam
-  });
+  // DRIVE_FOLDERS dipindahkan ke backend demi keamanan.
 
   const TABLE_CONFIG = Object.freeze({
     db_surat_masuk: {
@@ -186,6 +180,13 @@
       payloadData.session_token = getSessionToken();
     }
 
+    if (action !== "login") {
+      const fp = localStorage.getItem("sisurat_fp") || "";
+      if (fp) {
+        payloadData.fp = fp;
+      }
+    }
+
     // Determine current user's role and division
     const userRole = localStorage.getItem("user_role") || "";
     const userDivisi = localStorage.getItem("user_divisi_id") || "";
@@ -237,6 +238,7 @@
       },
       body: JSON.stringify({
         action,
+        origin: window.location.origin,
         data: payloadData,
       }),
     });
@@ -384,8 +386,8 @@
    * @param {boolean} isTtd  - true jika upload adalah TTD piagam
    */
   function getFolderId(table, isTtd = false) {
-    if (isTtd) return DRIVE_FOLDERS.db_piagam_ttd;
-    return DRIVE_FOLDERS[table] || null;
+    if (isTtd) return "db_piagam_ttd";
+    return table || null;
   }
 
   async function saveRecord(table, data) {
@@ -831,7 +833,6 @@
   global.SisuratApi = {
     BASE_URL,
     TABLE_CONFIG,
-    DRIVE_FOLDERS,
     MAX_FILE_SIZE_BYTES,
     getTables,
     getFolderId,
