@@ -14,7 +14,7 @@ function routeAction(action, data, params) {
             var session = null;
             var token = _sessionToken(data);
             if (token) {
-                var resSession = _getSession(token);
+                var resSession = _getSession(token, data);
                 if (resSession.ok) {
                     session = resSession.session;
                 } else {
@@ -42,7 +42,7 @@ function routeAction(action, data, params) {
             var sessionData = null;
             var tokenData = _sessionToken(data);
             if (tokenData) {
-                var resSessionData = _getSession(tokenData);
+                var resSessionData = _getSession(tokenData, data);
                 if (resSessionData.ok) {
                     sessionData = resSessionData.session;
                 } else {
@@ -89,7 +89,7 @@ function routeAction(action, data, params) {
             var isSA = false;
             var tokenSet = _sessionToken(data);
             if (tokenSet) {
-                var resSessionSet = _getSession(tokenSet);
+                var resSessionSet = _getSession(tokenSet, data);
                 if (resSessionSet.ok && resSessionSet.session.role === "super_admin") {
                     isSA = true;
                 }
@@ -221,7 +221,7 @@ function routeAction(action, data, params) {
             var tokenBoot = _sessionToken(data);
             var sessionBoot = null;
             if (tokenBoot) {
-                var resSessionBoot = _getSession(tokenBoot);
+                var resSessionBoot = _getSession(tokenBoot, data);
                 if (resSessionBoot.ok) {
                     sessionBoot = resSessionBoot.session;
                 }

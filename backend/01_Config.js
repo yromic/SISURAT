@@ -48,7 +48,7 @@ var DRIVE_FOLDER_MAP = {
 };
 
 // WAJIB: set ke true sebelum deploy production, false untuk dev lokal
-var IS_PRODUCTION = true;
+var IS_PRODUCTION = false;
 
 var ALLOWED_ORIGINS = IS_PRODUCTION
   ? [
@@ -60,7 +60,9 @@ var ALLOWED_ORIGINS = IS_PRODUCTION
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://localhost:3000",
-      "http://127.0.0.1:3000"
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5501",
+      "http://127.0.0.1:5500"
     ];
 
 var DRIVE_FOLDER_ID = "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG";
