@@ -338,7 +338,8 @@
     if (switcherContainer && switcherSelect) {
       switcherContainer.classList.remove("hidden");
       
-      const currentSelected = switcherSelect.value || "all";
+      const activeDiv = global.SisuratDivision ? global.SisuratDivision.getActiveDivisi() : "";
+      const currentSelected = switcherSelect.value || activeDiv || "all";
       
       // Clear current options except "Semua Divisi"
       switcherSelect.innerHTML = '<option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>';
@@ -378,7 +379,11 @@
         dbSummaryData = Array.isArray(summaryRes.data) ? summaryRes.data : [];
         if (isSuperAdmin) {
           const switcherSelect = document.getElementById("divisi-switcher");
-          const selectedValue = switcherSelect ? switcherSelect.value : "all";
+          const activeDiv = global.SisuratDivision ? global.SisuratDivision.getActiveDivisi() : "";
+          if (switcherSelect && (!switcherSelect.value || switcherSelect.value === "all") && activeDiv) {
+            switcherSelect.value = activeDiv;
+          }
+          const selectedValue = switcherSelect ? (switcherSelect.value || "all") : "all";
           displayStats(selectedValue);
           renderRingkasanDivisiTable();
         } else {
