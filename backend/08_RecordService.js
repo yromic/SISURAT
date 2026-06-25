@@ -2,16 +2,21 @@
 // SISURAT — Document & Record Management Service
 // ============================================================
 
-function _buildDataCacheKey(tableName, page, limit, divisionFilter) {
-    return "data:" + tableName + ":p" + page + ":l" + limit +
-           (divisionFilter ? ":d" + divisionFilter : "");
+function _buildDataCacheKey(tableName, page, limit, divisionFilter, role) {
+    var roleSegment = role ? "r" + role : "rguest";
+    var divisiSegment = divisionFilter ? "d" + divisionFilter : "";
+    return "data:" + tableName +
+           ":" + roleSegment +
+           ":p" + page +
+           ":l" + limit +
+           (divisiSegment ? ":" + divisiSegment : "");
 }
 
 function _invalidateDataCache(tableName) {
     var cache = CacheService.getScriptCache();
+    var roles = ["super_admin", "admin_divisi", "admin", "operator", "guest"];
     var limits = [25, 50, 100];
     var pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    var keys = [];
     var divisionsList = [];
     try {
         var divSheet = ss.getSheetByName("db_divisi");
@@ -26,14 +31,21 @@ function _invalidateDataCache(tableName) {
     } catch (_) {}
     divisionsList.push("");
 
-    pages.forEach(function (p) {
-        limits.forEach(function (l) {
-            divisionsList.forEach(function (d) {
-                keys.push("data:" + tableName + ":p" + p + ":l" + l + (d ? ":d" + d : ""));
+    var keys = [];
+    roles.forEach(function (role) {
+        pages.forEach(function (p) {
+            limits.forEach(function (l) {
+                divisionsList.forEach(function (d) {
+                    keys.push(_buildDataCacheKey(tableName, p, l, d, role));
+                });
             });
         });
     });
-    cache.removeAll(keys);
+
+    var chunkSize = 100;
+    for (var i = 0; i < keys.length; i += chunkSize) {
+        cache.removeAll(keys.slice(i, i + chunkSize));
+    }
 }
 
 function _fetchDataFromSheets(tableName, session, data, page, limit) {
@@ -191,8 +203,9 @@ function getData(tableName, session, data, page, limit) {
         }
     }
 
+    var userRole = (session && session.role) ? session.role : "guest";
     var userDivisi = (session && session.role !== "super_admin") ? (session.divisi_id || "") : ((data && data.divisi_id) || "");
-    var cacheKey = _buildDataCacheKey(tableName, page, limit, userDivisi);
+    var cacheKey = _buildDataCacheKey(tableName, page, limit, userDivisi, userRole);
     var cache = CacheService.getScriptCache();
     var cached = cache.get(cacheKey);
     if (cached) {

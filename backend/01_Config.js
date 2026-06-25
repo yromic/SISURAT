@@ -47,13 +47,21 @@ var DRIVE_FOLDER_MAP = {
     db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG",
 };
 
-var ALLOWED_ORIGINS = [
-    "https://sisuratpkl.vercel.app",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
-];
+// WAJIB: set ke true sebelum deploy production, false untuk dev lokal
+var IS_PRODUCTION = true;
+
+var ALLOWED_ORIGINS = IS_PRODUCTION
+  ? [
+      "https://sisuratpkl.vercel.app"
+      // tambahkan custom domain lain jika ada
+    ]
+  : [
+      "https://sisuratpkl.vercel.app",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000"
+    ];
 
 var DRIVE_FOLDER_ID = "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG";
 

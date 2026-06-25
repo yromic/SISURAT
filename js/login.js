@@ -28,8 +28,15 @@
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
     loginBtn.disabled = true;
 
+    let fp = "";
     try {
-      const result = await SisuratApi.login(username, password);
+      fp = await SisuratAuth.generateFingerprint();
+    } catch (fpErr) {
+      console.warn("Failed to generate fingerprint:", fpErr);
+    }
+
+    try {
+      const result = await SisuratApi.login(username, password, fp);
 
       if (result.status === "success") {
         const token =
@@ -40,11 +47,8 @@
         if (token) {
           localStorage.setItem("session_token", token);
         }
-        try {
-          const fp = await SisuratAuth.generateFingerprint();
+        if (fp) {
           localStorage.setItem("sisurat_fp", fp);
-        } catch (fpErr) {
-          console.warn("Failed to generate fingerprint:", fpErr);
         }
         const user = result.user || {};
         if (user.role) localStorage.setItem("user_role", user.role);

@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycby8YvDsIgoQSn49ARhPRhZuFIqDVI1DeqGTwGU3JNymsIsIDEoja1RhGZqibh-mbrpYyw/exec";
+    "https://script.google.com/macros/s/AKfycbzESBqC0ZuTueftgA6ILbjaTvKkjGfPlABWAUKZ2K1g-LrMCiWFf5t4CZGlXMxDjTTOyQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -182,9 +182,7 @@
 
     if (action !== "login") {
       const fp = localStorage.getItem("sisurat_fp") || "";
-      if (fp) {
-        payloadData.fp = fp;
-      }
+      payloadData.fp = fp || "missing";
     }
 
     // Determine current user's role and division
@@ -276,8 +274,12 @@
     }
   }
 
-  function login(username, password) {
-    return postAction("login", { username, password });
+  function login(username, password, fp) {
+    const payload = { username, password };
+    if (fp) {
+      payload.fp = fp;
+    }
+    return postAction("login", payload);
   }
 
   function logout() {

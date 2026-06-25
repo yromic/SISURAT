@@ -25,11 +25,6 @@ function doPost(e) {
         }
 
         var params = JSON.parse(e.postData.contents);
-        var action = params.action;
-
-        if (action === "ping") {
-            return responseJSON({ status: "ok", ts: Date.now() });
-        }
 
         // Origin validation
         var requestOrigin = params.origin || "";
@@ -43,7 +38,12 @@ function doPost(e) {
                 message: "Akses tidak diizinkan.",
             });
         }
+
         var action = params.action;
+
+        if (action === "ping") {
+            return responseJSON({ status: "ok", ts: Date.now() });
+        }
         var data = params.data || {};
         _ensureGlobalSheets();
         if (params.session_token && !data.session_token) {

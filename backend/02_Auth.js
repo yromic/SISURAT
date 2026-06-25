@@ -38,6 +38,9 @@ function _deleteSession(token) {
 }
 
 function _createSession(user, fp) {
+    if (!fp || fp === "missing") {
+        console.warn("SEC: session dibuat tanpa fingerprint valid");
+    }
     var session = {
         token: Utilities.getUuid(),
         username: user.username,
@@ -83,10 +86,14 @@ function _getSession(token, params) {
         return { ok: false, detail: "session parse failed" };
     }
 
-    if (session.fp && params && params.fp && session.fp !== params.fp) {
-        _deleteSession(token);
-        console.timeEnd("PERF:_getSession");
-        return { ok: false, detail: "fingerprint mismatch" };
+    if (session.fp) {
+        var requestFp = params && params.fp ? params.fp : "";
+        if (!requestFp || session.fp !== requestFp) {
+            _deleteSession(token);
+            console.warn("SEC: fingerprint mismatch atau missing — session diinvalidate");
+            console.timeEnd("PERF:_getSession");
+            return { ok: false, detail: "fingerprint mismatch" };
+        }
     }
 
     if (!session.expires || Number(session.expires) <= Date.now()) {

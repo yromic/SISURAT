@@ -272,20 +272,35 @@
   }
 
   async function generateFingerprint() {
-    const raw = [
-      navigator.userAgent,
-      navigator.language,
-      screen.width + "x" + screen.height,
-      Intl.DateTimeFormat().resolvedOptions().timeZone,
-      navigator.hardwareConcurrency || "",
-    ].join("|");
-    const buffer = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(raw)
-    );
-    return Array.from(new Uint8Array(buffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    try {
+      const raw = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + "x" + screen.height,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        navigator.hardwareConcurrency || "",
+      ].join("|");
+
+      if (window.crypto && window.crypto.subtle) {
+        const buffer = await window.crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(raw)
+        );
+        return Array.from(new Uint8Array(buffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      } else {
+        // Fallback: simple hash tanpa crypto.subtle
+        let hash = 0;
+        for (let i = 0; i < raw.length; i++) {
+          hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+          hash |= 0;
+        }
+        return "fallback_" + Math.abs(hash).toString(16);
+      }
+    } catch (e) {
+      return "fallback_error_" + Date.now();
+    }
   }
 
   global.SisuratAuth = {

@@ -15,7 +15,13 @@ function _findDivisiByCode(kode) {
         console.log("CACHE HIT: divisi " + kode);
         try {
             var divObj = JSON.parse(cached);
-            divObj.sheet = ss.getSheetByName("db_divisi");
+            Object.defineProperty(divObj, "sheet", {
+                get: function() {
+                    return ss.getSheetByName("db_divisi");
+                },
+                configurable: true,
+                enumerable: true
+            });
             return divObj;
         } catch (_) {}
     }
@@ -35,7 +41,13 @@ function _findDivisiByCode(kode) {
                 data: _rowObjectFromValues(headers, values[i]),
             };
             CacheService.getScriptCache().put(cacheKey, JSON.stringify(result), 600); // Division Cache TTL: 600 seconds
-            result.sheet = sheet;
+            Object.defineProperty(result, "sheet", {
+                get: function() {
+                    return ss.getSheetByName("db_divisi");
+                },
+                configurable: true,
+                enumerable: true
+            });
             return result;
         }
     }
