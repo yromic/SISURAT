@@ -236,7 +236,7 @@ function routeAction(action, data, params) {
                     var dataRes = getData(resolvedTable, sessionBoot, data, page, limit);
                     try {
                         initialData = JSON.parse(dataRes.getContent());
-                    } catch (_) {}
+                    } catch (_) { }
                 }
             }
             var responsePayload = {
@@ -255,11 +255,11 @@ function routeAction(action, data, params) {
             sessionResult = _requireSessionFromData(data, action);
             sessionError = _sessionResponse(sessionResult);
             if (sessionError) return sessionError;
-            
+
             var base64DataUrl = data.base64DataUrl;
             var fileName = data.fileName || ("file_" + Date.now());
             var folderId = DRIVE_FOLDER_ID;
-            
+
             var divisiId = (sessionResult.session.role === "super_admin" && data.divisi_id)
                 ? String(data.divisi_id).trim().toUpperCase()
                 : (sessionResult.session.divisi_id ? String(sessionResult.session.divisi_id).trim().toUpperCase() : "GLOBAL");
@@ -268,7 +268,7 @@ function routeAction(action, data, params) {
             } else if (data.folderId) {
                 folderId = _resolveDriveFolder(data.folderId);
             }
-            
+
             var fileUrl = uploadFileToDrive(base64DataUrl, fileName, folderId);
             writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "upload", "-", "-", "Upload file utuh: " + fileName);
             return responseJSON({

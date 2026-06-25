@@ -95,7 +95,7 @@ function simpanPiagam(dataInput, session) {
     var now = new Date();
     var recordId = Utilities.getUuid();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var newRow = headers.map(function(header) {
+    var newRow = headers.map(function (header) {
         var headerNorm = String(header).toLowerCase().trim();
         if (headerNorm === "id") return recordId;
         if (headerNorm === "timestamp") return now;

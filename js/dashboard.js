@@ -337,13 +337,13 @@
     const switcherSelect = document.getElementById("divisi-switcher");
     if (switcherContainer && switcherSelect) {
       switcherContainer.classList.remove("hidden");
-      
+
       const activeDiv = global.SisuratDivision ? global.SisuratDivision.getActiveDivisi() : "";
       const currentSelected = switcherSelect.value || activeDiv || "all";
-      
+
       // Clear current options except "Semua Divisi"
       switcherSelect.innerHTML = '<option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>';
-      
+
       dbDivisiData.forEach(divisi => {
         if (divisi.status === "active" || divisi.status === "Aktif") {
           const opt = document.createElement("option");
@@ -358,7 +358,7 @@
       switcherSelect.value = currentSelected;
 
       // Add change listener
-      switcherSelect.onchange = function() {
+      switcherSelect.onchange = function () {
         displayStats(this.value);
       };
     }

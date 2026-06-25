@@ -109,7 +109,7 @@
     if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
       const countEl = document.getElementById("result-count");
       if (countEl) countEl.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i>Pilih divisi aktif`;
-      
+
       const tbody = document.getElementById("preview-tbody");
       const thead = document.getElementById("preview-thead");
       if (thead) thead.innerHTML = "";
@@ -336,15 +336,15 @@
     thead.innerHTML = `
       <tr>
         ${cols
-          .map(
-            (c) => `
+        .map(
+          (c) => `
           <th class="th-preview" onclick="sortPreviewBy('${c.key}')">
             <span class="flex items-center gap-1">
               ${c.header} ${renderSortIcon(c.key)}
             </span>
           </th>`,
-          )
-          .join("")}
+        )
+        .join("")}
       </tr>`;
 
     // ── Render body ──────────────────────────────────────────────────────────
@@ -415,11 +415,10 @@
             if (i > 0 && p - arr[i - 1] > 1)
               html += `<span class="text-gray-400 text-xs px-1">…</span>`;
             const active = p === page;
-            html += `<button onclick="goPreviewPage(${p})" class="w-7 h-7 rounded-lg text-xs font-semibold transition ${
-              active
+            html += `<button onclick="goPreviewPage(${p})" class="w-7 h-7 rounded-lg text-xs font-semibold transition ${active
                 ? "bg-[#00ADB5] text-white"
                 : "bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white"
-            }">${p}</button>`;
+              }">${p}</button>`;
           });
         numbersEl.innerHTML = html;
       }
@@ -592,16 +591,16 @@
     const subject = encodeURIComponent(`Laporan Rekap SISURAT — ${jenisLabel}`);
     const body = encodeURIComponent(
       `Halo,\n\nBerikut laporan rekapitulasi data dari SISURAT:\n\n` +
-        `Jenis    : ${jenisLabel}\n` +
-        `Periode  : ${fromVal || "awal"} s/d ${toVal || "akhir"}\n` +
-        `Total    : ${count} data\n` +
-        `Dicetak  : ${new Date().toLocaleString("id-ID")}\n\n` +
-        `──────────────── RINGKASAN DATA ────────────────\n` +
-        dataLines +
-        `────────────────────────────────────────────────\n\n` +
-        `📎 File CSV telah otomatis terunduh di komputer Anda.\n` +
-        `   Silakan lampirkan file tersebut pada email ini sebelum dikirim.\n\n` +
-        `Salam,\nSISURAT`,
+      `Jenis    : ${jenisLabel}\n` +
+      `Periode  : ${fromVal || "awal"} s/d ${toVal || "akhir"}\n` +
+      `Total    : ${count} data\n` +
+      `Dicetak  : ${new Date().toLocaleString("id-ID")}\n\n` +
+      `──────────────── RINGKASAN DATA ────────────────\n` +
+      dataLines +
+      `────────────────────────────────────────────────\n\n` +
+      `📎 File CSV telah otomatis terunduh di komputer Anda.\n` +
+      `   Silakan lampirkan file tersebut pada email ini sebelum dikirim.\n\n` +
+      `Salam,\nSISURAT`,
     );
 
     // ── 3. Buka Gmail Compose di tab baru ────────────────────────────────

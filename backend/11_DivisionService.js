@@ -8,7 +8,7 @@ function _normalizeDivisiCode(code) {
 
 function _findDivisiByCode(kode) {
     if (!kode) return null;
-    
+
     var cacheKey = "sisurat:v1:divisi:" + kode;
     var cached = CacheService.getScriptCache().get(cacheKey);
     if (cached) {
@@ -16,16 +16,16 @@ function _findDivisiByCode(kode) {
         try {
             var divObj = JSON.parse(cached);
             Object.defineProperty(divObj, "sheet", {
-                get: function() {
+                get: function () {
                     return ss.getSheetByName("db_divisi");
                 },
                 configurable: true,
                 enumerable: true
             });
             return divObj;
-        } catch (_) {}
+        } catch (_) { }
     }
-    
+
     console.log("CACHE MISS: divisi " + kode);
     var sheet = _ensureSheet("db_divisi", DB_DIVISI_HEADERS);
     var headers = _getHeaders(sheet);
@@ -42,7 +42,7 @@ function _findDivisiByCode(kode) {
             };
             CacheService.getScriptCache().put(cacheKey, JSON.stringify(result), 600); // Division Cache TTL: 600 seconds
             Object.defineProperty(result, "sheet", {
-                get: function() {
+                get: function () {
                     return ss.getSheetByName("db_divisi");
                 },
                 configurable: true,
@@ -84,7 +84,7 @@ function _ensureSummaryRow(divisi_id) {
         total_piagam: 0,
         last_updated: new Date(),
     };
-    sheet.appendRow(_getHeaders(sheet).map(function(header) {
+    sheet.appendRow(_getHeaders(sheet).map(function (header) {
         return row[header] !== undefined ? row[header] : "";
     }));
     return sheet.getLastRow();
@@ -112,20 +112,20 @@ function _recomputeSummary(divisi_id) {
         total_surat_keluar: 0,
         total_piagam: 0,
     };
-    ["surat_masuk", "surat_keluar", "piagam"].forEach(function(tipe) {
+    ["surat_masuk", "surat_keluar", "piagam"].forEach(function (tipe) {
         var sheet = ss.getSheetByName(divisi_id + "_" + tipe);
         if (!sheet || sheet.getLastRow() < 2) return;
         var map = _getHeaderIndexMap(sheet);
         var deletedIdx = map.is_deleted;
         var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-        counts["total_" + tipe] = values.filter(function(row) {
+        counts["total_" + tipe] = values.filter(function (row) {
             return deletedIdx === undefined || !/^(true|1|yes|ya)$/i.test(String(row[deletedIdx]).trim());
         }).length;
     });
     var summarySheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
     var rowNumber = _ensureSummaryRow(divisi_id);
     var summaryMap = _getHeaderIndexMap(summarySheet);
-    Object.keys(counts).forEach(function(key) {
+    Object.keys(counts).forEach(function (key) {
         summarySheet.getRange(rowNumber, summaryMap[key] + 1).setValue(counts[key]);
     });
     summarySheet.getRange(rowNumber, summaryMap.last_updated + 1).setValue(new Date());
@@ -150,7 +150,7 @@ function _deletePartialDivisiSheets(kode) {
         kode + "_piagam",
         kode + "_ref_pengambilan",
         kode + "_ref_jenis",
-    ].forEach(function(name) {
+    ].forEach(function (name) {
         var sheet = ss.getSheetByName(name);
         if (sheet) ss.deleteSheet(sheet);
     });
@@ -192,7 +192,7 @@ function initDivisi(data, session) {
             created_at: new Date(),
             created_by: session.username,
         };
-        sheet.appendRow(_getHeaders(sheet).map(function(header) {
+        sheet.appendRow(_getHeaders(sheet).map(function (header) {
             return row[header] !== undefined ? row[header] : "";
         }));
 
@@ -269,7 +269,7 @@ function cleanupDivisi(data, session) {
         _deletePartialDivisiSheets(kode);
         var folderId = String(divisi.data.drive_folder_id || "").trim();
         if (folderId) {
-            try { DriveApp.getFolderById(folderId).setTrashed(true); } catch (_) {}
+            try { DriveApp.getFolderById(folderId).setTrashed(true); } catch (_) { }
         }
         _deleteSummaryRow(divisi.data.id || kode);
         _setDivisiValue(divisi, "status", "cleanup");

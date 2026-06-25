@@ -22,7 +22,7 @@
     totalPages: 0,
     total: 0
   };
- 
+
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
   // DRIVE_FOLDERS dipindahkan ke backend demi keamanan.

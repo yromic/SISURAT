@@ -28,7 +28,7 @@ function doPost(e) {
 
         // Origin validation
         var requestOrigin = params.origin || "";
-        var isOriginAllowed = ALLOWED_ORIGINS.some(function(allowed) {
+        var isOriginAllowed = ALLOWED_ORIGINS.some(function (allowed) {
             return allowed === requestOrigin;
         });
         if (!isOriginAllowed) {

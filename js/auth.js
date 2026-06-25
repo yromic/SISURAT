@@ -90,13 +90,13 @@
           localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
           return res.data;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     const cached = localStorage.getItem("sisurat_divisions");
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (_) {}
+      } catch (_) { }
     }
     return [];
   }

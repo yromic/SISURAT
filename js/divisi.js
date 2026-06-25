@@ -51,7 +51,7 @@
   function formatCreatedAt(dateStr) {
     const d = parseDateSafe(dateStr);
     if (!d) return "—";
-    
+
     try {
       const formatted = d.toLocaleDateString("id-ID", {
         day: "numeric",
@@ -202,7 +202,7 @@
     const modal = document.getElementById("divisi-modal");
     const form = document.getElementById("divisi-form");
     const alertBox = document.getElementById("divisi-modal-alert");
-    
+
     if (form) form.reset();
     if (alertBox) alertBox.classList.add("hidden");
     if (modal) modal.classList.remove("hidden");
@@ -223,9 +223,8 @@
     const alertBox = document.getElementById("divisi-modal-alert");
     if (!alertBox) return;
 
-    alertBox.className = `mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${
-      type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"
-    }`;
+    alertBox.className = `mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"
+      }`;
     alertBox.innerHTML = `<i class="fas ${type === "error" ? "fa-exclamation-circle" : "fa-check-circle"}"></i> <span>${msg}</span>`;
     alertBox.classList.remove("hidden");
   }

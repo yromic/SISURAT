@@ -28,7 +28,7 @@
     };
   }
 
-    async function getCachedAllData(forceRefresh = false, onFresh) {
+  async function getCachedAllData(forceRefresh = false, onFresh) {
     const now = Date.now();
     const cacheAge = now - state.cacheFetchedAt;
     const cacheValid =
@@ -221,11 +221,10 @@
               html += `<span class="text-gray-400 text-xs px-1">…</span>`;
             const active = p === page;
             html += `<button onclick="goSearchPage(${p})"
-            class="w-7 h-7 rounded-xl text-xs font-semibold shadow-sm transition ${
-              active
+            class="w-7 h-7 rounded-xl text-xs font-semibold shadow-sm transition ${active
                 ? "bg-[#00ADB5] text-white"
                 : "bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white"
-            }">${p}</button>`;
+              }">${p}</button>`;
           });
         numbersEl.innerHTML = html;
       }
@@ -265,21 +264,19 @@
     const gridBtn = document.getElementById("btn-view-grid");
     const listBtn = document.getElementById("btn-view-list");
     if (gridBtn && listBtn) {
-      gridBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${
-        mode === "grid"
+      gridBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${mode === "grid"
           ? "bg-[#00ADB5] text-white"
           : "bg-white text-[#393E46] hover:bg-[#EEEEEE]"
-      }`;
-      listBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${
-        mode === "list"
+        }`;
+      listBtn.className = `w-8 h-8 rounded flex items-center justify-center transition ${mode === "list"
           ? "bg-[#00ADB5] text-white"
           : "bg-white text-[#393E46] hover:bg-[#EEEEEE]"
-      }`;
+        }`;
     }
     _renderPage();
   }
 
-    async function runSearch(forceRefresh = false) {
+  async function runSearch(forceRefresh = false) {
     if (global.SisuratDivision && global.SisuratDivision.isSuperAdmin() && !global.SisuratDivision.getActiveDivisi()) {
       const container = document.getElementById("result");
       if (container) {

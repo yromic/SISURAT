@@ -54,7 +54,7 @@ function _saveSettings(settingsObj) {
         existingKeys[key] = i + 1;
     }
     var keys = ["public_piagam_target_divisi", "nama_instansi", "logo_url", "app_name"];
-    keys.forEach(function(k) {
+    keys.forEach(function (k) {
         var val = settingsObj[k] !== undefined ? String(settingsObj[k]).trim() : "";
         if (existingKeys[k]) {
             sheet.getRange(existingKeys[k], 2).setValue(val);
@@ -131,7 +131,7 @@ function pancingIzin() {
 
 function _rowObjectFromValues(headers, rowValues) {
     var obj = {};
-    headers.forEach(function(header, index) {
+    headers.forEach(function (header, index) {
         obj[header] = rowValues[index];
     });
     return obj;

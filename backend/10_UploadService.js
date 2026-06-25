@@ -10,8 +10,8 @@ function handleUploadChunk(data, session) {
             return _errorResponse("ERR_401_SESSION");
         }
 
-        var uploadId    = data.uploadId;
-        var chunkIndex  = data.chunkIndex;
+        var uploadId = data.uploadId;
+        var chunkIndex = data.chunkIndex;
         var chunkBase64 = data.chunkBase64;
 
         if (!uploadId || chunkIndex === undefined || !chunkBase64) {
@@ -41,10 +41,10 @@ function finalizeUpload(data, session) {
             return _errorResponse("ERR_401_SESSION");
         }
 
-        var uploadId    = data.uploadId;
+        var uploadId = data.uploadId;
         var totalChunks = parseInt(data.totalChunks, 10);
-        var fileName    = data.fileName  || ("file_" + Date.now());
-        var mimeType    = data.mimeType  || "application/octet-stream";
+        var fileName = data.fileName || ("file_" + Date.now());
+        var mimeType = data.mimeType || "application/octet-stream";
 
         if (!uploadId || !totalChunks) {
             console.timeEnd("PERF:finalizeUpload");

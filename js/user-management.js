@@ -59,7 +59,7 @@
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (_) {}
+      } catch (_) { }
     }
     try {
       const res = await SisuratApi.getData("db_divisi");
@@ -67,7 +67,7 @@
         localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
         return res.data;
       }
-    } catch (_) {}
+    } catch (_) { }
     return [];
   }
 
@@ -75,7 +75,7 @@
     const sel = document.getElementById("um-form-divisi");
     if (!sel) return;
     const divisions = await _getDivisions();
-    
+
     let html = '<option value="">-- Tanpa Divisi (Global/Super Admin) --</option>';
     divisions.forEach((div) => {
       if (div.status === "active" || div.status === "Aktif") {
@@ -391,7 +391,7 @@
     let u = {};
     try {
       u = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
 
     _editingId = u.row_number || u.id;
     global.umOpenModal("edit");
@@ -430,12 +430,12 @@
 
   // ─── Save (Add/Edit) ──────────────────────────────────────────────────────
   global.umSimpan = async function () {
-    const nama     = document.getElementById("um-form-nama").value.trim();
+    const nama = document.getElementById("um-form-nama").value.trim();
     const username = document.getElementById("um-form-username").value.trim();
-    const email    = document.getElementById("um-form-email").value.trim();
+    const email = document.getElementById("um-form-email").value.trim();
     const password = document.getElementById("um-form-password").value.trim();
-    const roleId   = document.getElementById("um-form-role").value;
-    const roleObj  = _getRoleById(roleId);
+    const roleId = document.getElementById("um-form-role").value;
+    const roleObj = _getRoleById(roleId);
     const divisiId = document.getElementById("um-form-divisi").value;
 
     if (!nama || !username) {
@@ -453,19 +453,19 @@
 
     try {
       const isSA = global.SisuratDivision ? global.SisuratDivision.isSuperAdmin() : false;
-      const isEdit  = !!_editingId;
+      const isEdit = !!_editingId;
       const payload = {
-        sub_action : isEdit ? "update" : "create",
+        sub_action: isEdit ? "update" : "create",
         nama,
         username,
         email,
-        role    : roleObj ? roleObj.value : "admin_divisi",
-        role_id : roleId,
+        role: roleObj ? roleObj.value : "admin_divisi",
+        role_id: roleId,
         divisi_id: isSA ? divisiId : (_currentUser ? _currentUser.divisi_id : ""),
         scope: roleId === "super_admin" ? "global" : "divisi"
       };
-      if (isEdit)   payload.row_number = _editingId;
-      if (password) payload.password   = password;
+      if (isEdit) payload.row_number = _editingId;
+      if (password) payload.password = password;
 
       // Panggil action manage_user di backend (bukan saveRecord/updateRecord generik)
       const result = await SisuratApi.postAction("manage_user", payload);

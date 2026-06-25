@@ -81,11 +81,11 @@
       badgeContainer.classList.remove("hidden");
       badgeContainer.innerHTML =
         '<div class="inline-flex items-center gap-2 px-4 py-2 bg-white/15 rounded-full border border-white/25 text-sm font-bold text-white shadow-sm backdrop-blur-sm">' +
-          '<i class="fas fa-building text-[#7fffd4]"></i>' +
-          '<span>' + (isSuperAdmin ? 'Divisi Aktif:' : 'Divisi:') + '</span>' +
-          '<span class="px-2 py-0.5 bg-[#00ADB5] rounded-lg text-white font-extrabold tracking-wider text-xs">' +
-            _escapeHTML(String(activeDivisi).toUpperCase()) +
-          '</span>' +
+        '<i class="fas fa-building text-[#7fffd4]"></i>' +
+        '<span>' + (isSuperAdmin ? 'Divisi Aktif:' : 'Divisi:') + '</span>' +
+        '<span class="px-2 py-0.5 bg-[#00ADB5] rounded-lg text-white font-extrabold tracking-wider text-xs">' +
+        _escapeHTML(String(activeDivisi).toUpperCase()) +
+        '</span>' +
         '</div>';
     } else {
       badgeContainer.innerHTML = "";
@@ -175,7 +175,7 @@
       '<div class="sisurat-toast__icon"><i class="fas ' + icon + '"></i></div>' +
       '<div class="sisurat-toast__message">' + _escapeHTML(message) + '</div>' +
       '<button class="sisurat-toast__close" aria-label="Tutup">' +
-        '<i class="fas fa-times"></i>' +
+      '<i class="fas fa-times"></i>' +
       '</button>';
 
     // Close button handler
@@ -340,29 +340,29 @@
 
       var html =
         '<div class="sisurat-modal-backdrop">' +
-          '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
-            // Color bar
-            '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
-            '<div class="sisurat-modal__body">' +
-              // Icon
-              '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
-                '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
-              '</div>' +
-              // Title
-              '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
-              // Message
-              '<p class="sisurat-modal__message">' + _escapeHTML(message) + '</p>' +
-              // Buttons
-              '<div class="sisurat-modal__actions">' +
-                '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
-                  _escapeHTML(cancelText) +
-                '</button>' +
-                '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
-                  '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
-                '</button>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
+        '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
+        // Color bar
+        '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
+        '<div class="sisurat-modal__body">' +
+        // Icon
+        '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
+        '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
+        '</div>' +
+        // Title
+        '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
+        // Message
+        '<p class="sisurat-modal__message">' + _escapeHTML(message) + '</p>' +
+        // Buttons
+        '<div class="sisurat-modal__actions">' +
+        '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
+        _escapeHTML(cancelText) +
+        '</button>' +
+        '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
+        '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
         '</div>';
 
       container.innerHTML = html;
@@ -447,29 +447,29 @@
 
       var html =
         '<div class="sisurat-modal-backdrop">' +
-          '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
-            '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
-            '<div class="sisurat-modal__body">' +
-              '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
-                '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
-              '</div>' +
-              '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
-              messageHtml +
-              // Input
-              '<div class="sisurat-modal__input-wrap">' +
-                '<input class="sisurat-modal__input" type="' + inputType + '" placeholder="' + _escapeHTML(placeholder) + '" autocomplete="off" />' +
-              '</div>' +
-              // Buttons
-              '<div class="sisurat-modal__actions">' +
-                '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
-                  _escapeHTML(cancelText) +
-                '</button>' +
-                '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
-                  '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
-                '</button>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
+        '<div class="sisurat-modal-dialog sisurat-modal-dialog--' + type + '">' +
+        '<div class="sisurat-modal__bar ' + cfg.barClass + '"></div>' +
+        '<div class="sisurat-modal__body">' +
+        '<div class="sisurat-modal__icon-ring" style="background:' + cfg.accentLight + ';border-color:' + cfg.accentLight + ';">' +
+        '<i class="fas ' + cfg.icon + '" style="color:' + cfg.accent + ';"></i>' +
+        '</div>' +
+        '<h3 class="sisurat-modal__title">' + _escapeHTML(title) + '</h3>' +
+        messageHtml +
+        // Input
+        '<div class="sisurat-modal__input-wrap">' +
+        '<input class="sisurat-modal__input" type="' + inputType + '" placeholder="' + _escapeHTML(placeholder) + '" autocomplete="off" />' +
+        '</div>' +
+        // Buttons
+        '<div class="sisurat-modal__actions">' +
+        '<button class="sisurat-modal__btn sisurat-modal__btn--cancel" data-action="cancel">' +
+        _escapeHTML(cancelText) +
+        '</button>' +
+        '<button class="sisurat-modal__btn sisurat-modal__btn--confirm sisurat-modal__btn--' + type + '" data-action="confirm">' +
+        '<i class="fas fa-check mr-1"></i> ' + _escapeHTML(confirmText) +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
         '</div>';
 
       container.innerHTML = html;
