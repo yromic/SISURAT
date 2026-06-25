@@ -48,7 +48,7 @@ var DRIVE_FOLDER_MAP = {
 };
 
 // WAJIB: set ke true sebelum deploy production, false untuk dev lokal
-var IS_PRODUCTION = true;
+var IS_PRODUCTION = false;
 
 var ALLOWED_ORIGINS = IS_PRODUCTION
   ? [
