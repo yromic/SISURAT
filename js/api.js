@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbzUJWNShRNVfWosYFuEjfFnMjiMCcVB9KhI_bLK1HfrhswnRns9wFB9HUPQQz6k9QPP_Q/exec";
+    "https://script.google.com/macros/s/AKfycbyqL2WqUF6vl7fOecmSlW9hAtGvrdD8trlqEQp2MMCQwe7Zzn6-0Djte3P_aZ5aDhEdcA/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -251,6 +251,12 @@
     return resJson;
   }
 
+  const _postActionInterceptors = [];
+
+  function addPostActionInterceptor(fn) {
+    _postActionInterceptors.push(fn);
+  }
+
   async function postAction(action, data = {}) {
     const isMutation = ["simpan_record", "update_record", "hapus_record", "simpan_piagam"].includes(action);
     const isOffline = !navigator.onLine;
@@ -263,10 +269,18 @@
 
     try {
       const res = await postActionRaw(action, data);
+      for (const interceptor of _postActionInterceptors) {
+        const modified = await interceptor(res, action, data);
+        if (modified !== undefined) return modified;
+      }
       return res;
     } catch (error) {
-      if (isMutation && window.SisuratSync) {
-        console.warn(`[API] Gagal koneksi/timeout. Memasukkan aksi ${action} ke antrean sync.`, error);
+      const isSessionExpired = error.message &&
+        (error.message.includes("ERR_401_SESSION") ||
+          error.message.includes("ERR_403_ORIGIN"));
+
+      if (isMutation && !isSessionExpired && window.SisuratSync) {
+        console.warn("[API] Network error, queuing:", action);
         window.SisuratSync.enqueue(action, data);
         return { status: "success", optimistic: true };
       }
@@ -842,6 +856,7 @@
     normalizeRecord,
     postAction,
     postActionRaw,
+    addInterceptor: addPostActionInterceptor,
     getData,
     fetchTable,
     fetchAllTables,

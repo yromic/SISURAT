@@ -129,6 +129,11 @@ function manageUser(data, session) {
         sheet.appendRow(userHeaders.map(function(header) {
             return newUser[header] !== undefined ? newUser[header] : "";
         }));
+        
+        // Invalidate cache
+        CacheService.getScriptCache().remove("sisurat:v1:user:" + String(data.username).trim());
+        _invalidateDataCache("db_users");
+
         writeAuditLog(session.username, rbac.session.role, userDivisi, "create_user", "db_users", data.username,
             "User baru: " + data.username + " (role: " + (data.role || "Admin") + ")");
         return responseJSON({ status: "success", message: "User \"" + data.username + "\" berhasil ditambahkan" });
@@ -200,6 +205,7 @@ function manageUser(data, session) {
         if (data.username && data.username !== existingUsername) {
             CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
         }
+        _invalidateDataCache("db_users");
         _forceLogoutUser(existingUsername);
 
         var logDivisi = isSuperAdmin ? (data.divisi_id || existingDivisiId) : session.divisi_id;
@@ -246,7 +252,9 @@ function manageUser(data, session) {
 
         // Invalidate Cache & Force Logout
         CacheService.getScriptCache().remove("sisurat:v1:user:" + existingUsername);
+        _invalidateDataCache("db_users");
         _forceLogoutUser(existingUsername);
+        console.warn("SEC: user " + existingUsername + " dihapus — session aktif tidak bisa diinvalidate secara immediate karena CacheService tidak dapat diiterasi, akan expire dalam " + SESSION_TTL_SECONDS + " detik");
 
         writeAuditLog(session.username, rbac.session.role, isSuperAdmin ? existingDivisiId : session.divisi_id, "delete_user", "db_users", existingUsername,
             "Hapus user row=" + delRow);
@@ -311,6 +319,7 @@ function resetPassword(data, session) {
 
             // Invalidate cache & Force logout
             CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
+            _invalidateDataCache("db_users");
             _forceLogoutUser(data.username);
 
             writeAuditLog(session.username, rbacReset.session.role, isSuperAdmin ? targetUserDivisiId : session.divisi_id, "reset_password", "db_users", data.username,

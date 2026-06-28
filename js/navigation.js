@@ -245,28 +245,34 @@
    * Dipanggil setelah SisuratApi di-init.
    */
   function installApiInterceptor() {
-    if (typeof global.SisuratApi === "undefined" || !global.SisuratApi.postAction) return;
+    if (typeof global.SisuratApi === "undefined") return;
 
-    const originalPostAction = global.SisuratApi.postAction;
-
-    global.SisuratApi.postAction = async function (action, data) {
-      try {
-        const result = await originalPostAction.call(global.SisuratApi, action, data);
-
-        // Intercept session expired responses
+    if (typeof global.SisuratApi.addInterceptor === "function") {
+      global.SisuratApi.addInterceptor(async function (result, action, data) {
         if (result && result.status !== "success" && result.code) {
           if (result.code === "ERR_401_SESSION") {
             showError("ERR_401_SESSION");
             throw new Error(mapError("ERR_401_SESSION"));
           }
         }
-
-        return result;
-      } catch (err) {
-        // Rethrow — caller decides whether to show error or not
-        throw err;
-      }
-    };
+      });
+    } else if (global.SisuratApi.postAction) {
+      const originalPostAction = global.SisuratApi.postAction;
+      global.SisuratApi.postAction = async function (action, data) {
+        try {
+          const result = await originalPostAction.call(global.SisuratApi, action, data);
+          if (result && result.status !== "success" && result.code) {
+            if (result.code === "ERR_401_SESSION") {
+              showError("ERR_401_SESSION");
+              throw new Error(mapError("ERR_401_SESSION"));
+            }
+          }
+          return result;
+        } catch (err) {
+          throw err;
+        }
+      };
+    }
   }
 
   // ─── Utility ────────────────────────────────────────────────────────────────

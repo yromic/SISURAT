@@ -271,14 +271,18 @@
     }
   }
 
+  const FP_VERSION = "v2";
+
   async function generateFingerprint() {
     try {
       const raw = [
+        FP_VERSION,
         navigator.userAgent,
         navigator.language,
-        screen.width + "x" + screen.height,
         Intl.DateTimeFormat().resolvedOptions().timeZone,
         navigator.hardwareConcurrency || "",
+        navigator.platform || "",
+        navigator.deviceMemory || "",
       ].join("|");
 
       if (window.crypto && window.crypto.subtle) {

@@ -28,7 +28,11 @@ function _sessionJson(session) {
 function _storeSession(session) {
     var key = _sessionKey(session.token);
     var json = _sessionJson(session);
-    CacheService.getScriptCache().put(key, json, 300); // Session Cache TTL: 300 seconds
+    try {
+        CacheService.getScriptCache().put(key, json, SESSION_TTL_SECONDS);
+    } catch (e) {
+        console.error("SEC: gagal simpan session ke cache: " + e.message);
+    }
 }
 
 function _deleteSession(token) {
@@ -305,23 +309,13 @@ function cekLogin(data) {
 }
 
 function _forceLogoutUser(username) {
+    // NOTE: CacheService tidak mendukung pencarian/iterasi kunci.
+    // Force logout secara eksplisit tidak dapat dilakukan secara langsung di CacheService.
+    // Namun, user yang dinonaktifkan atau dihapus akan otomatis ter-logout secara implisit
+    // pada request berikutnya melalui pengecekan di _getSession (setelah cache _lookupUser di-remove).
     if (!username) return;
-    try {
-        var props = PropertiesService.getScriptProperties().getProperties();
-        for (var k in props) {
-            if (k.indexOf("sisurat:v1:session:") === 0 || k.indexOf("session_") === 0) {
-                var raw = props[k];
-                try {
-                    var session = JSON.parse(raw);
-                    if (session && String(session.username).toLowerCase() === String(username).toLowerCase()) {
-                        _deleteSession(session.token);
-                    }
-                } catch (_) {}
-            }
-        }
-    } catch (e) {
-        console.error("Gagal _forceLogoutUser: " + e.toString());
-    }
+    console.info("INFO: _forceLogoutUser dipanggil untuk " + username +
+      " — logout implisit akan terjadi pada request berikutnya via _getSession.");
 }
 
 function _forceLogoutDivisionUsers(divisiId) {
