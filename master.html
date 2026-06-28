@@ -1,697 +1,491 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Master Data | SISURAT Premium</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master Data | SISURAT Premium</title>
 
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body class="flex overflow-hidden text-[#222831]">
-    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <link rel="stylesheet" href="css/output.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="icon" type="image/x-icon" href="assets/icon/Logo.ico" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet" />
 
-    <!-- Sidebar Modern -->
-    <aside
-      id="sidebar"
-      class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4"
-    >
-      <div class="px-4 py-6 mb-4">
-        <a href="master.html" class="flex items-center gap-3 group">
-          <div
-            class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300"
-          >
-            <img
-              src="assets/icon/Logo.ico"
-              alt="Logo"
-              class="w-8 h-8 transform group-hover:scale-110 transition duration-300"
-            />
-          </div>
-          <h2
-            class="text-2xl font-extrabold tracking-wide font-outfit text-white"
-          >
-            SISURAT
-          </h2>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="flex overflow-hidden text-[#222831]">
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar Modern -->
+  <aside id="sidebar" class="w-72 h-screen glass-sidebar text-[#EEEEEE] sticky top-0 flex flex-col pt-4 pb-6 px-4">
+    <div class="px-4 py-6 mb-4">
+      <a href="master.html" class="flex items-center gap-3 group">
+        <div
+          class="bg-white p-2 rounded-xl shadow-[0_0_15px_rgba(0,173,181,0.3)] group-hover:shadow-[0_0_25px_rgba(0,173,181,0.6)] transition duration-300">
+          <img src="assets/icon/Logo.ico" alt="Logo"
+            class="w-8 h-8 transform group-hover:scale-110 transition duration-300" />
+        </div>
+        <h2 class="text-2xl font-extrabold tracking-wide font-outfit text-white">
+          SISURAT
+        </h2>
+      </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
+      <a href="dashboard.html"
+        class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+        <i class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <span>Overview</span>
+      </a>
+
+      <a href="cari.html"
+        class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+        <i class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <span>Pencarian Pintar</span>
+      </a>
+
+      <a href="master.html"
+        class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1">
+        <i class="fas fa-database w-6 text-center text-lg"></i>
+        <span>Master Data</span>
+      </a>
+
+      <a href="laporan.html"
+        class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+        <i class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <span>Ekspor & Laporan</span>
+      </a>
+      <a href="referensi.html"
+        class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+        <i class="fas fa-sliders-h w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+        <span>Kelola Referensi</span>
+      </a>
+
+      <!-- Super Admin Section -->
+      <div id="sidebar-superadmin-section" class="hidden">
+        <div class="my-2 px-2">
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+            Super Admin
+          </p>
+        </div>
+        <a href="user-management.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Kelola User</span>
+        </a>
+        <a href="divisi.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-building w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Kelola Divisi</span>
+        </a>
+        <a href="settings.html"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
+          <i class="fas fa-cogs w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <span>Pengaturan</span>
         </a>
       </div>
+    </nav>
 
-      <!-- Navigation -->
-      <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
-        <a
-          href="dashboard.html"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-        >
-          <i
-            class="fas fa-chart-pie w-6 text-center text-lg group-hover:scale-110 transition-transform"
-          ></i>
-          <span>Overview</span>
-        </a>
-
-        <a
-          href="cari.html"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-        >
-          <i
-            class="fas fa-search w-6 text-center text-lg group-hover:scale-110 transition-transform"
-          ></i>
-          <span>Pencarian Pintar</span>
-        </a>
-
-        <a
-          href="master.html"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ADB5] to-[#00939c] text-white font-bold shadow-lg shadow-[#00ADB5]/30 transform transition-transform hover:translate-x-1"
-        >
-          <i class="fas fa-database w-6 text-center text-lg"></i>
-          <span>Master Data</span>
-        </a>
-
-        <a
-          href="laporan.html"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-        >
-          <i
-            class="fas fa-file-export w-6 text-center text-lg group-hover:scale-110 transition-transform"
-          ></i>
-          <span>Ekspor & Laporan</span>
-        </a>
-        <a
-          href="referensi.html"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-        >
-          <i
-            class="fas fa-sliders-h w-6 text-center text-lg group-hover:scale-110 transition-transform"
-          ></i>
-          <span>Kelola Referensi</span>
-        </a>
-
-        <!-- Super Admin Section -->
-        <div id="sidebar-superadmin-section" class="hidden">
-          <div class="my-2 px-2">
-            <p
-              class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
-            >
-              Super Admin
-            </p>
-          </div>
-          <a
-            href="user-management.html"
-            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-          >
-            <i
-              class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"
-            ></i>
-            <span>Kelola User</span>
-          </a>
-          <a
-            href="divisi.html"
-            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-          >
-            <i
-              class="fas fa-building w-6 text-center text-lg group-hover:scale-110 transition-transform"
-            ></i>
-            <span>Kelola Divisi</span>
-          </a>
-          <a
-            href="settings.html"
-            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
-          >
-            <i
-              class="fas fa-cogs w-6 text-center text-lg group-hover:scale-110 transition-transform"
-            ></i>
-            <span>Pengaturan</span>
-          </a>
-        </div>
-      </nav>
-
-      <!-- Bottom Actions -->
-      <div class="pt-6 border-t border-white/10 mt-auto">
-        <div
-          class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5"
-        >
-          <div
-            class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]"
-          >
-            <div
-              class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center"
-            >
-              <i class="fas fa-user text-white text-xs"></i>
-            </div>
-          </div>
-          <div class="flex-1 overflow-hidden">
-            <p class="text-xs text-gray-400 font-medium">Logged in as</p>
-            <p
-              id="user-name"
-              class="text-sm font-bold text-white truncate w-full"
-            >
-              Administrator
-            </p>
+    <!-- Bottom Actions -->
+    <div class="pt-6 border-t border-white/10 mt-auto">
+      <div class="bg-white/5 rounded-2xl p-4 mb-4 flex items-center gap-3 border border-white/5">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00ADB5] to-blue-400 p-[2px]">
+          <div class="w-full h-full rounded-full bg-[#222831] flex items-center justify-center">
+            <i class="fas fa-user text-white text-xs"></i>
           </div>
         </div>
+        <div class="flex-1 overflow-hidden">
+          <p class="text-xs text-gray-400 font-medium">Logged in as</p>
+          <p id="user-name" class="text-sm font-bold text-white truncate w-full">
+            Administrator
+          </p>
+        </div>
+      </div>
 
-        <button
-          onclick="logout()"
-          class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group"
-        >
-          <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate
-          Session
+      <button onclick="logout()"
+        class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold px-4 py-3 rounded-xl transition-all duration-300 group">
+        <i class="fas fa-power-off group-hover:animate-pulse"></i> Terminate
+        Session
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto min-h-0 relative">
+    <!-- Mobile Header -->
+    <div
+      class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg">
+          <i class="fas fa-bars text-xl"></i>
         </button>
+        <div class="flex items-center gap-2">
+          <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
+        </div>
       </div>
-    </aside>
+      <span class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]">
+        <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
+      </span>
+    </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto min-h-0 relative">
-      <!-- Mobile Header -->
+    <!-- Header Banner -->
+    <div class="sisurat-page-header bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5]">
       <div
-        class="lg:hidden bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between shadow-sm"
-      >
-        <div class="flex items-center gap-3">
-          <button
-            onclick="toggleSidebar()"
-            class="text-[#222831] focus:outline-none p-2 bg-gray-100 rounded-lg"
-          >
-            <i class="fas fa-bars text-xl"></i>
-          </button>
-          <div class="flex items-center gap-2">
-            <img src="assets/icon/Logo.ico" alt="Logo" class="w-6 h-6" />
+        class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]">
+      </div>
+
+      <div
+        class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10">
+      </div>
+      <div
+        class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60">
+      </div>
+
+      <div class="sisurat-page-header__content">
+        <div class="sisurat-page-header__main">
+          <div class="sisurat-page-kicker">
+            <i class="fas fa-database text-[#00ADB5]"></i> Master Surat
+          </div>
+          <h1 class="sisurat-page-title">Master Surat</h1>
+          <p class="sisurat-page-description">
+            Kelola surat masuk, surat keluar, dan piagam dalam satu area kerja.
+          </p>
+          <div class="sisurat-page-meta">
+            <div id="active-divisi-badge" class="hidden divisi-badge-container"></div>
+            <nav class="sisurat-breadcrumb" aria-label="Breadcrumb">
+              <span>Dashboard</span>
+              <i class="fas fa-chevron-right text-[10px]"></i>
+              <span class="sisurat-breadcrumb__current">Master Surat</span>
+            </nav>
           </div>
         </div>
-        <span
-          class="text-sm bg-gray-100 font-bold px-4 py-2 rounded-full flex items-center gap-2 text-[#393E46]"
-        >
-          <span id="user-name-mobile" class="truncate max-w-[100px]">User</span>
-        </span>
-      </div>
 
-      <!-- Header Banner -->
-      <div
-        class="sisurat-page-header bg-gradient-to-br from-[#222831] via-[#393E46] to-[#00ADB5]"
-      >
-        <div
-          class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+CjxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4wNSI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"
-        ></div>
-
-        <div
-          class="absolute -top-10 -right-20 w-80 h-80 bg-white/5 rounded-[40px] transform rotate-12 blur-[2px] border border-white/10"
-        ></div>
-        <div
-          class="absolute bottom-10 right-20 w-32 h-32 bg-gradient-to-br from-[#00ADB5] to-transparent rounded-full blur-[40px] mix-blend-screen opacity-60"
-        ></div>
-
-        <div class="sisurat-page-header__content">
-          <div class="sisurat-page-header__main">
-            <div class="sisurat-page-kicker">
-              <i class="fas fa-database text-[#00ADB5]"></i> Master Surat
-            </div>
-            <h1 class="sisurat-page-title">Master Surat</h1>
-            <p class="sisurat-page-description">
-              Kelola surat masuk, surat keluar, dan piagam dalam satu area kerja.
-            </p>
-            <div class="sisurat-page-meta">
-              <div id="active-divisi-badge" class="hidden divisi-badge-container"></div>
-              <nav class="sisurat-breadcrumb" aria-label="Breadcrumb">
-                <span>Dashboard</span>
-                <i class="fas fa-chevron-right text-[10px]"></i>
-                <span class="sisurat-breadcrumb__current">Master Surat</span>
-              </nav>
-            </div>
-          </div>
-
-          <div class="sisurat-page-actions">
-          <button
-            id="btn-tambah"
-            onclick="openAddModal()"
-            class="hidden flex items-center justify-center gap-2 bg-white text-[#222831] font-bold px-6 py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm shrink-0"
-          >
+        <div class="sisurat-page-actions">
+          <button id="btn-tambah" onclick="openAddModal()"
+            class="hidden flex items-center justify-center gap-2 bg-white text-[#222831] font-bold px-6 py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm shrink-0">
             <i class="fas fa-plus text-[#00ADB5]"></i> Tambah Surat
           </button>
-          <button
-            onclick="
+          <button id="btn-refresh" onclick="refreshData()"
+            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1">
+            <i class="fas fa-sync-alt text-[#00ADB5] mr-2 group-hover:rotate-180 transition-transform duration-500"></i>
+            Refresh
+          </button>
+          <button onclick="
               document.getElementById('infoMaster').classList.toggle('hidden')
             "
-            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
-          >
-            <i
-              class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"
-            ></i>
+            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1">
+            <i class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"></i>
             Panduan Sistem
           </button>
-          </div>
         </div>
       </div>
+    </div>
 
-      <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16 space-y-8">
-        <!-- Info Accordion -->
-        <div
-          id="infoMaster"
-          class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-[#00ADB5]/10 border border-[#00ADB5]/20"
-        >
-          <div class="space-y-6">
-            <div class="text-center">
-              <div class="flex items-center justify-center gap-3 mb-2">
-                <div
-                  class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00ADB5] to-[#00939c] flex items-center justify-center shadow-lg shadow-[#00ADB5]/30"
-                >
-                  <i class="fas fa-circle-play text-white text-lg"></i>
-                </div>
-                <h3
-                  class="text-xl font-bold font-outfit text-[#222831] tracking-wide"
-                >
-                  Panduan Sistem
-                </h3>
+    <div class="px-4 lg:px-12 -mt-6 relative z-20 pb-16 space-y-8">
+      <!-- Info Accordion -->
+      <div id="infoMaster"
+        class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-[#00ADB5]/10 border border-[#00ADB5]/20">
+        <div class="space-y-6">
+          <div class="text-center">
+            <div class="flex items-center justify-center gap-3 mb-2">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00ADB5] to-[#00939c] flex items-center justify-center shadow-lg shadow-[#00ADB5]/30">
+                <i class="fas fa-circle-play text-white text-lg"></i>
               </div>
-              <p class="text-sm text-gray-500 mt-1">
-                Pelajari cara menggunakan fitur laporan melalui video berikut
-              </p>
+              <h3 class="text-xl font-bold font-outfit text-[#222831] tracking-wide">
+                Panduan Sistem
+              </h3>
             </div>
+            <p class="text-sm text-gray-500 mt-1">
+              Pelajari cara menggunakan fitur laporan melalui video berikut
+            </p>
+          </div>
 
-            <!-- Responsive Video Container -->
-            <div
-              class="relative w-full rounded-2xl overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,173,181,0.25)] border border-[#00ADB5]/20 bg-gradient-to-br from-[#00ADB5]/5 to-transparent group"
-              style="padding-top: 56.25%"
-            >
-              <!-- Overlay Glow -->
+          <!-- Responsive Video Container -->
+          <div
+            class="relative w-full rounded-2xl overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,173,181,0.25)] border border-[#00ADB5]/20 bg-gradient-to-br from-[#00ADB5]/5 to-transparent group"
+            style="padding-top: 56.25%">
+            <!-- Overlay Glow -->
 
-              <iframe
-                class="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/i3aipioa9K8?si=BRKIMPkYxIFgEoxD"
-                title="Panduan Sistem"
-                frameborder="0"
-                allow="
+            <iframe class="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/i3aipioa9K8?si=BRKIMPkYxIFgEoxD" title="Panduan Sistem" frameborder="0"
+              allow="
                   accelerometer;
                   autoplay;
                   clipboard-write;
                   encrypted-media;
                   gyroscope;
                   picture-in-picture;
-                "
-                allowfullscreen
-              >
-              </iframe>
-              <div class="glow-cinematic ring-1 ring-[#00ADB5]/20"></div>
+                " allowfullscreen>
+            </iframe>
+            <div class="glow-cinematic ring-1 ring-[#00ADB5]/20"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Database Interface -->
+      <div
+        class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-visible relative border border-gray-100 flex flex-col">
+        <!-- Tab Navigation (Absolute float look) -->
+        <div class="flex flex-wrap gap-3 px-6 pt-6 pb-2">
+          <button id="tab-piagam" data-tab="piagam" onclick="switchTab('piagam')"
+            class="tab-active flex items-center gap-2">
+            <i class="fas fa-award text-lg"></i> Piagam
+          </button>
+          <button id="tab-masuk" data-tab="masuk" onclick="switchTab('masuk')"
+            class="tab-inactive flex items-center gap-2">
+            <i class="fas fa-inbox text-lg"></i> Surat Masuk
+          </button>
+          <button id="tab-keluar" data-tab="keluar" onclick="switchTab('keluar')"
+            class="tab-inactive flex items-center gap-2">
+            <i class="fas fa-paper-plane text-lg"></i> Surat Keluar
+          </button>
+        </div>
+
+        <!-- Utility Toolbar -->
+        <div
+          class="grid grid-cols-1 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] gap-4 p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2">
+          <div class="relative w-full group z-10">
+            <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <i class="fas fa-search text-gray-400 group-focus-within:text-[#00ADB5] transition-colors"></i>
             </div>
+            <input id="master-search" type="text" placeholder="Cari spesifik di view ini..."
+              class="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 text-sm font-medium outline-none transition-all shadow-sm" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end items-stretch gap-3 min-w-0">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm min-w-0">
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Tampil:</span>
+              <select id="rows-per-page" onchange="setPageSize(this.value)" class="rows-select sisurat-select bg-white">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <!-- Columns Dropdown -->
+            <div class="relative z-20 min-w-0" id="col-toggle-wrapper">
+              <button onclick="toggleColPanel()"
+                class="w-full min-h-11 flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm">
+                <i class="fas fa-columns"></i> Kolom
+                <i class="fas fa-caret-down text-xs ml-1"></i>
+              </button>
+              <div id="col-toggle-panel" class="col-toggle-dropdown hidden">
+                <p
+                  class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">
+                  Visibilitas Kolom
+                </p>
+                <!-- JS injeksi kesini -->
+              </div>
+            </div>
+
+            <!-- Tambah Data Button -->
           </div>
         </div>
 
-        <!-- Main Database Interface -->
-        <div
-          class="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-visible relative border border-gray-100 flex flex-col"
-        >
-          <!-- Tab Navigation (Absolute float look) -->
-          <div class="flex flex-wrap gap-3 px-6 pt-6 pb-2">
-            <button
-              id="tab-piagam"
-              data-tab="piagam"
-              onclick="switchTab('piagam')"
-              class="tab-active flex items-center gap-2"
-            >
-              <i class="fas fa-award text-lg"></i> Piagam
-            </button>
-            <button
-              id="tab-masuk"
-              data-tab="masuk"
-              onclick="switchTab('masuk')"
-              class="tab-inactive flex items-center gap-2"
-            >
-              <i class="fas fa-inbox text-lg"></i> Surat Masuk
-            </button>
-            <button
-              id="tab-keluar"
-              data-tab="keluar"
-              onclick="switchTab('keluar')"
-              class="tab-inactive flex items-center gap-2"
-            >
-              <i class="fas fa-paper-plane text-lg"></i> Surat Keluar
-            </button>
-          </div>
-
-          <!-- Utility Toolbar -->
-          <div
-            class="grid grid-cols-1 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] gap-4 p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50 mt-4 rounded-3xl mx-2 mb-2"
-          >
-            <div class="relative w-full group z-10">
-              <div
-                class="absolute inset-y-0 left-4 flex items-center pointer-events-none"
-              >
-                <i
-                  class="fas fa-search text-gray-400 group-focus-within:text-[#00ADB5] transition-colors"
-                ></i>
-              </div>
-              <input
-                id="master-search"
-                type="text"
-                placeholder="Cari spesifik di view ini..."
-                class="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#00ADB5] focus:ring-4 focus:ring-[#00ADB5]/10 text-sm font-medium outline-none transition-all shadow-sm"
-              />
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end items-stretch gap-3 min-w-0">
-              <div
-                class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm min-w-0"
-              >
-                <span
-                  class="text-xs font-bold text-gray-400 uppercase tracking-widest"
-                  >Tampil:</span
-                >
-                <select
-                  id="rows-per-page"
-                  onchange="setPageSize(this.value)"
-                  class="rows-select sisurat-select bg-white"
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-
-              <!-- Columns Dropdown -->
-              <div class="relative z-20 min-w-0" id="col-toggle-wrapper">
-                <button
-                  onclick="toggleColPanel()"
-                  class="w-full min-h-11 flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-[#00ADB5] hover:text-[#00ADB5] text-[#393E46] font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm"
-                >
-                  <i class="fas fa-columns"></i> Kolom
-                  <i class="fas fa-caret-down text-xs ml-1"></i>
-                </button>
-                <div id="col-toggle-panel" class="col-toggle-dropdown hidden">
-                  <p
-                    class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-100"
-                  >
-                    Visibilitas Kolom
-                  </p>
-                  <!-- JS injeksi kesini -->
-                </div>
-              </div>
-
-              <!-- Tambah Data Button -->
-            </div>
-          </div>
-
-          <!-- The Table -->
-          <div class="overflow-x-auto relative mb-4 z-0 px-2 min-h-[400px]">
-            <table class="w-full table-auto border-separate border-spacing-y-1">
-              <thead id="master-thead"></thead>
-              <tbody id="master-tbody">
-                <tr>
-                  <td colspan="10" class="py-24 text-center">
-                    <div class="flex flex-col items-center justify-center">
-                      <div
-                        class="w-16 h-16 border-4 border-[#00ADB5]/20 border-t-[#00ADB5] rounded-full animate-spin mb-4"
-                      ></div>
-                      <span
-                        class="text-gray-400 font-bold font-outfit text-lg tracking-wide"
-                        >Inisialisasi Master Data...</span
-                      >
+        <!-- The Table -->
+        <div class="overflow-x-auto relative mb-4 z-0 px-2 min-h-[400px]">
+          <table class="w-full table-auto border-separate border-spacing-y-1">
+            <thead id="master-thead"></thead>
+            <tbody id="master-tbody">
+              <tr>
+                <td colspan="10" class="py-24 text-center">
+                  <div class="flex flex-col items-center justify-center">
+                    <div
+                      class="w-16 h-16 border-4 border-[#00ADB5]/20 border-t-[#00ADB5] rounded-full animate-spin mb-4">
                     </div>
+                    <span class="text-gray-400 font-bold font-outfit text-lg tracking-wide">Inisialisasi Master
+                      Data...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div id="pagination-controls"
+          class="flex flex-wrap items-center justify-between gap-4 px-8 py-5 border-t border-gray-100 bg-gray-50/50 rounded-b-[2rem] z-0">
+          <span id="page-info"
+            class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white px-4 py-2 border border-gray-200 rounded-lg shadow-sm">Halaman
+            1 dari 1</span>
+          <div class="flex items-center gap-2 font-bold font-outfit">
+            <button id="btn-prev" onclick="goToPage(paginationState.currentPage - 1)" disabled
+              class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <button id="btn-next" onclick="goToPage(paginationState.currentPage + 1)" disabled
+              class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Trash Module (Hides normally) -->
+        <div id="trash-panel" class="hidden overflow-hidden mt-2 relative z-10">
+          <button onclick="toggleTrashPanel()"
+            class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-50 to-red-50 hover:to-red-100 transition-all border-y border-red-100 group">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition shrink-0">
+                <i class="fas fa-dumpster"></i>
+              </div>
+              <div class="text-left">
+                <p class="font-bold text-red-600 font-outfit text-lg flex items-center gap-2">
+                  Data Terhapus
+                  <span id="trash-badge"
+                    class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block transform -translate-y-px">0</span>
+                </p>
+                <p class="text-[11px] text-red-400 font-medium tracking-wide">
+                  Arsip Data Terhapus
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <button onclick="
+                    event.stopPropagation();
+                    emptyTrash();
+                  " id="btn-empty-trash"
+                class="hidden text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-600/30 font-outfit uppercase tracking-widest z-20 hover:-translate-y-0.5">
+                <i class="fas fa-fire-alt mr-1"></i> Kosongkan
+              </button>
+              <div class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center border border-red-100">
+                <i id="trash-chevron"
+                  class="fas fa-chevron-down text-red-400 text-sm transition-transform duration-300 group-hover:text-red-600"></i>
+              </div>
+            </div>
+          </button>
+
+          <div id="trash-table-wrapper" class="hidden overflow-x-auto bg-[#fafafa] p-4">
+            <table class="w-full table-auto border-separate border-spacing-y-1">
+              <thead id="trash-thead"></thead>
+              <tbody id="trash-tbody">
+                <tr>
+                  <td colspan="10" class="py-16 text-center text-gray-400">
+                    <i class="fas fa-dumpster text-4xl opacity-20 block mb-4"></i>
+                    <p class="font-black font-outfit tracking-wider uppercase">
+                      Tidak ada sampah
+                    </p>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          <!-- Pagination Bar -->
-          <div
-            class="flex flex-wrap items-center justify-between gap-4 px-8 py-5 border-t border-gray-100 bg-gray-50/50 rounded-b-[2rem] z-0"
-          >
-            <span
-              id="page-info"
-              class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white px-4 py-2 border border-gray-200 rounded-lg shadow-sm"
-              >—</span
-            >
-            <div class="flex items-center gap-2 font-bold font-outfit">
-              <button
-                id="btn-prev"
-                onclick="prevPage()"
-                disabled
-                class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all"
-              >
-                <i class="fas fa-arrow-left"></i>
-              </button>
-              <div id="page-numbers" class="flex items-center gap-1"></div>
-              <button
-                id="btn-next"
-                onclick="nextPage()"
-                disabled
-                class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#393E46] hover:bg-[#00ADB5] hover:text-white hover:border-[#00ADB5] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#393E46] disabled:hover:border-gray-200 shadow-sm transition-all"
-              >
-                <i class="fas fa-arrow-right"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Trash Module (Hides normally) -->
-          <div
-            id="trash-panel"
-            class="hidden overflow-hidden mt-2 relative z-10"
-          >
-            <button
-              onclick="toggleTrashPanel()"
-              class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-50 to-red-50 hover:to-red-100 transition-all border-y border-red-100 group"
-            >
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition shrink-0"
-                >
-                  <i class="fas fa-dumpster"></i>
-                </div>
-                <div class="text-left">
-                  <p
-                    class="font-bold text-red-600 font-outfit text-lg flex items-center gap-2"
-                  >
-                    Data Terhapus
-                    <span
-                      id="trash-badge"
-                      class="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full inline-block transform -translate-y-px"
-                      >0</span
-                    >
-                  </p>
-                  <p class="text-[11px] text-red-400 font-medium tracking-wide">
-                    Arsip Data Terhapus
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-4">
-                <button
-                  onclick="
-                    event.stopPropagation();
-                    emptyTrash();
-                  "
-                  id="btn-empty-trash"
-                  class="hidden text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-600/30 font-outfit uppercase tracking-widest z-20 hover:-translate-y-0.5"
-                >
-                  <i class="fas fa-fire-alt mr-1"></i> Kosongkan
-                </button>
-                <div
-                  class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center border border-red-100"
-                >
-                  <i
-                    id="trash-chevron"
-                    class="fas fa-chevron-down text-red-400 text-sm transition-transform duration-300 group-hover:text-red-600"
-                  ></i>
-                </div>
-              </div>
-            </button>
-
-            <div
-              id="trash-table-wrapper"
-              class="hidden overflow-x-auto bg-[#fafafa] p-4"
-            >
-              <table
-                class="w-full table-auto border-separate border-spacing-y-1"
-              >
-                <thead id="trash-thead"></thead>
-                <tbody id="trash-tbody">
-                  <tr>
-                    <td colspan="10" class="py-16 text-center text-gray-400">
-                      <i
-                        class="fas fa-dumpster text-4xl opacity-20 block mb-4"
-                      ></i>
-                      <p
-                        class="font-black font-outfit tracking-wider uppercase"
-                      >
-                        Tidak ada sampah
-                      </p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <!-- FORM MODAL Edit/Save - SUPER PREMIUM DESIGN -->
+  <!-- FORM MODAL Edit/Save - SUPER PREMIUM DESIGN -->
+  <div id="master-modal"
+    class="hidden fixed inset-0 z-[100] items-start sm:items-center justify-center p-4 overflow-y-auto">
+    <!-- Backdrop blur absolute -->
+    <div class="absolute inset-0 bg-[#222831]/60 backdrop-blur-md" onclick="closeModal()"></div>
+
     <div
-      id="master-modal"
-      class="hidden fixed inset-0 z-[100] items-start sm:items-center justify-center p-4 overflow-y-auto"
-    >
-      <!-- Backdrop blur absolute -->
-      <div
-        class="absolute inset-0 bg-[#222831]/60 backdrop-blur-md"
-        onclick="closeModal()"
-      ></div>
-
-      <div
-        class="relative bg-white rounded-[2rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/50 transform transition-all"
-      >
-        <!-- Header Gradient -->
-        <div
-          class="bg-gradient-to-r from-[#222831] to-[#393E46] px-8 py-5 flex items-center gap-4 shrink-0"
-        >
-          <div
-            class="bg-white/10 p-2.5 rounded-xl border border-white/10 shadow-inner"
-          >
-            <i class="fas fa-pen-nib text-white text-lg"></i>
-          </div>
-          <h2
-            id="modal-title"
-            class="text-xl font-extrabold font-outfit text-white flex-1 tracking-wide"
-          >
-            Konfigurasi Basis Data
-          </h2>
-          <button
-            onclick="closeModal()"
-            class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors"
-          >
-            <i class="fas fa-times"></i>
-          </button>
+      class="relative bg-white rounded-[2rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/50 transform transition-all">
+      <!-- Header Gradient -->
+      <div class="bg-gradient-to-r from-[#222831] to-[#393E46] px-8 py-5 flex items-center gap-4 shrink-0">
+        <div class="bg-white/10 p-2.5 rounded-xl border border-white/10 shadow-inner">
+          <i class="fas fa-pen-nib text-white text-lg"></i>
         </div>
+        <h2 id="modal-title" class="text-xl font-extrabold font-outfit text-white flex-1 tracking-wide">
+          Konfigurasi Basis Data
+        </h2>
+        <button onclick="closeModal()"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
 
-        <!-- Scrollable content -->
-        <div
-          class="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30"
-        >
-          <div id="modal-alert" class="hidden mb-6"></div>
-          <form
-            id="master-form"
-            onsubmit="
+      <!-- Scrollable content -->
+      <div class="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 relative bg-gray-50/30">
+        <div id="modal-alert" class="hidden mb-6"></div>
+        <form id="master-form" onsubmit="
               event.preventDefault();
               submitForm();
-            "
-            class="flex flex-col h-full"
-          >
-            <div id="modal-form-body" class="space-y-5">
-              <!-- JS Injectes Inputs with .form-input classes & labels with for='input-x' -->
-            </div>
-            <div class="mt-10 mb-2 border-t border-gray-200"></div>
+            " class="flex flex-col h-full">
+          <div id="modal-form-body" class="space-y-5">
+            <!-- JS Injectes Inputs with .form-input classes & labels with for='input-x' -->
+          </div>
+          <div class="mt-10 mb-2 border-t border-gray-200"></div>
 
-            <div
-              class="flex flex-col sm:flex-row gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4"
-            >
-              <button
-                type="submit"
-                id="modal-submit-btn"
-                class="flex-1 bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold font-outfit tracking-wide py-4 rounded-2xl shadow-[0_10px_20px_-5px_rgba(0,173,181,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(0,173,181,0.5)] transition-all flex items-center justify-center gap-2 text-base hover:-translate-y-1"
-              >
-                <i class="fas fa-save"></i> Terapkan Pembaruan
-              </button>
-              <button
-                type="button"
-                onclick="closeModal()"
-                class="w-full sm:w-auto px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300"
-              >
-                Batal
-              </button>
-            </div>
-          </form>
-        </div>
+          <div class="flex flex-col sm:flex-row gap-4 mt-auto pt-4 shrink-0 bg-white sticky bottom-0 z-10 w-full pb-4">
+            <button type="submit" id="modal-submit-btn"
+              class="flex-1 bg-[#00ADB5] hover:bg-[#00939c] text-white font-bold font-outfit tracking-wide py-4 rounded-2xl shadow-[0_10px_20px_-5px_rgba(0,173,181,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(0,173,181,0.5)] transition-all flex items-center justify-center gap-2 text-base hover:-translate-y-1">
+              <i class="fas fa-save"></i> Terapkan Pembaruan
+            </button>
+            <button type="button" onclick="closeModal()"
+              class="w-full sm:w-auto px-8 bg-white hover:bg-gray-100 border-2 border-gray-200 text-[#393E46] font-bold font-outfit tracking-wide py-3.5 rounded-2xl transition-all hover:border-gray-300">
+              Batal
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <!-- DELETE CONFIRMATION MODAL -->
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-lg" onclick="closeConfirmModal()"></div>
+
     <div
-      id="confirm-modal"
-      class="hidden fixed inset-0 z-[100] items-center justify-center p-4"
-    >
-      <div
-        class="absolute inset-0 bg-black/70 backdrop-blur-lg"
-        onclick="closeConfirmModal()"
-      ></div>
+      class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center transform scale-95 transition-transform duration-300">
+      <div class="bg-red-600 h-2 w-full"></div>
+      <div class="p-8 pb-6">
+        <div
+          class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center border-8 border-white shadow-[0_0_0_4px_rgba(220,38,38,0.1)] mb-4 shrink-0 relative mt-[-40px]">
+          <i class="fas fa-biohazard text-4xl text-red-500"></i>
+        </div>
+        <h3 id="confirm-modal-title" class="text-2xl font-extrabold font-outfit text-[#222831] mb-2 tracking-tight">
+          Kritis! Hapus Permanen.
+        </h3>
+        <p id="confirm-modal-desc"
+          class="text-xs font-semibold text-gray-500 mb-6 px-2 leading-relaxed bg-gray-50 border border-gray-100 p-3 rounded-xl inline-block">
+          Entitas tidak dapat ditarik kembali setelah aksi eksekusi dilakukan.
+        </p>
 
-      <div
-        class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center transform scale-95 transition-transform duration-300"
-      >
-        <div class="bg-red-600 h-2 w-full"></div>
-        <div class="p-8 pb-6">
-          <div
-            class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center border-8 border-white shadow-[0_0_0_4px_rgba(220,38,38,0.1)] mb-4 shrink-0 relative mt-[-40px]"
-          >
-            <i class="fas fa-biohazard text-4xl text-red-500"></i>
-          </div>
-          <h3
-            id="confirm-modal-title"
-            class="text-2xl font-extrabold font-outfit text-[#222831] mb-2 tracking-tight"
-          >
-            Kritis! Hapus Permanen.
-          </h3>
-          <p
-            id="confirm-modal-desc"
-            class="text-xs font-semibold text-gray-500 mb-6 px-2 leading-relaxed bg-gray-50 border border-gray-100 p-3 rounded-xl inline-block"
-          >
-            Entitas tidak dapat ditarik kembali setelah aksi eksekusi dilakukan.
-          </p>
+        <div id="confirm-type-wrapper"
+          class="text-left mb-6 pb-6 border-b border-gray-100 bg-red-50/50 p-4 rounded-2xl border border-red-100/50">
+          <label class="block text-[10px] font-black font-outfit text-red-800 mb-2 uppercase tracking-widest">
+            Ketik persetujuan:
+            <span class="text-white bg-red-500 px-2 py-0.5 rounded ml-1">HAPUS</span>
+          </label>
+          <input id="confirm-type-input" type="text" placeholder="" oninput="checkConfirmInput()"
+            class="w-full px-4 py-3 rounded-xl border-2 border-red-200 focus:border-red-500 outline-none text-red-600 tracking-[0.2em] font-black text-center transition-all bg-white" />
+        </div>
 
-          <div
-            id="confirm-type-wrapper"
-            class="text-left mb-6 pb-6 border-b border-gray-100 bg-red-50/50 p-4 rounded-2xl border border-red-100/50"
-          >
-            <label
-              class="block text-[10px] font-black font-outfit text-red-800 mb-2 uppercase tracking-widest"
-            >
-              Ketik persetujuan:
-              <span class="text-white bg-red-500 px-2 py-0.5 rounded ml-1"
-                >HAPUS</span
-              >
-            </label>
-            <input
-              id="confirm-type-input"
-              type="text"
-              placeholder=""
-              oninput="checkConfirmInput()"
-              class="w-full px-4 py-3 rounded-xl border-2 border-red-200 focus:border-red-500 outline-none text-red-600 tracking-[0.2em] font-black text-center transition-all bg-white"
-            />
-          </div>
-
-          <div class="flex flex-col gap-3 mt-4">
-            <button
-              id="confirm-delete-btn"
-              disabled
-              class="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed disabled:shadow-none text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-red-600/40 text-sm font-outfit tracking-widest group disabled:hover:-translate-y-0 hover:-translate-y-1"
-            >
-              <i class="fas fa-skull-crossbones mr-2 group-disabled:hidden"></i>
-              EKSEKUSI
-            </button>
-            <button
-              onclick="closeConfirmModal()"
-              class="w-full bg-gray-100 hover:bg-gray-200 text-[#393E46] font-bold py-3 rounded-xl transition-all text-sm uppercase tracking-wide"
-            >
-              Abort
-            </button>
-          </div>
+        <div class="flex flex-col gap-3 mt-4">
+          <button id="confirm-delete-btn" disabled
+            class="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed disabled:shadow-none text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-red-600/40 text-sm font-outfit tracking-widest group disabled:hover:-translate-y-0 hover:-translate-y-1">
+            <i class="fas fa-skull-crossbones mr-2 group-disabled:hidden"></i>
+            EKSEKUSI
+          </button>
+          <button onclick="closeConfirmModal()"
+            class="w-full bg-gray-100 hover:bg-gray-200 text-[#393E46] font-bold py-3 rounded-xl transition-all text-sm uppercase tracking-wide">
+            Abort
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- TOAST -->
-    <div id="toast" class="hidden toast toast-success"></div>
+  <!-- TOAST -->
+  <div id="toast" class="hidden toast toast-success"></div>
 
-    <script src="js/cache.js"></script>
-    <script src="js/sync.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/navigation.js"></script>
-    <script src="js/master.js"></script>
-  </body>
+  <script src="js/cache.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/master.js"></script>
+</body>
+
 </html>

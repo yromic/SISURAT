@@ -314,17 +314,23 @@
     }
 
     try {
-      const handleDataUpdate = (rows) => {
-        state.rawData = rows;
+      const res = await SisuratApi.loadData(table, SisuratApi.paginationState.currentPage);
+      if (res && res.status === "success") {
+        const rows = Array.isArray(res.data) ? res.data : [];
+        const normalized = rows.map((row) => SisuratApi.normalizeRecord(row, table));
+        state.rawData = normalized;
         applySearch();
-      };
-
-      const rows = await SisuratApi.fetchTable(table, {
-        staleWhileRevalidate: true,
-        onFresh: handleDataUpdate
-      });
-      handleDataUpdate(rows);
+      } else {
+        renderError();
+      }
     } catch (e) {
+      // Session error (ERR_401_SESSION / ERR_403_ORIGIN): re-throw agar
+      // tidak ada kode halaman yang jalan setelah redirect dijadwalkan.
+      if (window.SisuratApi && window.SisuratApi.isSessionError &&
+          window.SisuratApi.isSessionError(e)) {
+        throw e;
+      }
+      // Error lain (network, timeout, dll) — tampilkan pesan error lokal
       console.error("Gagal memuat data:", e);
       renderError();
     } finally {
@@ -421,15 +427,13 @@
     const canDelete = true;
     const canCreate = true;
     const showActions = canEdit || canDelete;
-    const total = state.filteredData.length;
-    const pageSize = state.pageSize;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const page = Math.min(state.currentPage, totalPages);
-    state.currentPage = page;
+    const total = SisuratApi.paginationState.total;
+    const totalPages = SisuratApi.paginationState.totalPages || 1;
+    const page = SisuratApi.paginationState.currentPage;
 
-    const start = (page - 1) * pageSize;
-    const end = Math.min(start + pageSize, total);
-    const pageData = state.filteredData.slice(start, end);
+    const start = (page - 1) * SisuratApi.paginationState.itemsPerPage;
+    const end = start + state.filteredData.length;
+    const pageData = state.filteredData;
 
     // Render header dengan sort
     const thead = document.getElementById("master-thead");
@@ -505,16 +509,7 @@
     }
 
     // Pagination info & buttons
-    const pageInfoEl = document.getElementById("page-info");
-    if (pageInfoEl) {
-      pageInfoEl.textContent =
-        total === 0 ? "0 data" : `${start + 1}–${end} dari ${total} data`;
-    }
-    document.getElementById("btn-prev").disabled = page <= 1;
-    document.getElementById("btn-next").disabled = page >= totalPages;
-
-    // Render page number buttons
-    renderPageButtons(page, totalPages);
+    SisuratApi.updatePaginationUI();
 
     // Tambah button visibility
     const addBtn = document.getElementById("btn-tambah");
@@ -1456,7 +1451,7 @@
     });
   }
 
-  function init() {
+  async function init() {
     const user = SisuratAuth.requireAuth();
     if (!user) return;
 
@@ -1478,6 +1473,34 @@
       initialTab = "masuk";
     } else if (type === "surat_keluar") {
       initialTab = "keluar";
+    }
+
+    const table = TAB_TABLE[initialTab];
+    showTableLoading(true);
+    try {
+      // Bootstrapping API tunggal: session, settings, dan data halaman awal sekaligus
+      const bootRes = await SisuratApi.bootstrapApp(table);
+      if (bootRes && bootRes.status === "success") {
+        if (bootRes.session) {
+          // Sync update status/role user jika ada
+          SisuratAuth.setStoredUser({
+            ...user,
+            ...bootRes.session,
+            session_token: user.session_token
+          });
+        }
+      }
+    } catch (e) {
+      // Session error (ERR_401_SESSION/ERR_403_ORIGIN): interceptor sudah menampilkan
+      // toast dan akan melakukan redirect. Rethrow agar eksekusi halaman berhenti.
+      if (e.code === "ERR_401_SESSION" || e.code === "ERR_403_ORIGIN" ||
+          (e.message && (e.message.includes("ERR_401_SESSION") || e.message.includes("ERR_403_ORIGIN")))) {
+        throw e;
+      }
+      // Error jaringan biasa: lanjutkan dengan pemuatan normal per-tab
+      console.warn("[Bootstrap] Gagal inisialisasi cepat, fallback ke pemuatan normal:", e);
+    } finally {
+      showTableLoading(false);
     }
 
     switchTab(initialTab);
@@ -1607,8 +1630,23 @@
     area.classList.toggle("hidden", !isHidden);
     if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
   }
+
+  async function refreshData() {
+    try {
+      SisuratApi.clearClientCache();
+      showToast("success", "Cache dibersihkan. Memuat data terbaru...");
+      await loadTab();
+      showToast("success", "Data berhasil diperbarui dari server!");
+    } catch (e) {
+      console.error("Gagal memperbarui data:", e);
+      showToast("error", "Gagal memperbarui data dari server.");
+    }
+  }
+
   // ─── Expose ke global (dipanggil dari HTML onclick) ───────────────────────────
+  global.refreshData = refreshData;
   global.switchTab = switchTab;
+  global.loadTab = loadTab;
   global.openAddModal = openAddModal;
   global.openEditModal = openEditModal;
   global.closeModal = closeModal;

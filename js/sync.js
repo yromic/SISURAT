@@ -28,22 +28,22 @@
   function enqueue(action, data) {
     const queue = getQueue();
     const syncId = `sync_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    
+
     queue.push({
       id: syncId,
       action,
       data,
       timestamp: Date.now()
     });
-    
+
     saveQueue(queue);
     console.log(`[Sync] Aksi enqueued: ${action}`, data);
-    
+
     // Coba proses antrean jika online
     if (navigator.onLine) {
       processQueue();
     }
-    
+
     return syncId;
   }
 
@@ -69,7 +69,7 @@
       try {
         console.log(`[Sync] Memproses item ${item.id}: ${item.action}`);
         const res = await global.SisuratApi.postActionRaw(item.action, item.data);
-        
+
         if (res && res.status === "success") {
           console.log(`[Sync] Item ${item.id} berhasil disinkronkan.`);
           remainingQueue = remainingQueue.filter(q => q.id !== item.id);
@@ -102,7 +102,7 @@
 
     isProcessing = false;
     console.log("[Sync] Pemrosesan antrean selesai.");
-    
+
     // Notify UI to refresh data if queue became empty
     if (getQueue().length === 0) {
       const event = new CustomEvent("sisurat-sync-completed");

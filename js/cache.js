@@ -140,6 +140,23 @@
           }
         })
         .catch((error) => {
+          // Session error (ERR_401_SESSION / ERR_403_ORIGIN):
+          // Interceptor di navigation.js sudah memanggil showError() dan
+          // menjadwalkan toast + redirect via setTimeout SEBELUM throw.
+          // Toast dan redirect berjalan independen dari Promise chain ini,
+          // sehingga tidak perlu re-throw (hanya menambah Unhandled Rejection
+          // tanpa nilai tambah). Cukup log singkat untuk debugging.
+          if (
+            (error && (error.code === "ERR_401_SESSION" || error.code === "ERR_403_ORIGIN")) ||
+            (error && error.message && (
+              error.message.includes("ERR_401_SESSION") ||
+              error.message.includes("ERR_403_ORIGIN")
+            ))
+          ) {
+            console.warn("[Cache SWR] Session expired during background revalidation — redirect sudah dijadwalkan.");
+            return;
+          }
+          // Error lain (network, timeout) — log seperti biasa
           console.warn(`Background revalidation gagal untuk key: ${key}`, error);
         });
 

@@ -68,7 +68,7 @@
         document.getElementById("settings-app-name").value = s.app_name || "";
         document.getElementById("settings-nama-instansi").value = s.nama_instansi || "";
         document.getElementById("settings-logo-url").value = s.logo_url || "";
-        
+
         // Load target division options and set the selected value
         await loadTargetDivisiOptions(s.public_piagam_target_divisi);
       } else {

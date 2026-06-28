@@ -96,9 +96,9 @@
             <td class="px-5 py-3.5 font-semibold text-[#222831] text-sm">${nama}</td>
             <td class="px-5 py-3.5 text-center">
               ${aktif
-                ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100"><i class="fas fa-circle text-[6px]"></i> Aktif</span>'
-                : '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 text-xs font-bold rounded-full border border-red-100"><i class="fas fa-circle text-[6px]"></i> Non-aktif</span>'
-              }
+            ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100"><i class="fas fa-circle text-[6px]"></i> Aktif</span>'
+            : '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 text-xs font-bold rounded-full border border-red-100"><i class="fas fa-circle text-[6px]"></i> Non-aktif</span>'
+          }
             </td>
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -134,7 +134,7 @@
         const aktif = rows.filter(r => String(r.aktif).toUpperCase() === "TRUE").length;
         const el = document.getElementById(cfg.counterId);
         if (el) el.textContent = `${aktif} aktif / ${rows.length} total`;
-      } catch (_) {}
+      } catch (_) { }
     }
   }
 
@@ -291,11 +291,10 @@
   // ─── Alert dalam Modal ─────────────────────────────────────────────────────
   function showModalAlert(type, msg) {
     const el = document.getElementById("ref-modal-alert");
-    el.className = `mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${
-      type === "success"
+    el.className = `mb-4 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${type === "success"
         ? "bg-green-50 text-green-700 border border-green-100"
         : "bg-red-50 text-red-600 border border-red-100"
-    }`;
+      }`;
     el.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${msg}`;
     el.classList.remove("hidden");
   }

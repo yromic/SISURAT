@@ -28,8 +28,15 @@
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
     loginBtn.disabled = true;
 
+    let fp = "";
     try {
-      const result = await SisuratApi.login(username, password);
+      fp = await SisuratAuth.generateFingerprint();
+    } catch (fpErr) {
+      console.warn("Failed to generate fingerprint:", fpErr);
+    }
+
+    try {
+      const result = await SisuratApi.login(username, password, fp);
 
       if (result.status === "success") {
         const token =
@@ -39,6 +46,9 @@
           result.user?.session_token;
         if (token) {
           localStorage.setItem("session_token", token);
+        }
+        if (fp) {
+          localStorage.setItem("sisurat_fp", fp);
         }
         const user = result.user || {};
         if (user.role) localStorage.setItem("user_role", user.role);
@@ -73,6 +83,14 @@
   }
 
   function init() {
+    if (SisuratApi && SisuratApi.BASE_URL) {
+      fetch(SisuratApi.BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "ping", origin: window.location.origin }),
+      }).catch(function () { });
+    }
+
     const existingUser = SisuratAuth.getStoredUser();
     if (existingUser) {
       window.location.href = "dashboard.html";

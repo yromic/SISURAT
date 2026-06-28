@@ -38,6 +38,7 @@
     localStorage.removeItem("user_nama");
     localStorage.removeItem("user_divisi_id");
     localStorage.removeItem("active_divisi");
+    localStorage.removeItem("sisurat_fp");
     if (global.SisuratCache && typeof global.SisuratCache.clear === "function") {
       global.SisuratCache.clear();
     }
@@ -89,13 +90,13 @@
           localStorage.setItem("sisurat_divisions", JSON.stringify(res.data));
           return res.data;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     const cached = localStorage.getItem("sisurat_divisions");
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (_) {}
+      } catch (_) { }
     }
     return [];
   }
@@ -270,6 +271,42 @@
     }
   }
 
+  const FP_VERSION = "v2";
+
+  async function generateFingerprint() {
+    try {
+      const raw = [
+        FP_VERSION,
+        navigator.userAgent,
+        navigator.language,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        navigator.hardwareConcurrency || "",
+        navigator.platform || "",
+        navigator.deviceMemory || "",
+      ].join("|");
+
+      if (window.crypto && window.crypto.subtle) {
+        const buffer = await window.crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(raw)
+        );
+        return Array.from(new Uint8Array(buffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      } else {
+        // Fallback: simple hash tanpa crypto.subtle
+        let hash = 0;
+        for (let i = 0; i < raw.length; i++) {
+          hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+          hash |= 0;
+        }
+        return "fallback_" + Math.abs(hash).toString(16);
+      }
+    } catch (e) {
+      return "fallback_error_" + Date.now();
+    }
+  }
+
   global.SisuratAuth = {
     getStoredUser,
     setStoredUser,
@@ -278,5 +315,6 @@
     isSuperAdmin,
     logoutToHome,
     verifyRoleFromServer,
+    generateFingerprint,
   };
 })(window);

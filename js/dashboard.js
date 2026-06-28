@@ -337,12 +337,13 @@
     const switcherSelect = document.getElementById("divisi-switcher");
     if (switcherContainer && switcherSelect) {
       switcherContainer.classList.remove("hidden");
-      
-      const currentSelected = switcherSelect.value || "all";
-      
+
+      const activeDiv = global.SisuratDivision ? global.SisuratDivision.getActiveDivisi() : "";
+      const currentSelected = switcherSelect.value || activeDiv || "all";
+
       // Clear current options except "Semua Divisi"
       switcherSelect.innerHTML = '<option value="all" class="text-[#222831] bg-white font-semibold">Semua Divisi</option>';
-      
+
       dbDivisiData.forEach(divisi => {
         if (divisi.status === "active" || divisi.status === "Aktif") {
           const opt = document.createElement("option");
@@ -357,7 +358,7 @@
       switcherSelect.value = currentSelected;
 
       // Add change listener
-      switcherSelect.onchange = function() {
+      switcherSelect.onchange = function () {
         displayStats(this.value);
       };
     }
@@ -378,7 +379,11 @@
         dbSummaryData = Array.isArray(summaryRes.data) ? summaryRes.data : [];
         if (isSuperAdmin) {
           const switcherSelect = document.getElementById("divisi-switcher");
-          const selectedValue = switcherSelect ? switcherSelect.value : "all";
+          const activeDiv = global.SisuratDivision ? global.SisuratDivision.getActiveDivisi() : "";
+          if (switcherSelect && (!switcherSelect.value || switcherSelect.value === "all") && activeDiv) {
+            switcherSelect.value = activeDiv;
+          }
+          const selectedValue = switcherSelect ? (switcherSelect.value || "all") : "all";
           displayStats(selectedValue);
           renderRingkasanDivisiTable();
         } else {
@@ -425,7 +430,14 @@
         SisuratApi.getData("db_divisi", {
           staleWhileRevalidate: true,
           onFresh: handleDivisiUpdate
-        }).then(handleDivisiUpdate);
+        }).then(handleDivisiUpdate)
+          .catch(function (err) {
+            if (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN") {
+              // Interceptor sudah handle toast + redirect — tidak perlu aksi tambahan
+              return;
+            }
+            console.error("[Dashboard] Gagal fetch divisi:", err);
+          });
       } else {
         const switcherContainer = document.getElementById("divisi-switcher-container");
         if (switcherContainer) switcherContainer.classList.add("hidden");
@@ -438,7 +450,14 @@
       SisuratApi.getData("db_summary", {
         staleWhileRevalidate: true,
         onFresh: handleSummaryUpdate
-      }).then(handleSummaryUpdate);
+      }).then(handleSummaryUpdate)
+        .catch(function (err) {
+          if (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN") {
+            // Interceptor sudah handle toast + redirect — tidak perlu aksi tambahan
+            return;
+          }
+          console.error("[Dashboard] Gagal fetch summary:", err);
+        });
 
     } catch (error) {
       console.error("Gagal memuat dashboard:", error);

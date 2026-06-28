@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbz5Te6ausn2hmEF6qybuVppFQLUuuu5Vk8A3XCojzYfo-eDd-n4alxK8k9hZBBwNIo_uQ/exec";
+    "https://script.google.com/macros/s/AKfycbz7o7OXz8hyuwRq9KNv2laP12E2mAD-YNGQ4TuBWG87-sV3colN_15XoOLNjlrhQ-Baig/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -12,18 +12,20 @@
   const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
   // PENTING: CacheService GAS memiliki batas 100 KB per nilai.
   // Chunk size raw dalam bytes HARUS kelipatan 3 agar bit padding Base64 tidak kacau saat digabungkan.
-  // 48 KB = 49152 bytes (kelipatan 3). Base64 = 65536 karakter (~64 KB). Sangat aman di bawah limit 100 KB.
-  const CHUNK_SIZE_BYTES = 48 * 1024; // Wajib kelipatan 3!
+  // 72 KB = 73728 bytes (kelipatan 3). Base64 = 98304 karakter (~96 KB). Sangat aman di bawah limit 100 KB.
+  const CHUNK_SIZE_BYTES = 72 * 1024; // Wajib kelipatan 3!
+
+  let paginationState = {
+    currentPage: 1,
+    itemsPerPage: 50,
+    currentTable: null,
+    totalPages: 0,
+    total: 0
+  };
 
   // ─── Google Drive Folder IDs per kategori ─────────────────────────────────
   // Setiap kategori memiliki folder upload tersendiri di Google Drive
-  const DRIVE_FOLDERS = Object.freeze({
-    db_surat_masuk:
-      "18hTuZTOgGuB1bfaEq-5VK8n-7g04Ku6KwKEx5DZ5X5HPbGsexHgx-6Tu-Lj93jQKD6rMdYIO",
-    db_surat_keluar:
-      "1V190s7wG2iJE4v5JDe5uvhMkziYOnTzJRQlpY23VVr4GWA92RPwI21vp8E8m9znHsXD5qsXj",
-    db_piagam_ttd: "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG", // folder khusus TTD piagam
-  });
+  // DRIVE_FOLDERS dipindahkan ke backend demi keamanan.
 
   const TABLE_CONFIG = Object.freeze({
     db_surat_masuk: {
@@ -102,7 +104,23 @@
     };
   }
 
+  /**
+   * Deteksi apakah sebuah error berasal dari session expired / origin mismatch.
+   * Cek properti `code` terlebih dahulu (disisipkan oleh interceptor di navigation.js),
+   * fallback ke substring match pada `message` untuk backward compatibility.
+   */
+  function isSessionError(err) {
+    return (
+      (err && (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN")) ||
+      (err && err.message && (
+        err.message.includes("ERR_401_SESSION") ||
+        err.message.includes("ERR_403_ORIGIN")
+      ))
+    );
+  }
+
   async function fetchTable(table, options = {}) {
+
     try {
       const fetchOptions = { ...options };
       if (options.onFresh) {
@@ -116,6 +134,13 @@
       const rows = Array.isArray(result.data) ? result.data : [];
       return rows.map((row) => normalizeRecord(row, table));
     } catch (error) {
+      // Session error (ERR_401_SESSION / ERR_403_ORIGIN): re-throw agar
+      // toast dan redirect yang sudah dijadwalkan interceptor tidak terhambat.
+      if (isSessionError(error)) {
+        throw error;
+      }
+      // Error lain (network, timeout, dll) — return kosong agar satu tabel
+      // yang gagal tidak meruntuhkan seluruh hasil pencarian.
       console.error(`Gagal mengambil data dari ${table}:`, error);
       return [];
     }
@@ -178,6 +203,11 @@
       payloadData.session_token = getSessionToken();
     }
 
+    if (action !== "login") {
+      const fp = localStorage.getItem("sisurat_fp") || "";
+      payloadData.fp = fp || "missing";
+    }
+
     // Determine current user's role and division
     const userRole = localStorage.getItem("user_role") || "";
     const userDivisi = localStorage.getItem("user_divisi_id") || "";
@@ -229,6 +259,7 @@
       },
       body: JSON.stringify({
         action,
+        origin: window.location.origin,
         data: payloadData,
       }),
     });
@@ -243,6 +274,12 @@
     return resJson;
   }
 
+  const _postActionInterceptors = [];
+
+  function addPostActionInterceptor(fn) {
+    _postActionInterceptors.push(fn);
+  }
+
   async function postAction(action, data = {}) {
     const isMutation = ["simpan_record", "update_record", "hapus_record", "simpan_piagam"].includes(action);
     const isOffline = !navigator.onLine;
@@ -255,10 +292,22 @@
 
     try {
       const res = await postActionRaw(action, data);
+      for (const interceptor of _postActionInterceptors) {
+        const modified = await interceptor(res, action, data);
+        if (modified !== undefined) return modified;
+      }
       return res;
     } catch (error) {
-      if (isMutation && window.SisuratSync) {
-        console.warn(`[API] Gagal koneksi/timeout. Memasukkan aksi ${action} ke antrean sync.`, error);
+      // Cek properti `code` terlebih dahulu (disisipkan oleh interceptor di navigation.js).
+      // Fallback ke substring match pada message untuk backward compatibility jika `code` tidak ada.
+      const isSessionExpired =
+        (error.code === "ERR_401_SESSION" || error.code === "ERR_403_ORIGIN") ||
+        (error.message && (
+          error.message.includes("ERR_401_SESSION") ||
+          error.message.includes("ERR_403_ORIGIN")));
+
+      if (isMutation && !isSessionExpired && window.SisuratSync) {
+        console.warn("[API] Network error, queuing:", action);
         window.SisuratSync.enqueue(action, data);
         return { status: "success", optimistic: true };
       }
@@ -266,8 +315,12 @@
     }
   }
 
-  function login(username, password) {
-    return postAction("login", { username, password });
+  function login(username, password, fp) {
+    const payload = { username, password };
+    if (fp) {
+      payload.fp = fp;
+    }
+    return postAction("login", payload);
   }
 
   function logout() {
@@ -280,23 +333,23 @@
 
   const CACHE_CONFIGS = Object.freeze({
     db_divisi: {
-      ttl: 5 * 60 * 1000, // 5 minutes
+      ttl: 60 * 60 * 1000, // 60 minutes (1 hour)
       prefix: "sisurat:v1:divisi:active-list"
     },
     db_summary: {
-      ttl: 2 * 60 * 1000, // 2 minutes
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:summary:"
     },
     db_surat_masuk: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_surat_masuk:"
     },
     db_surat_keluar: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_surat_keluar:"
     },
     db_piagam: {
-      ttl: 30 * 1000, // 30 seconds
+      ttl: 60 * 1000, // 60 seconds
       prefix: "sisurat:v1:master:db_piagam:"
     }
   });
@@ -376,8 +429,8 @@
    * @param {boolean} isTtd  - true jika upload adalah TTD piagam
    */
   function getFolderId(table, isTtd = false) {
-    if (isTtd) return DRIVE_FOLDERS.db_piagam_ttd;
-    return DRIVE_FOLDERS[table] || null;
+    if (isTtd) return "db_piagam_ttd";
+    return table || null;
   }
 
   async function saveRecord(table, data) {
@@ -511,6 +564,15 @@
     });
   }
 
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   // ─── Chunked File Upload ──────────────────────────────────────────────────────
   /**
    * Upload file ke Google Drive via Apps Script dalam potongan (chunks).
@@ -531,7 +593,25 @@
     // 2. Kompres gambar jika perlu
     const processedFile = await compressImage(file);
 
-    // 3. Konversi ke ArrayBuffer → Base64 (split per chunk)
+    // 3. Direct upload (bypass chunking) jika file kecil (< 500 KB)
+    if (processedFile.size < 500 * 1024) {
+      console.log("Direct upload (bypass chunking) for file: " + processedFile.name);
+      const base64DataUrl = await fileToDataURL(processedFile);
+      const token = getSessionToken();
+      const finalRes = await postAction("upload_file", {
+        base64DataUrl,
+        fileName: processedFile.name,
+        folderId,
+        session_token: token
+      });
+      if (!finalRes || finalRes.status !== "success") {
+        throw new Error((finalRes && finalRes.message) || "Gagal menyelesaikan upload file.");
+      }
+      if (typeof onProgress === "function") onProgress(100);
+      return finalRes.fileUrl;
+    }
+
+    // 4. Konversi ke ArrayBuffer → Base64 (split per chunk)
     const arrayBuffer = await processedFile.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     const totalBytes = bytes.length;
@@ -600,10 +680,10 @@
     let activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
 
     let cacheKey = "";
-    let ttl = 10 * 60 * 1000; // 10 minutes default for division-scoped
+    let ttl = 60 * 60 * 1000; // 60 minutes (1 hour) default for division-scoped static refs
     if (tableName === "ref_sekolah") {
       cacheKey = "sisurat:v1:ref:sekolah";
-      ttl = 30 * 60 * 1000; // 30 minutes for global
+      ttl = 60 * 60 * 1000; // 60 minutes (1 hour) for global
     } else {
       cacheKey = `sisurat:v1:ref:${tableName}:${activeDiv}`;
     }
@@ -685,10 +765,117 @@
     _cacheInvalidateHandlers.forEach((fn) => fn());
   }
 
+
+  const _clientCache = {};
+  const CLIENT_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+  function clearClientCache() {
+    for (const k in _clientCache) delete _clientCache[k];
+    console.log("CLIENT CACHE: cleared");
+  }
+
+  // Hook invalidasi cache untuk membersihkan cache lokal
+  onCacheInvalidate(() => {
+    clearClientCache();
+  });
+
+  async function loadData(table, page = 1, forceRefresh = false) {
+    if (table !== paginationState.currentTable) {
+      page = 1;
+      paginationState.currentTable = table;
+    }
+
+    const cacheKey = `${table}_${page}_${paginationState.itemsPerPage}`;
+    if (!forceRefresh && _clientCache[cacheKey]) {
+      const cached = _clientCache[cacheKey];
+      if (Date.now() - cached.timestamp < CLIENT_CACHE_TTL_MS) {
+        console.log("CLIENT CACHE HIT: " + cacheKey);
+        const res = cached.data;
+        paginationState.currentPage = res.page || page;
+        paginationState.totalPages = res.totalPages || 0;
+        paginationState.total = res.total || 0;
+        updatePaginationUI();
+        return res;
+      }
+    }
+
+    console.log("CLIENT CACHE MISS/FORCE: " + cacheKey);
+    const token = getSessionToken();
+    const res = await postAction("get_data", {
+      table: table,
+      page: page,
+      limit: paginationState.itemsPerPage,
+      session_token: token
+    });
+
+    if (res && res.status === "success") {
+      paginationState.currentPage = res.page || page;
+      paginationState.totalPages = res.totalPages || 0;
+      paginationState.total = res.total || 0;
+      updatePaginationUI();
+      _clientCache[cacheKey] = {
+        timestamp: Date.now(),
+        data: res
+      };
+    }
+    return res;
+  }
+
+  async function bootstrapApp(initialTable) {
+    const token = getSessionToken();
+    const res = await postAction("bootstrap", {
+      session_token: token,
+      table: initialTable,
+      page: 1,
+      limit: paginationState.itemsPerPage
+    });
+
+    if (res && res.status === "success") {
+      if (res.initialData && res.initialData.status === "success") {
+        const cacheKey = `${initialTable}_1_${paginationState.itemsPerPage}`;
+        _clientCache[cacheKey] = {
+          timestamp: Date.now(),
+          data: res.initialData
+        };
+        paginationState.currentPage = res.initialData.page || 1;
+        paginationState.totalPages = res.initialData.totalPages || 0;
+        paginationState.total = res.initialData.total || 0;
+        updatePaginationUI();
+      }
+    }
+    return res;
+  }
+
+  function goToPage(newPage) {
+    if (newPage >= 1 && newPage <= paginationState.totalPages) {
+      if (typeof window.loadTab === "function") {
+        paginationState.currentPage = newPage;
+        window.loadTab();
+      } else {
+        loadData(paginationState.currentTable, newPage);
+      }
+    }
+  }
+
+  function updatePaginationUI() {
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+    const pageInfo = document.getElementById("page-info");
+
+    if (btnPrev) {
+      btnPrev.disabled = (paginationState.currentPage <= 1);
+    }
+    if (btnNext) {
+      btnNext.disabled = (paginationState.currentPage >= paginationState.totalPages);
+    }
+    if (pageInfo) {
+      pageInfo.innerText = `Halaman ${paginationState.currentPage} dari ${paginationState.totalPages || 1}`;
+    }
+  }
+
   global.SisuratApi = {
     BASE_URL,
     TABLE_CONFIG,
-    DRIVE_FOLDERS,
     MAX_FILE_SIZE_BYTES,
     getTables,
     getFolderId,
@@ -696,6 +883,7 @@
     normalizeRecord,
     postAction,
     postActionRaw,
+    addInterceptor: addPostActionInterceptor,
     getData,
     fetchTable,
     fetchAllTables,
@@ -716,5 +904,18 @@
     exportCsv,
     onCacheInvalidate,
     invalidateCache,
+    paginationState,
+    loadData,
+    goToPage,
+    updatePaginationUI,
+    bootstrapApp,
+    clearClientCache,
+    isSessionError,
   };
+  global.paginationState = paginationState;
+  global.loadData = loadData;
+  global.goToPage = goToPage;
+  global.updatePaginationUI = updatePaginationUI;
+  global.bootstrapApp = bootstrapApp;
+  global.clearClientCache = clearClientCache;
 })(window);
