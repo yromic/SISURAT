@@ -430,7 +430,14 @@
         SisuratApi.getData("db_divisi", {
           staleWhileRevalidate: true,
           onFresh: handleDivisiUpdate
-        }).then(handleDivisiUpdate);
+        }).then(handleDivisiUpdate)
+          .catch(function (err) {
+            if (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN") {
+              // Interceptor sudah handle toast + redirect — tidak perlu aksi tambahan
+              return;
+            }
+            console.error("[Dashboard] Gagal fetch divisi:", err);
+          });
       } else {
         const switcherContainer = document.getElementById("divisi-switcher-container");
         if (switcherContainer) switcherContainer.classList.add("hidden");
@@ -443,7 +450,14 @@
       SisuratApi.getData("db_summary", {
         staleWhileRevalidate: true,
         onFresh: handleSummaryUpdate
-      }).then(handleSummaryUpdate);
+      }).then(handleSummaryUpdate)
+        .catch(function (err) {
+          if (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN") {
+            // Interceptor sudah handle toast + redirect — tidak perlu aksi tambahan
+            return;
+          }
+          console.error("[Dashboard] Gagal fetch summary:", err);
+        });
 
     } catch (error) {
       console.error("Gagal memuat dashboard:", error);

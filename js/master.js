@@ -1484,6 +1484,13 @@
         }
       }
     } catch (e) {
+      // Session error (ERR_401_SESSION/ERR_403_ORIGIN): interceptor sudah menampilkan
+      // toast dan akan melakukan redirect. Rethrow agar eksekusi halaman berhenti.
+      if (e.code === "ERR_401_SESSION" || e.code === "ERR_403_ORIGIN" ||
+          (e.message && (e.message.includes("ERR_401_SESSION") || e.message.includes("ERR_403_ORIGIN")))) {
+        throw e;
+      }
+      // Error jaringan biasa: lanjutkan dengan pemuatan normal per-tab
       console.warn("[Bootstrap] Gagal inisialisasi cepat, fallback ke pemuatan normal:", e);
     } finally {
       showTableLoading(false);

@@ -243,6 +243,7 @@
   /**
    * Hook ke postAction untuk auto-handle error codes.
    * Dipanggil setelah SisuratApi di-init.
+   * Aman dipanggil berkali-kali — interceptor hanya didaftarkan sekali.
    */
   function installApiInterceptor() {
     if (typeof global.SisuratApi === "undefined") return;
@@ -252,7 +253,15 @@
         if (result && result.status !== "success" && result.code) {
           if (result.code === "ERR_401_SESSION") {
             showError("ERR_401_SESSION");
-            throw new Error(mapError("ERR_401_SESSION"));
+            var err = new Error(mapError("ERR_401_SESSION"));
+            err.code = "ERR_401_SESSION"; // kode mentah agar catch block di api.js dapat mendeteksi
+            throw err;
+          }
+          if (result.code === "ERR_403_ORIGIN") {
+            showError("ERR_403_ORIGIN");
+            var err2 = new Error(mapError("ERR_403_ORIGIN"));
+            err2.code = "ERR_403_ORIGIN";
+            throw err2;
           }
         }
       });
@@ -264,7 +273,15 @@
           if (result && result.status !== "success" && result.code) {
             if (result.code === "ERR_401_SESSION") {
               showError("ERR_401_SESSION");
-              throw new Error(mapError("ERR_401_SESSION"));
+              var err = new Error(mapError("ERR_401_SESSION"));
+              err.code = "ERR_401_SESSION";
+              throw err;
+            }
+            if (result.code === "ERR_403_ORIGIN") {
+              showError("ERR_403_ORIGIN");
+              var err2 = new Error(mapError("ERR_403_ORIGIN"));
+              err2.code = "ERR_403_ORIGIN";
+              throw err2;
             }
           }
           return result;
@@ -542,9 +559,24 @@
     ERROR_MAP: ERROR_MAP,
   };
 
-  // ─── Auto-Init on DOMContentLoaded ──────────────────────────────────────────
+  // ─── Auto-Init — readyState-aware ───────────────────────────────────────────
+  //
+  // Di production dengan aset ter-cache, event DOMContentLoaded bisa sudah
+  // fired sebelum listener ini didaftarkan (karena script dimuat dari cache
+  // sangat cepat). Pattern ini memeriksa readyState terlebih dahulu sehingga
+  // installApiInterceptor dipanggil dalam kondisi apapun.
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function _runOnDomReady(fn) {
+    if (document.readyState === "loading") {
+      // DOM belum selesai — daftarkan listener normal
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      // DOM sudah selesai ('interactive' atau 'complete') — panggil langsung
+      fn();
+    }
+  }
+
+  _runOnDomReady(function () {
     syncMobileUsername();
     initSuperAdminSidebar();
     showActiveDivisiBadge();

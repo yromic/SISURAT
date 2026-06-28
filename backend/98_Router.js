@@ -226,9 +226,19 @@ function routeAction(action, data, params) {
                     sessionBoot = resSessionBoot.session;
                 }
             }
+
+            // Bootstrap selalu membutuhkan autentikasi.
+            // Jika token tidak ada / tidak valid, kembalikan ERR_401_SESSION
+            // agar interceptor di frontend dapat menangkap dan melakukan
+            // auto-redirect — bukan mengembalikan "success" dengan data null
+            // yang menipu UI (menampilkan 0/kosong tanpa logout).
+            if (!sessionBoot) {
+                return _errorResponse("ERR_401_SESSION");
+            }
+
             var settingsBoot = _getSettings();
             var initialData = null;
-            if (sessionBoot && data.table) {
+            if (data.table) {
                 var resolvedTable = _resolveDivisionTable(sessionBoot, data.table, data);
                 if (resolvedTable !== "ERR_400_DIVISI_REQUIRED" && _validateTableName(resolvedTable)) {
                     var page = Number(data.page) || 1;
@@ -241,8 +251,8 @@ function routeAction(action, data, params) {
             }
             var responsePayload = {
                 status: "success",
-                session: sessionBoot ? _publicSession(sessionBoot) : null,
-                settings: sessionBoot && sessionBoot.role === "super_admin" ? settingsBoot : {
+                session: _publicSession(sessionBoot),
+                settings: sessionBoot.role === "super_admin" ? settingsBoot : {
                     app_name: settingsBoot.app_name || "",
                     nama_instansi: settingsBoot.nama_instansi || "",
                     logo_url: settingsBoot.logo_url || ""

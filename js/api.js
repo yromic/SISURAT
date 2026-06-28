@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbyqL2WqUF6vl7fOecmSlW9hAtGvrdD8trlqEQp2MMCQwe7Zzn6-0Djte3P_aZ5aDhEdcA/exec";
+    "https://script.google.com/macros/s/AKfycbz5WjUlz7KZel4G6m6_VOt--Rif-BGR-xp-DRzMx0NKckO3SyXTHv_EoQc_L0o1o6M1Qw/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -275,9 +275,13 @@
       }
       return res;
     } catch (error) {
-      const isSessionExpired = error.message &&
-        (error.message.includes("ERR_401_SESSION") ||
-          error.message.includes("ERR_403_ORIGIN"));
+      // Cek properti `code` terlebih dahulu (disisipkan oleh interceptor di navigation.js).
+      // Fallback ke substring match pada message untuk backward compatibility jika `code` tidak ada.
+      const isSessionExpired =
+        (error.code === "ERR_401_SESSION" || error.code === "ERR_403_ORIGIN") ||
+        (error.message && (
+          error.message.includes("ERR_401_SESSION") ||
+          error.message.includes("ERR_403_ORIGIN")));
 
       if (isMutation && !isSessionExpired && window.SisuratSync) {
         console.warn("[API] Network error, queuing:", action);
