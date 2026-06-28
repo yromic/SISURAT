@@ -324,6 +324,13 @@
         renderError();
       }
     } catch (e) {
+      // Session error (ERR_401_SESSION / ERR_403_ORIGIN): re-throw agar
+      // tidak ada kode halaman yang jalan setelah redirect dijadwalkan.
+      if (window.SisuratApi && window.SisuratApi.isSessionError &&
+          window.SisuratApi.isSessionError(e)) {
+        throw e;
+      }
+      // Error lain (network, timeout, dll) — tampilkan pesan error lokal
       console.error("Gagal memuat data:", e);
       renderError();
     } finally {

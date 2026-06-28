@@ -104,7 +104,23 @@
     };
   }
 
+  /**
+   * Deteksi apakah sebuah error berasal dari session expired / origin mismatch.
+   * Cek properti `code` terlebih dahulu (disisipkan oleh interceptor di navigation.js),
+   * fallback ke substring match pada `message` untuk backward compatibility.
+   */
+  function isSessionError(err) {
+    return (
+      (err && (err.code === "ERR_401_SESSION" || err.code === "ERR_403_ORIGIN")) ||
+      (err && err.message && (
+        err.message.includes("ERR_401_SESSION") ||
+        err.message.includes("ERR_403_ORIGIN")
+      ))
+    );
+  }
+
   async function fetchTable(table, options = {}) {
+
     try {
       const fetchOptions = { ...options };
       if (options.onFresh) {
@@ -118,6 +134,13 @@
       const rows = Array.isArray(result.data) ? result.data : [];
       return rows.map((row) => normalizeRecord(row, table));
     } catch (error) {
+      // Session error (ERR_401_SESSION / ERR_403_ORIGIN): re-throw agar
+      // toast dan redirect yang sudah dijadwalkan interceptor tidak terhambat.
+      if (isSessionError(error)) {
+        throw error;
+      }
+      // Error lain (network, timeout, dll) — return kosong agar satu tabel
+      // yang gagal tidak meruntuhkan seluruh hasil pencarian.
       console.error(`Gagal mengambil data dari ${table}:`, error);
       return [];
     }
@@ -887,6 +910,7 @@
     updatePaginationUI,
     bootstrapApp,
     clearClientCache,
+    isSessionError,
   };
   global.paginationState = paginationState;
   global.loadData = loadData;
