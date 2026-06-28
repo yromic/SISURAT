@@ -48,21 +48,23 @@ var DRIVE_FOLDER_MAP = {
 };
 
 // WAJIB: set ke true sebelum deploy production, false untuk dev lokal
-var IS_PRODUCTION = true;
+var IS_PRODUCTION = false;
 
 var ALLOWED_ORIGINS = IS_PRODUCTION
-  ? [
-      "https://sisuratpkl.vercel.app"
-      // tambahkan custom domain lain jika ada
+    ? [
+        "https://sisuratpkl.vercel.app"
+        // tambahkan custom domain lain jika ada
     ]
-  : [
-      "https://sisuratpkl.vercel.app",
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:5501",
-      "http://127.0.0.1:5500"
+    : [
+        "https://sisuratpkl.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5501",
+        "http://127.0.0.1:5500",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
     ];
 
 var DRIVE_FOLDER_ID = "1Mg8F5JDGfQmZvJORrlAEKPi-Y6BIlUBG";
@@ -72,54 +74,54 @@ var LOGIN_FAIL_LIMIT = 5;
 var LOGIN_BLOCK_SECONDS = 15 * 60;
 
 var RBAC_RULES = {
-    "get_data:db_surat_masuk":  ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_surat_masuk": ["super_admin", "admin_divisi", "admin", "operator"],
     "get_data:db_surat_keluar": ["super_admin", "admin_divisi", "admin", "operator"],
-    "get_data:db_piagam":       ["super_admin", "admin_divisi", "admin", "operator"],
-    "get_data:db_users":        ["super_admin", "admin_divisi", "admin"],
-    "get_data:ref_sekolah":     ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_piagam": ["super_admin", "admin_divisi", "admin", "operator"],
+    "get_data:db_users": ["super_admin", "admin_divisi", "admin"],
+    "get_data:ref_sekolah": ["super_admin", "admin_divisi", "admin", "operator"],
     "get_data:ref_pengambilan": ["super_admin", "admin_divisi", "admin", "operator"],
     "get_data:ref_jenis_perlombaan": ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:surat_masuk":         ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:surat_keluar":        ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:piagam":              ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:ref_pengambilan":     ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:ref_jenis":           ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:ref_sekolah":         ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:ref_jenis_perlombaan":["super_admin", "admin_divisi", "admin", "operator"],
-    "read:db_users":            ["super_admin", "admin_divisi", "admin"],
-    "read:db_summary":          ["super_admin", "admin_divisi", "admin", "operator"],
-    "read:db_audit_log":        ["super_admin", "admin_divisi", "admin"],
-    "create:surat_masuk":       ["super_admin", "admin_divisi", "admin", "operator"],
-    "create:surat_keluar":      ["super_admin", "admin_divisi", "admin", "operator"],
-    "create:piagam":            ["super_admin", "admin_divisi", "admin", "operator"],
-    "create:ref_pengambilan":   ["super_admin", "admin_divisi", "admin", "operator"],
-    "create:ref_jenis":         ["super_admin", "admin_divisi", "admin", "operator"],
-    "create:ref_sekolah":       ["super_admin", "admin_divisi", "admin", "operator"],
-    "update:surat_masuk":       ["super_admin", "admin_divisi", "admin"],
-    "update:surat_keluar":      ["super_admin", "admin_divisi", "admin"],
-    "update:piagam":            ["super_admin", "admin_divisi", "admin"],
-    "update:ref_pengambilan":   ["super_admin", "admin_divisi", "admin"],
-    "update:ref_jenis":         ["super_admin", "admin_divisi", "admin"],
-    "update:ref_sekolah":       ["super_admin", "admin_divisi", "admin"],
-    "delete:surat_masuk":       ["super_admin", "admin_divisi", "admin"],
-    "delete:surat_keluar":      ["super_admin", "admin_divisi", "admin"],
-    "delete:piagam":            ["super_admin", "admin_divisi", "admin"],
-    "delete:ref_pengambilan":   ["super_admin", "admin_divisi", "admin"],
-    "delete:ref_jenis":         ["super_admin", "admin_divisi", "admin"],
-    "delete:ref_sekolah":       ["super_admin", "admin_divisi", "admin"],
-    "manage_user:*":            ["super_admin", "admin_divisi", "admin"],
-    "reset_password:*":         ["super_admin", "admin_divisi", "admin"],
-    "init_divisi:db_divisi":    ["super_admin"],
+    "read:surat_masuk": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:surat_keluar": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:piagam": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_pengambilan": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_jenis": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_sekolah": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:ref_jenis_perlombaan": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:db_users": ["super_admin", "admin_divisi", "admin"],
+    "read:db_summary": ["super_admin", "admin_divisi", "admin", "operator"],
+    "read:db_audit_log": ["super_admin", "admin_divisi", "admin"],
+    "create:surat_masuk": ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:surat_keluar": ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:piagam": ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_pengambilan": ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_jenis": ["super_admin", "admin_divisi", "admin", "operator"],
+    "create:ref_sekolah": ["super_admin", "admin_divisi", "admin", "operator"],
+    "update:surat_masuk": ["super_admin", "admin_divisi", "admin"],
+    "update:surat_keluar": ["super_admin", "admin_divisi", "admin"],
+    "update:piagam": ["super_admin", "admin_divisi", "admin"],
+    "update:ref_pengambilan": ["super_admin", "admin_divisi", "admin"],
+    "update:ref_jenis": ["super_admin", "admin_divisi", "admin"],
+    "update:ref_sekolah": ["super_admin", "admin_divisi", "admin"],
+    "delete:surat_masuk": ["super_admin", "admin_divisi", "admin"],
+    "delete:surat_keluar": ["super_admin", "admin_divisi", "admin"],
+    "delete:piagam": ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_pengambilan": ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_jenis": ["super_admin", "admin_divisi", "admin"],
+    "delete:ref_sekolah": ["super_admin", "admin_divisi", "admin"],
+    "manage_user:*": ["super_admin", "admin_divisi", "admin"],
+    "reset_password:*": ["super_admin", "admin_divisi", "admin"],
+    "init_divisi:db_divisi": ["super_admin"],
     "retry_init_divisi:db_divisi": ["super_admin"],
     "cleanup_divisi:db_divisi": ["super_admin"],
     "deactivate_divisi:db_divisi": ["super_admin"],
     "hard_delete_divisi:db_divisi": ["super_admin"],
     "migrate_existing_records:db_divisi": ["super_admin"],
-    "init_divisi:*":            ["super_admin"],
-    "retry_init_divisi:*":      ["super_admin"],
-    "cleanup_divisi:*":         ["super_admin"],
-    "deactivate_divisi:*":      ["super_admin"],
-    "hard_delete_divisi:*":      ["super_admin"],
+    "init_divisi:*": ["super_admin"],
+    "retry_init_divisi:*": ["super_admin"],
+    "cleanup_divisi:*": ["super_admin"],
+    "deactivate_divisi:*": ["super_admin"],
+    "hard_delete_divisi:*": ["super_admin"],
     "migrate_existing_records:*": ["super_admin"],
 };
 
