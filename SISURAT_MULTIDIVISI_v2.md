@@ -1,8 +1,8 @@
 # SISURAT Multi-Divisi — Dokumen Desain Final
 
-> **Versi:** 2.0
-> **Status:** Pre-implementasi — siap untuk development
-> **Terakhir diperbarui:** Sesi desain lengkap multi-divisi + form input custom
+> **Versi:** 3.1
+> **Status:** Terimplementasi (Production Ready)
+> **Terakhir diperbarui:** 22 Juni 2026 (Backend RBAC & Audit Log v3.1)
 > **Sistem:** Google Apps Script · Google Sheets · Google Drive · Frontend HTML/CSS/JS statis
 > **Hosting:** Vercel (frontend) · Google Account Kedinasan tunggal (semua backend)
 
@@ -40,7 +40,7 @@ SISURAT adalah sistem arsip surat dan piagam untuk Disdikbudpora Kabupaten Semar
 | Auth | Session token di `localStorage`, validasi via GAS |
 | Akun Google | Satu akun kedinasan untuk semua: Drive, Sheets, GAS, Forms |
 
-**Sistem saat ini bersifat single-tenant** — satu deployment untuk satu instansi, semua divisi tercampur.
+**Sistem saat ini bersifat multi-tenant** — sheet terpisah per divisi dengan prefix `{KODE_DIVISI}_` dan isolasi ketat secara server-side.
 
 ### 1.2 Fitur yang sudah ada
 
@@ -51,7 +51,7 @@ SISURAT adalah sistem arsip surat dan piagam untuk Disdikbudpora Kabupaten Semar
 - Laporan dan ekspor (CSV, PDF via jsPDF, draft email Gmail)
 - Form piagam dengan tanda tangan canvas
 - Manajemen referensi (sekolah, pengambilan, jenis perlombaan)
-- User management (hanya super admin)
+- User management (hanya super admin & admin divisi terotorisasi)
 - Audit log server-side
 - RBAC server-side via `_checkRole()`
 - Chunked file upload
@@ -180,17 +180,17 @@ Tiga opsi dievaluasi:
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `username` | STRING | Unik, primary key untuk login |
-| `password_hash` | STRING | SHA-256(password + salt) — tidak pernah plaintext |
-| `password_salt` | STRING | Random UUID per user, di-generate saat create/reset |
-| `password_v` | INTEGER | `1` = plaintext legacy (auto-upgrade), `2` = SHA-256 |
-| `role` | STRING | `super_admin` · `admin_divisi` · `operator` |
-| `nama` | STRING | Nama lengkap, ditampilkan di UI dan form |
-| `email` | STRING | Email (untuk referensi, bukan untuk login) |
+| `password` | STRING | Plain-text legacy (akan bernilai `__MIGRATED__` jika sudah migrasi) |
+| `role` | STRING | `super_admin` · `admin_divisi` · `admin` · `operator` |
+| `nama` | STRING | Nama lengkap, ditampilkan di UI |
+| `email` | STRING | Email untuk referensi/notifikasi |
+| `role_id` | STRING | ID role opsional |
+| `aktif` | BOOLEAN | `true`/`false` — nonaktif tanpa hapus akun |
 | `divisi_id` | STRING | Kode divisi (FK ke `db_divisi.kode_divisi`), kosong jika `scope=all` |
 | `scope` | STRING | `divisi` = hanya divisi sendiri · `all` = semua divisi |
-| `aktif` | BOOLEAN | `true`/`false` — nonaktif tanpa hapus akun |
-| `created_at` | DATETIME | Timestamp pembuatan akun |
-| `created_by` | STRING | Username yang membuat akun ini |
+| `password_hash` | STRING | SHA-256(password + salt) untuk enkripsi password v2 |
+| `password_salt` | STRING | Random UUID salt per user |
+| `password_v` | INTEGER | `1` = legacy plaintext, `2` = SHA-256 hash |
 
 **Aturan konsistensi:**
 - `scope=all` hanya valid untuk `role=super_admin`

@@ -1,0 +1,78 @@
+﻿{
+    "ditolak_terencana":  2,
+    "gagal":  0,
+    "total_tc":  6,
+    "target_url":  "https://script.google.com/macros/s/AKfycbz5Te6ausn2hmEF6qybuVppFQLUuuu5Vk8A3XCojzYfo-eDd-n4alxK8k9hZBBwNIo_uQ/exec",
+    "lulus":  4,
+    "judul":  "Laporan Pengujian API Backend SISURAT -- Bab 4.3",
+    "waktu_uji":  "2026-06-23 03:15:47",
+    "hasil_detail":  [
+                         {
+                             "token_preview":  "fcbcf0ea...",
+                             "pesan":  "Token berhasil diperoleh (session_token)",
+                             "waktu_ms":  7694.83,
+                             "test_id":  "TC-01",
+                             "timestamp":  "2026-06-23 03:15:11",
+                             "status_api":  "success",
+                             "role":  "operator",
+                             "kode_error":  "",
+                             "divisi_id":  "KURSISSMP",
+                             "nama":  "Miftah",
+                             "deskripsi":  "Login Operator Divisi A (DIKDAS)",
+                             "hasil":  "LULUS"
+                         },
+                         {
+                             "waktu_ms":  11095.9,
+                             "test_id":  "TC-02",
+                             "timestamp":  "2026-06-23 03:15:22",
+                             "deskripsi":  "Serangan Lintas Divisi: Operator DIKDAS akses tabel PAUD2_surat_masuk (harap: ERR_403_DIVISI)",
+                             "status_api":  "error",
+                             "kode_error":  "ERR_403_DIVISI",
+                             "pesan":  "ERR_403_DIVISI",
+                             "hasil":  "DITOLAK"
+                         },
+                         {
+                             "waktu_ms":  5403.91,
+                             "test_id":  "TC-03",
+                             "timestamp":  "2026-06-23 03:15:27",
+                             "deskripsi":  "Akses tanpa Session Token sama sekali (harap: ERR_401_SESSION)",
+                             "status_api":  "error",
+                             "kode_error":  "ERR_401_SESSION",
+                             "pesan":  "ERR_401_SESSION",
+                             "hasil":  "DITOLAK"
+                         },
+                         {
+                             "waktu_ms":  4972.4,
+                             "test_id":  "TC-04",
+                             "timestamp":  "2026-06-23 03:15:32",
+                             "deskripsi":  "Chunked Upload -- Chunk-0 dikirim ke server CacheService",
+                             "status_api":  "success",
+                             "kode_error":  null,
+                             "pesan":  "Chunk 0 diterima",
+                             "hasil":  "LULUS"
+                         },
+                         {
+                             "waktu_ms":  4191.46,
+                             "test_id":  "TC-05",
+                             "timestamp":  "2026-06-23 03:15:36",
+                             "deskripsi":  "Chunked Upload -- Chunk-1 dikirim ke server CacheService",
+                             "status_api":  "success",
+                             "kode_error":  null,
+                             "pesan":  "Chunk 1 diterima",
+                             "hasil":  "LULUS"
+                         },
+                         {
+                             "pesan":  "File berhasil disimpan ke Drive.",
+                             "waktu_ms":  10187.56,
+                             "batas_gas_ms":  360000,
+                             "test_id":  "TC-06",
+                             "status_api":  "success",
+                             "kode_error":  null,
+                             "timestamp":  "2026-06-23 03:15:47",
+                             "persentase_dari_batas":  "2.8299% dari batas runtime GAS",
+                             "file_url":  "https://drive.google.com/uc?export=view\u0026id=1VLcRTwsG0lZYJdLDcw1A7te2xxqZOve3",
+                             "deskripsi":  "Finalize Upload -- Gabungkan chunk + simpan ke Google Drive",
+                             "hasil":  "LULUS"
+                         }
+                     ]
+}
