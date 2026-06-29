@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pencarian | SISURAT Premium</title>
 
-    <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="css/output.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -140,18 +140,37 @@
         <!-- Super Admin Section -->
         <div id="sidebar-superadmin-section" class="hidden">
           <div class="my-2 px-2">
-            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Super Admin</p>
+            <p
+              class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
+            >
+              Super Admin
+            </p>
           </div>
-          <a href="user-management.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-            <i class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <a
+            href="user-management.html"
+            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+          >
+            <i
+              class="fas fa-users-cog w-6 text-center text-lg group-hover:scale-110 transition-transform"
+            ></i>
             <span>Kelola User</span>
           </a>
-          <a href="divisi.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-            <i class="fas fa-building w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <a
+            href="divisi.html"
+            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+          >
+            <i
+              class="fas fa-building w-6 text-center text-lg group-hover:scale-110 transition-transform"
+            ></i>
             <span>Kelola Divisi</span>
           </a>
-          <a href="settings.html" class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group">
-            <i class="fas fa-cogs w-6 text-center text-lg group-hover:scale-110 transition-transform"></i>
+          <a
+            href="settings.html"
+            class="flex items-center gap-4 px-5 py-3.5 rounded-2xl text-gray-300 hover:bg-white/10 hover:text-white font-medium transition-all group"
+          >
+            <i
+              class="fas fa-cogs w-6 text-center text-lg group-hover:scale-110 transition-transform"
+            ></i>
             <span>Pengaturan</span>
           </a>
         </div>
@@ -244,10 +263,14 @@
             </div>
             <h1 class="sisurat-page-title">Pencarian</h1>
             <p class="sisurat-page-description">
-              Temukan arsip surat dan piagam lintas kategori dengan filter pencarian.
+              Temukan arsip surat dan piagam lintas kategori dengan filter
+              pencarian.
             </p>
             <div class="sisurat-page-meta">
-              <div id="active-divisi-badge" class="hidden divisi-badge-container"></div>
+              <div
+                id="active-divisi-badge"
+                class="hidden divisi-badge-container"
+              ></div>
               <nav class="sisurat-breadcrumb" aria-label="Breadcrumb">
                 <span>Dashboard</span>
                 <i class="fas fa-chevron-right text-[10px]"></i>
@@ -257,17 +280,17 @@
           </div>
 
           <div class="sisurat-page-actions">
-          <button
-            onclick="
-              document.getElementById('infoCari').classList.toggle('hidden')
-            "
-            class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
-          >
-            <i
-              class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"
-            ></i>
-            Panduan Cari
-          </button>
+            <button
+              onclick="
+                document.getElementById('infoCari').classList.toggle('hidden')
+              "
+              class="shrink-0 px-6 py-3 bg-white hover:bg-gray-100 text-[#222831] font-bold rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1 group border-b-4 border-gray-300 hover:border-gray-400 active:border-b-0 active:translate-y-1"
+            >
+              <i
+                class="fas fa-book-open text-[#00ADB5] mr-2 group-hover:animate-bounce"
+              ></i>
+              Panduan Cari
+            </button>
           </div>
         </div>
       </div>
@@ -305,7 +328,7 @@
 
               <iframe
                 class="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/mmLlaqswlts?si=0LF61HHDkY8SQZYg"
+                src="https://www.youtube.com/embed/oi9J6GPz2g0?si=TZmiEjglie8zGf0G"
                 title="Panduan Sistem"
                 frameborder="0"
                 allow="
@@ -375,10 +398,7 @@
                 >Kategori Dokumen</label
               >
               <div class="relative">
-                <select
-                  id="jenis"
-                  class="sisurat-select"
-                >
+                <select id="jenis" class="sisurat-select">
                   <option value="">Semua Kategori</option>
                   <option value="db_surat_masuk">📥 Surat Masuk</option>
                   <option value="db_surat_keluar">📤 Surat Keluar</option>
@@ -608,7 +628,8 @@
               <p
                 class="text-xs font-bold text-gray-400 uppercase tracking-widest"
               >
-                <i class="fas fa-check-circle text-[#00ADB5] mr-1"></i> Verifikasi
+                <i class="fas fa-check-circle text-[#00ADB5] mr-1"></i>
+                Verifikasi
               </p>
               <p class="text-[10px] text-gray-400 mt-2 font-mono">
                 HASH: 3F9E2A8B • S-2026
