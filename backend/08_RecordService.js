@@ -155,6 +155,9 @@ function _fetchDataFromSheets(tableName, session, data, page, limit) {
                     : clean.replace(/\s+/g, "_");
 
                 if (["password", "password_hash", "password_salt"].indexOf(finalKey) !== -1) return;
+                if (!session && tableName === "db_divisi") {
+                    if (["drive_folder_id", "created_at", "created_by"].indexOf(finalKey) !== -1) return;
+                }
 
                 if (obj[finalKey] !== undefined && finalKey !== "row_number") {
                     obj[finalKey + "_2"] = row[index];
@@ -182,7 +185,7 @@ function getData(tableName, session, data, page, limit) {
     limit = limit || 50;
 
     var isPublicTable = false;
-    if (tableName === "ref_sekolah") {
+    if (tableName === "ref_sekolah" || tableName === "db_divisi") {
         isPublicTable = true;
     } else {
         var match = tableName.match(/^([A-Z0-9]+)_(ref_pengambilan|ref_jenis)$/i);

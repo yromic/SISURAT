@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbz7o7OXz8hyuwRq9KNv2laP12E2mAD-YNGQ4TuBWG87-sV3colN_15XoOLNjlrhQ-Baig/exec";
+    "https://script.google.com/macros/s/AKfycbxnrzEyhWm5kjzZgdY_INhv2Pekaaf0TsDJh6HKtaZ5i28fpZbWui_zbnG_o5uJZZ6d4Q/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -357,7 +357,13 @@
   function getData(table, options = {}) {
     const isCacheable = CACHE_CONFIGS[table];
     if (!isCacheable) {
-      return postAction("get_data", { table });
+      const isRef = table.startsWith("ref_") || table.includes("_ref_");
+      const defaultLimit = isRef ? 5000 : undefined;
+      return postAction("get_data", {
+        table,
+        divisi_id: options.divisi_id,
+        limit: options.limit || defaultLimit
+      });
     }
 
     const userRole = localStorage.getItem("user_role") || "";
@@ -375,7 +381,11 @@
     }
 
     const ttl = CACHE_CONFIGS[table].ttl;
-    const fetcher = () => postAction("get_data", { table });
+    const defaultLimit = table === "db_divisi" ? 5000 : undefined;
+    const fetcher = () => postAction("get_data", {
+      table,
+      limit: options.limit || defaultLimit
+    });
 
     if (window.SisuratCache) {
       if (options.staleWhileRevalidate) {
@@ -673,11 +683,14 @@
 
   // ─── Fetch Tabel Referensi (dengan cache SisuratCache + TTL) ─────────────────
 
-  async function fetchRef(tableName, forceRefresh = false) {
+  async function fetchRef(tableName, forceRefresh = false, targetDivisi = "") {
     const userRole = localStorage.getItem("user_role") || "";
     const userDivisi = localStorage.getItem("user_divisi_id") || "";
     const isSA = userRole.toLowerCase().replace(/[\s_-]+/g, "_") === "super_admin";
-    let activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
+    let activeDiv = targetDivisi;
+    if (!activeDiv) {
+      activeDiv = isSA ? (localStorage.getItem("active_divisi") || "") : userDivisi;
+    }
 
     let cacheKey = "";
     let ttl = 60 * 60 * 1000; // 60 minutes (1 hour) default for division-scoped static refs
@@ -696,7 +709,7 @@
     }
 
     try {
-      const result = await getData(tableName);
+      const result = await getData(tableName, { divisi_id: activeDiv });
       const rows = Array.isArray(result.data) ? result.data : [];
 
       // Filter hanya baris yang aktif (kolom aktif = "TRUE" atau "true")

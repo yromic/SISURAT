@@ -272,13 +272,14 @@
     // Panggil fungsi dropdown pencarian disini
     initSearchableDropdown();
 
-    // Panggil Dropdown Custom baru:
+    // Panggil Dropdown Custom baru (dengan target divisi kosong di awal):
     initCustomSelect(
       "pengambilan_select",
       "pengambilan_list",
       "pengambilan_icon",
       "pengambilan_other_container",
       "ref_pengambilan",
+      ""
     );
     initCustomSelect(
       "jenis_perlombaan_select",
@@ -286,7 +287,51 @@
       "jenis_perlombaan_icon",
       "jenis_perlombaan_other_container",
       "ref_jenis_perlombaan",
+      ""
     );
+
+    // Muat daftar divisi aktif secara dinamis untuk form publik
+    try {
+      const divRes = await SisuratApi.getData("db_divisi");
+      if (divRes && divRes.status === "success" && Array.isArray(divRes.data)) {
+        const divSelect = document.getElementById("divisi_select");
+        if (divSelect) {
+          divSelect.innerHTML = '<option value="">-- Pilih Divisi Tujuan --</option>';
+          divRes.data.forEach((div) => {
+            const isActive = String(div.status).toLowerCase() === "active" || String(div.status).toLowerCase() === "aktif";
+            if (isActive) {
+              const opt = document.createElement("option");
+              opt.value = div.kode_divisi;
+              opt.textContent = `${div.kode_divisi} - ${div.nama_divisi}`;
+              divSelect.appendChild(opt);
+            }
+          });
+
+          // Pemicu saat divisi berubah
+          divSelect.addEventListener("change", (e) => {
+            const selectedDiv = e.target.value;
+            initCustomSelect(
+              "pengambilan_select",
+              "pengambilan_list",
+              "pengambilan_icon",
+              "pengambilan_other_container",
+              "ref_pengambilan",
+              selectedDiv
+            );
+            initCustomSelect(
+              "jenis_perlombaan_select",
+              "jenis_perlombaan_list",
+              "jenis_perlombaan_icon",
+              "jenis_perlombaan_other_container",
+              "ref_jenis_perlombaan",
+              selectedDiv
+            );
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Gagal memuat daftar divisi:", err);
+    }
 
     global.addEventListener("resize", resizeCanvas);
   }
@@ -326,6 +371,7 @@
     }
 
     return {
+      divisi_id: document.getElementById("divisi_select").value,
       nama_pengambil: document.getElementById("nama_pengambil").value,
       jabatan: document.getElementById("jabatan").value,
       unit_kerja: document.getElementById("unit_kerja").value,
@@ -438,7 +484,7 @@
    * @param {string} otherContainerId - ID container input manual "Other"
    * @param {string} refTable         - Nama tabel referensi ("ref_pengambilan" / "ref_jenis_perlombaan")
    */
-  async function initCustomSelect(inputId, listId, iconId, otherContainerId, refTable) {
+  async function initCustomSelect(inputId, listId, iconId, otherContainerId, refTable, targetDivisi = "") {
     const input = document.getElementById(inputId);
     const list = document.getElementById(listId);
     const icon = document.getElementById(iconId);
@@ -446,12 +492,24 @@
 
     if (!input || !list) return;
 
+    // Reset values first
+    input.value = "";
+    input.removeAttribute("data-selected-value");
+    if (otherContainer) otherContainer.classList.add("hidden");
+
+    if (!targetDivisi) {
+      input.placeholder = "Pilih divisi tujuan dahulu...";
+      input.disabled = true;
+      list.innerHTML = "";
+      return;
+    }
+
     // Tampilkan loading state
     input.placeholder = "Memuat...";
     input.disabled = true;
 
     // Fetch data referensi dari API (dengan forceRefresh untuk pastikan data terbaru)
-    const refData = await SisuratApi.fetchRef(refTable);
+    const refData = await SisuratApi.fetchRef(refTable, true, targetDivisi);
 
     // Kembalikan input ke kondisi normal
     input.disabled = false;

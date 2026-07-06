@@ -50,7 +50,6 @@
     state.cacheFetchedAt = 0;
   });
 
-  // ─── Mapping Kolom CSV per Jenis ─────────────────────────────────────────────
   const CSV_COLUMNS = {
     db_piagam: [
       { header: "Tahun", key: "tahun_perlombaan" },
@@ -59,6 +58,7 @@
       { header: "NPSN", key: "npsn" },
       { header: "Pengambilan", key: "pengambilan" },
       { header: "Unit Kerja", key: "unit_kerja" },
+      { header: "Link Google Drive", key: "ttd_pengambil" },
     ],
     db_surat_masuk: [
       { header: "Nomor Surat", key: "nomor_surat" },
@@ -66,12 +66,14 @@
       { header: "Perihal", key: "perihal" },
       { header: "Tanggal Diterima", key: "tanggal_surat" },
       { header: "Nama Upload", key: "nama_upload" },
+      { header: "Link Google Drive", key: "upload_file" },
     ],
     db_surat_keluar: [
       { header: "No Surat", key: "nomor_surat" },
       { header: "Perihal", key: "perihal" },
       { header: "Tanggal Shared", key: "tanggal_surat" },
       { header: "Nama Upload", key: "nama_upload" },
+      { header: "Link Google Drive", key: "upload_file" },
     ],
   };
 
@@ -462,6 +464,7 @@
         "Perihal / Perlombaan": row.perihal || row.jenis_perlombaan || "",
         Tanggal: row.tanggal || "",
         Nama: row.nama_siswa || row.nama_upload || "",
+        "Link Google Drive": row.upload_file || row.ttd_pengambil || "",
         Total: idx + 1,
       }));
       SisuratApi.exportCsv(csvRows, `rekap_semua_${today()}.csv`);

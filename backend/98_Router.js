@@ -38,7 +38,7 @@ function routeAction(action, data, params) {
             return responseJSON({ status: "success", message: "Logout berhasil" });
 
         case "get_data":
-            var isPublicTable = (data.table === "ref_sekolah" || data.table === "ref_pengambilan" || data.table === "ref_jenis" || data.table === "ref_jenis_perlombaan");
+            var isPublicTable = (data.table === "ref_sekolah" || data.table === "ref_pengambilan" || data.table === "ref_jenis" || data.table === "ref_jenis_perlombaan" || data.table === "db_divisi");
             var sessionData = null;
             var tokenData = _sessionToken(data);
             if (tokenData) {
@@ -63,9 +63,10 @@ function routeAction(action, data, params) {
             } else {
                 if (data.table === "ref_sekolah") {
                     resolvedTable = "ref_sekolah";
+                } else if (data.table === "db_divisi") {
+                    resolvedTable = "db_divisi";
                 } else {
-                    var settingsObj = _getSettings();
-                    var targetDiv = String(settingsObj.public_piagam_target_divisi || "").trim().toUpperCase();
+                    var targetDiv = String(data.divisi_id || "").trim().toUpperCase();
                     if (!targetDiv) {
                         return responseJSON({ status: "success", data: [] });
                     }

@@ -24,7 +24,6 @@ function _getSettings() {
     }
     var data = sheet.getDataRange().getDisplayValues();
     var settings = {
-        public_piagam_target_divisi: "",
         nama_instansi: "",
         logo_url: "",
         app_name: ""
@@ -53,7 +52,7 @@ function _saveSettings(settingsObj) {
         var key = String(data[i][0]).trim();
         existingKeys[key] = i + 1;
     }
-    var keys = ["public_piagam_target_divisi", "nama_instansi", "logo_url", "app_name"];
+    var keys = ["nama_instansi", "logo_url", "app_name"];
     keys.forEach(function (k) {
         var val = settingsObj[k] !== undefined ? String(settingsObj[k]).trim() : "";
         if (existingKeys[k]) {

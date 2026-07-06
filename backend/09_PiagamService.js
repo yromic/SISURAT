@@ -14,12 +14,11 @@ function simpanPiagam(dataInput, session) {
     var isPublicSubmit = !session;
 
     if (isPublicSubmit) {
-        var settings = _getSettings();
-        targetDivisi = String(settings.public_piagam_target_divisi || "").trim().toUpperCase();
+        targetDivisi = String(dataInput.divisi_id || "").trim().toUpperCase();
         if (!targetDivisi) {
             return responseJSON({
                 status: "error",
-                message: "Pengiriman ditolak: Target divisi belum diatur. Silakan hubungi Administrator."
+                message: "Pengiriman ditolak: Target divisi wajib dipilih."
             });
         }
     } else {

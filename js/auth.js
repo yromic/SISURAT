@@ -118,7 +118,7 @@
           const links = saSection.querySelectorAll("a");
           links.forEach((link) => {
             const href = link.getAttribute("href");
-            if (href === "divisi.html" || href === "settings.html") {
+            if (href === "divisi.html") {
               link.classList.add("hidden");
             }
           });
