@@ -548,6 +548,28 @@
     });
   }
 
+  // ─── 8. Background Session Expiry Checker ────────────────────────────────────
+
+  function startSessionExpiryChecker() {
+    // Periksa validitas session secara lokal setiap 15 detik
+    setInterval(function () {
+      if (typeof global.SisuratAuth === "undefined") return;
+
+      const user = global.SisuratAuth.getStoredUser();
+      const sessionToken = localStorage.getItem("session_token") || (user && user.session_token);
+
+      // Hanya jalankan pengecekan jika user sedang login dan memiliki timestamp expires
+      if (user && sessionToken && user.expires) {
+        const expiresTime = Number(user.expires);
+        if (Date.now() > expiresTime) {
+          console.warn("[SisuratNavigation] Sesi kedaluwarsa secara lokal (idle timeout). Mengalihkan...");
+          // Memicu toast dan proses pembersihan + redirect otomatis
+          showError("ERR_401_SESSION");
+        }
+      }
+    }, 15000);
+  }
+
   // ─── Public API ─────────────────────────────────────────────────────────────
 
   global.SisuratUI = {
@@ -581,5 +603,6 @@
     initSuperAdminSidebar();
     showActiveDivisiBadge();
     installApiInterceptor();
+    startSessionExpiryChecker();
   });
 })(window);

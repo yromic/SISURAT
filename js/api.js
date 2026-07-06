@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbxnrzEyhWm5kjzZgdY_INhv2Pekaaf0TsDJh6HKtaZ5i28fpZbWui_zbnG_o5uJZZ6d4Q/exec";
+    "https://script.google.com/macros/s/AKfycbz-c23aWhq7Xat5W4zO9tV6Wb1voySVmuV6J-jGiS_0ibzitqhrF9aHmef4NOxY_PSmfA/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -265,10 +265,27 @@
     });
 
     const resJson = await response.json();
-    if (resJson && resJson.status === "success" && window.SisuratCache) {
-      if (["init_divisi", "retry_init_divisi", "cleanup_divisi", "deactivate_divisi"].includes(action)) {
-        window.SisuratCache.remove("sisurat:v1:divisi:active-list");
-        window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+    if (resJson && resJson.status === "success") {
+      // Sinkronisasi/perpanjang local session expiry (sliding session) jika user terautentikasi
+      try {
+        const rawUser = localStorage.getItem("user");
+        if (rawUser) {
+          const user = JSON.parse(rawUser);
+          if (user && user.session_token) {
+            // Perpanjang local expiry 2 jam (sejajar dengan SESSION_TTL_SECONDS)
+            user.expires = Date.now() + (2 * 60 * 60 * 1000);
+            localStorage.setItem("user", JSON.stringify(user));
+          }
+        }
+      } catch (e) {
+        console.error("[API] Gagal menyinkronkan local session expiry:", e);
+      }
+
+      if (window.SisuratCache) {
+        if (["init_divisi", "retry_init_divisi", "cleanup_divisi", "deactivate_divisi"].includes(action)) {
+          window.SisuratCache.remove("sisurat:v1:divisi:active-list");
+          window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
+        }
       }
     }
     return resJson;

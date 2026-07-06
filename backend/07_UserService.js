@@ -95,7 +95,7 @@ function manageUser(data, session) {
             return responseJSON({ status: "error", message: "Username dan password wajib diisi" });
         }
 
-        if (!isSuperAdmin && String(data.role || "").toLowerCase() === "super_admin") {
+        if (!isSuperAdmin && (String(data.role || "").toLowerCase() === "super_admin" || String(data.role_id || "").toLowerCase() === "super_admin")) {
             return _errorResponse("ERR_403_ROLE");
         }
 
@@ -175,11 +175,26 @@ function manageUser(data, session) {
                 writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:manage_user_cross_divisi", "db_users", existingUsername, "Attempt to update cross-division user");
                 return _errorResponse("ERR_403_DIVISI");
             }
-            if (data.role && String(data.role).toLowerCase() === "super_admin") {
+            if ((data.role && String(data.role).toLowerCase() === "super_admin") || (data.role_id && String(data.role_id).toLowerCase() === "super_admin")) {
                 return _errorResponse("ERR_403_ROLE");
             }
             data.divisi_id = session.divisi_id;
             data.scope = "divisi";
+        }
+
+        // Pengecekan duplikasi username jika diubah
+        if (data.username && String(data.username).trim() !== existingUsername) {
+            var newUsername = String(data.username).trim();
+            var existing = sheet.getDataRange().getDisplayValues();
+            var existingHeaders = existing[0].map(_normalizeHeaderName);
+            var existingUserCol = _headerIndex(existingHeaders, "username");
+            for (var i = 1; i < existing.length; i++) {
+                // Jangan bandingkan dengan baris yang sedang diupdate
+                if (i + 1 === rowNum) continue;
+                if (String(existing[i][existingUserCol]).trim() === newUsername) {
+                    return responseJSON({ status: "error", message: "Username \"" + newUsername + "\" sudah digunakan oleh user lain" });
+                }
+            }
         }
 
         var updatedPassword = null;

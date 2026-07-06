@@ -208,10 +208,7 @@
       const isCurrentUserRow = _isCurrentUser(u);
       const deleteAction = isCurrentUserRow
         ? `<span class="text-xs text-gray-400 italic px-2" title="Anda tidak dapat mengubah status akun yang sedang digunakan.">Akun aktif</span>`
-        : (!isSA ? `<button onclick="umDelete(this.dataset.row, this.dataset.name, this.dataset.username)"
-                    data-row="${_esc(rowNum)}"
-                    data-name="${_esc(u.nama || u.username)}"
-                    data-username="${_esc(u.username || "")}"
+        : (!isSA ? `<button onclick="umDelete(${rowNum})"
                     class="action-btn-delete px-3 py-1.5 text-xs rounded-lg font-semibold flex items-center gap-1.5"
                     title="Hapus User">
               <i class="fas fa-trash"></i> Hapus
@@ -241,7 +238,7 @@
         </td>
         <td class="px-5 py-4 text-right">
           <div class="flex items-center justify-end gap-2">
-            <button onclick="umEdit(this.dataset.user)" data-user="${_esc(JSON.stringify(u))}"
+            <button onclick="umEdit(${rowNum})"
                     class="action-btn-edit px-3 py-1.5 text-xs rounded-lg font-semibold flex items-center gap-1.5"
                     title="Edit User">
               <i class="fas fa-edit"></i> Edit
@@ -387,14 +384,18 @@
     _editingId = null;
   };
 
-  global.umEdit = function (jsonStr) {
-    let u = {};
-    try {
-      u = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
-    } catch (e) { console.error(e); }
+  global.umEdit = function (rowNum) {
+    rowNum = parseInt(rowNum, 10);
+    const u = _users.find(function (user) {
+      return (user.row_number || user.id) === rowNum;
+    });
+    if (!u) {
+      console.error("[UserMgmt] User tidak ditemukan untuk row_number:", rowNum);
+      return;
+    }
 
-    _editingId = u.row_number || u.id;
     global.umOpenModal("edit");
+    _editingId = rowNum;
     document.getElementById("um-modal-title").textContent = "Edit User";
     document.getElementById("um-form-nama").value = u.nama || "";
     document.getElementById("um-form-username").value = u.username || "";
@@ -487,9 +488,15 @@
   };
 
   // ─── Delete ───────────────────────────────────────────────────────────────
-  global.umDelete = async function (rowNum, nama, username) {
+  global.umDelete = async function (rowNum) {
+    rowNum = parseInt(rowNum, 10);
+    const u = _users.find(function (user) {
+      return (user.row_number || user.id) === rowNum;
+    });
+    if (!u) return;
+
     const currentUsername = _currentUser && _currentUser.username ? String(_currentUser.username).trim() : "";
-    const targetUsername = username ? String(username).trim() : "";
+    const targetUsername = u.username ? String(u.username).trim() : "";
     if (currentUsername && targetUsername && currentUsername === targetUsername) {
       _showToast("Anda tidak dapat menghapus akun sendiri.", "error");
       return;
@@ -498,7 +505,7 @@
     const confirmed = await SisuratUI.showConfirm({
       type: "danger",
       title: "Hapus User",
-      message: `Hapus user "${nama}"? Tindakan ini tidak bisa diurungkan.`,
+      message: `Hapus user "${u.nama || u.username}"? Tindakan ini tidak bisa diurungkan.`,
       confirmText: "Ya, Hapus",
       cancelText: "Batal",
     });
@@ -509,7 +516,7 @@
         row_number: rowNum,
       });
       if (result && result.status === "success") {
-        _showToast(`User "${nama}" berhasil dihapus.`, "success");
+        _showToast(`User "${u.nama || u.username}" berhasil dihapus.`, "success");
         await _loadUsers();
       } else {
         _showToast((result && result.message) || "Gagal menghapus user.", "error");
