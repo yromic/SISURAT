@@ -108,16 +108,29 @@ function simpanPiagam(dataInput, session) {
         return dataInput[key] !== undefined ? dataInput[key] : "";
     });
 
-    sheet.appendRow(newRow);
-    if (isPublicSubmit) {
-        writeAuditLog("public", "public_user", targetDivisi, "create", tableName, recordId, "Tambah piagam publik");
-    } else {
-        writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
-    updateSummary(targetDivisi, "piagam", 1);
 
-    return responseJSON({
-        status: "success",
-        message: "Data Berhasil Disimpan!",
-    });
+    try {
+        sheet.appendRow(newRow);
+        if (isPublicSubmit) {
+            writeAuditLog("public", "public_user", targetDivisi, "create", tableName, recordId, "Tambah piagam publik");
+        } else {
+            writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+        }
+        updateSummary(targetDivisi, "piagam", 1);
+
+        return responseJSON({
+            status: "success",
+            message: "Data Berhasil Disimpan!",
+        });
+    } catch (err) {
+        return _serverError("simpanPiagam", err);
+    } finally {
+        lock.releaseLock();
+    }
 }

@@ -207,10 +207,16 @@ function _upgradePasswordIfNeeded(sheet, rowNumber, headers, row, inputPassword)
     if (String(userPassword.password_v || "").trim() === "2") return false;
     var salt = _generateSalt();
     var hash = _hashPassword(inputPassword, salt);
-    _setRowValueByHeader(sheet, rowNumber, headers, "password_hash", hash);
-    _setRowValueByHeader(sheet, rowNumber, headers, "password_salt", salt);
-    _setRowValueByHeader(sheet, rowNumber, headers, "password_v", "2");
-    _setRowValueByHeader(sheet, rowNumber, headers, "password", "__MIGRATED__");
+    var updated = row.slice();
+    var hMap = {};
+    headers.forEach(function(h, idx) {
+        hMap[_normalizeHeaderName(h)] = idx;
+    });
+    if (hMap.password_hash !== undefined) updated[hMap.password_hash] = hash;
+    if (hMap.password_salt !== undefined) updated[hMap.password_salt] = salt;
+    if (hMap.password_v !== undefined) updated[hMap.password_v] = "2";
+    if (hMap.password !== undefined) updated[hMap.password] = "__MIGRATED__";
+    sheet.getRange(rowNumber, 1, 1, headers.length).setValues([updated]);
     return true;
 }
 

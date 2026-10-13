@@ -94,15 +94,21 @@ function updateSummary(divisi_id, tipe, delta) {
     console.time("PERF:updateSummary");
     var sheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
     var rowNumber = _ensureSummaryRow(divisi_id);
-    var map = _getHeaderIndexMap(sheet);
+    var headers = _getHeaders(sheet);
+    var map = _getHeaderIndexMap(sheet, headers);
     var field = "total_" + String(tipe || "").replace(/^db_/, "");
     if (map[field] === undefined) {
         console.timeEnd("PERF:updateSummary");
         return;
     }
-    var current = Number(sheet.getRange(rowNumber, map[field] + 1).getValue() || 0);
-    sheet.getRange(rowNumber, map[field] + 1).setValue(current + Number(delta || 0));
-    sheet.getRange(rowNumber, map.last_updated + 1).setValue(new Date());
+    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
+    var rowVals = rowRange.getValues()[0];
+    var current = Number(rowVals[map[field]] || 0);
+    rowVals[map[field]] = Math.max(0, current + Number(delta || 0));
+    if (map.last_updated !== undefined) {
+        rowVals[map.last_updated] = new Date();
+    }
+    rowRange.setValues([rowVals]);
     console.timeEnd("PERF:updateSummary");
 }
 
@@ -124,11 +130,19 @@ function _recomputeSummary(divisi_id) {
     });
     var summarySheet = _ensureSheet("db_summary", DB_SUMMARY_HEADERS);
     var rowNumber = _ensureSummaryRow(divisi_id);
-    var summaryMap = _getHeaderIndexMap(summarySheet);
+    var headers = _getHeaders(summarySheet);
+    var summaryMap = _getHeaderIndexMap(summarySheet, headers);
+    var rowRange = summarySheet.getRange(rowNumber, 1, 1, headers.length);
+    var rowVals = rowRange.getValues()[0];
     Object.keys(counts).forEach(function (key) {
-        summarySheet.getRange(rowNumber, summaryMap[key] + 1).setValue(counts[key]);
+        if (summaryMap[key] !== undefined) {
+            rowVals[summaryMap[key]] = counts[key];
+        }
     });
-    summarySheet.getRange(rowNumber, summaryMap.last_updated + 1).setValue(new Date());
+    if (summaryMap.last_updated !== undefined) {
+        rowVals[summaryMap.last_updated] = new Date();
+    }
+    rowRange.setValues([rowVals]);
 }
 
 function _ensureDivisiSheets(kode) {

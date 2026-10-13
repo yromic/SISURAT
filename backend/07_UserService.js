@@ -90,7 +90,15 @@ function manageUser(data, session) {
     var isSuperAdmin = session.role === "super_admin";
     var sessionUsername = String(session.username || "").trim();
 
-    if (sub === "create") {
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
+    }
+
+    try {
+        if (sub === "create") {
         if (!data.username || !data.password) {
             return responseJSON({ status: "error", message: "Username dan password wajib diisi" });
         }
@@ -277,6 +285,9 @@ function manageUser(data, session) {
     }
 
     return responseJSON({ status: "error", message: "sub_action tidak dikenal: " + sub });
+    } finally {
+        lock.releaseLock();
+    }
 }
 
 function resetPassword(data, session) {
@@ -315,33 +326,48 @@ function resetPassword(data, session) {
 
     var isSuperAdmin = session.role === "super_admin";
 
-    for (var i = 1; i < allData.length; i++) {
-        if (allData[i][userColIdx] === data.username) {
-            var targetUserDivisiId = String(allData[i][_headerIndex(headers, "divisi_id")] || "").trim().toUpperCase();
-
-            if (!isSuperAdmin) {
-                if (targetUserDivisiId !== String(session.divisi_id).toUpperCase()) {
-                    writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:reset_password_cross_divisi", "db_users", data.username, "Attempt to reset password of cross-division user");
-                    return _errorResponse("ERR_403_DIVISI");
-                }
-            }
-
-            var passwordFields = _passwordHashFields(data.new_password);
-            _setRowValueByHeader(sheet, i + 1, headers, "password", passwordFields.password);
-            _setRowValueByHeader(sheet, i + 1, headers, "password_hash", passwordFields.password_hash);
-            _setRowValueByHeader(sheet, i + 1, headers, "password_salt", passwordFields.password_salt);
-            _setRowValueByHeader(sheet, i + 1, headers, "password_v", passwordFields.password_v);
-
-            // Invalidate cache & Force logout
-            CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
-            _invalidateDataCache("db_users");
-            _forceLogoutUser(data.username);
-
-            writeAuditLog(session.username, rbacReset.session.role, isSuperAdmin ? targetUserDivisiId : session.divisi_id, "reset_password", "db_users", data.username,
-                "Password user \"" + data.username + "\" direset oleh " + session.username);
-            return responseJSON({ status: "success", message: "Password user \"" + data.username + "\" berhasil direset" });
-        }
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
-    return responseJSON({ status: "error", message: "User \"" + data.username + "\" tidak ditemukan" });
+    try {
+        for (var i = 1; i < allData.length; i++) {
+            if (allData[i][userColIdx] === data.username) {
+                var targetUserDivisiId = String(allData[i][_headerIndex(headers, "divisi_id")] || "").trim().toUpperCase();
+
+                if (!isSuperAdmin) {
+                    if (targetUserDivisiId !== String(session.divisi_id).toUpperCase()) {
+                        writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:reset_password_cross_divisi", "db_users", data.username, "Attempt to reset password of cross-division user");
+                        return _errorResponse("ERR_403_DIVISI");
+                    }
+                }
+
+                var passwordFields = _passwordHashFields(data.new_password);
+                var pwdRowRange = sheet.getRange(i + 1, 1, 1, headers.length);
+                var pwdRowVals = pwdRowRange.getValues()[0];
+                var pwdMap = _getHeaderIndexMap(sheet, headers);
+                if (pwdMap.password !== undefined) pwdRowVals[pwdMap.password] = passwordFields.password;
+                if (pwdMap.password_hash !== undefined) pwdRowVals[pwdMap.password_hash] = passwordFields.password_hash;
+                if (pwdMap.password_salt !== undefined) pwdRowVals[pwdMap.password_salt] = passwordFields.password_salt;
+                if (pwdMap.password_v !== undefined) pwdRowVals[pwdMap.password_v] = passwordFields.password_v;
+                pwdRowRange.setValues([pwdRowVals]);
+
+                // Invalidate cache & Force logout
+                CacheService.getScriptCache().remove("sisurat:v1:user:" + data.username);
+                _invalidateDataCache("db_users");
+                _forceLogoutUser(data.username);
+
+                writeAuditLog(session.username, rbacReset.session.role, isSuperAdmin ? targetUserDivisiId : session.divisi_id, "reset_password", "db_users", data.username,
+                    "Password user \"" + data.username + "\" direset oleh " + session.username);
+                return responseJSON({ status: "success", message: "Password user \"" + data.username + "\" berhasil direset" });
+            }
+        }
+
+        return responseJSON({ status: "error", message: "User \"" + data.username + "\" tidak ditemukan" });
+    } finally {
+        lock.releaseLock();
+    }
 }

@@ -321,18 +321,31 @@ function simpanRecord(tableName, dataInput, session) {
         return dataInput[key] !== undefined ? dataInput[key] : "";
     });
 
-    sheet.appendRow(newRow);
-
-    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "create", tableName, recordId,
-        "Tambah data baru ke " + tableName);
-
-    if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
-        updateSummary(targetDivisi, rbac.tableSuffix, 1);
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
-    _invalidateDataCache(tableName);
+    try {
+        sheet.appendRow(newRow);
 
-    return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
+        writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "create", tableName, recordId,
+            "Tambah data baru ke " + tableName);
+
+        if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
+            updateSummary(targetDivisi, rbac.tableSuffix, 1);
+        }
+
+        _invalidateDataCache(tableName);
+
+        return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
+    } catch (err) {
+        return _serverError("simpanRecord", err);
+    } finally {
+        lock.releaseLock();
+    }
 }
 
 function updateRecord(tableName, id, dataInput, session) {
@@ -357,99 +370,111 @@ function updateRecord(tableName, id, dataInput, session) {
         _ensureSheet(tableName, _requiredRecordHeaders(tableName));
     }
 
-    var rowNumber = getSheetRow(sheet, id);
-    if (rowNumber === -1) {
-        return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
-    var headers = _getHeaders(sheet);
-    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
-    var rowValues = rowRange.getValues()[0];
-    var headerMapByName = _getHeaderIndexMap(sheet, headers);
+    try {
+        var rowNumber = getSheetRow(sheet, id);
+        if (rowNumber === -1) {
+            return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
+        }
 
-    var targetDivisi = rbac.targetDivisi || "";
-    var isSuperAdmin = session.role === "super_admin";
+        var headers = _getHeaders(sheet);
+        var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
+        var rowValues = rowRange.getValues()[0];
+        var headerMapByName = _getHeaderIndexMap(sheet, headers);
 
-    if (!isSuperAdmin) {
-        var divIdx = headerMapByName.divisi_id;
-        if (divIdx !== undefined) {
-            var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
-            var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
-            if (existingDivisiId !== userDivisiId) {
-                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:update_division_mismatch", tableName, id, "Cross-division update blocked");
-                return _errorResponse("ERR_403_DIVISI");
+        var isSuperAdmin = session.role === "super_admin";
+
+        if (!isSuperAdmin) {
+            var divIdx = headerMapByName.divisi_id;
+            if (divIdx !== undefined) {
+                var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
+                var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
+                if (existingDivisiId !== userDivisiId) {
+                    writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:update_division_mismatch", tableName, id, "Cross-division update blocked");
+                    return _errorResponse("ERR_403_DIVISI");
+                }
             }
         }
-    }
 
-    var fileFolderId = _getFolderIdForDivisi(targetDivisi, tableName);
-    var ttdFolderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
+        var fileFolderId = _getFolderIdForDivisi(targetDivisi, tableName);
+        var ttdFolderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
 
-    if (dataInput.upload_file && dataInput.old_file_url) {
-        deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
-        delete dataInput.old_file_url;
-        delete dataInput.file_base64;
-        delete dataInput.file_name;
-        delete dataInput.folder_id;
-    } else if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
-        try {
-            if (dataInput.old_file_url) {
-                deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
-                delete dataInput.old_file_url;
-            }
-            dataInput.upload_file = uploadFileToDrive(
-                dataInput.file_base64,
-                dataInput.file_name || "",
-                fileFolderId
-            );
+        if (dataInput.upload_file && dataInput.old_file_url) {
+            deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
+            delete dataInput.old_file_url;
             delete dataInput.file_base64;
             delete dataInput.file_name;
             delete dataInput.folder_id;
-        } catch (err) {
-            return _serverError("updateRecord.uploadFile", err);
-        }
-    } else if (dataInput.old_file_url) {
-        delete dataInput.old_file_url;
-    }
-
-    if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
-        try {
-            if (dataInput.old_ttd_url) {
-                deleteFileFromDriveSecure(dataInput.old_ttd_url, session, targetDivisi);
-                delete dataInput.old_ttd_url;
+        } else if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
+            try {
+                if (dataInput.old_file_url) {
+                    deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
+                    delete dataInput.old_file_url;
+                }
+                dataInput.upload_file = uploadFileToDrive(
+                    dataInput.file_base64,
+                    dataInput.file_name || "",
+                    fileFolderId
+                );
+                delete dataInput.file_base64;
+                delete dataInput.file_name;
+                delete dataInput.folder_id;
+            } catch (err) {
+                return _serverError("updateRecord.uploadFile", err);
             }
-            var ttdFileName = "ttd_" + Date.now() + ".png";
-            dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
-            delete dataInput.ttd_base64;
-            delete dataInput.ttd_folder_id;
-        } catch (err) {
-            return _serverError("updateRecord.uploadTTD", err);
+        } else if (dataInput.old_file_url) {
+            delete dataInput.old_file_url;
         }
-    } else if (dataInput.old_ttd_url) {
-        delete dataInput.old_ttd_url;
+
+        if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
+            try {
+                if (dataInput.old_ttd_url) {
+                    deleteFileFromDriveSecure(dataInput.old_ttd_url, session, targetDivisi);
+                    delete dataInput.old_ttd_url;
+                }
+                var ttdFileName = "ttd_" + Date.now() + ".png";
+                dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
+                delete dataInput.ttd_base64;
+                delete dataInput.ttd_folder_id;
+            } catch (err) {
+                return _serverError("updateRecord.uploadTTD", err);
+            }
+        } else if (dataInput.old_ttd_url) {
+            delete dataInput.old_ttd_url;
+        }
+
+        var protectedKeys = ["id", "timestamp", "divisi_id", "email_address", "nama_pengupload", "is_deleted", "deleted_at", "deleted_by"];
+        protectedKeys.forEach(function(key) {
+            delete dataInput[key];
+        });
+        delete dataInput.actor;
+
+        headers.forEach(function (header, colIdx) {
+            var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
+            if (dataInput[key] !== undefined) {
+                rowValues[colIdx] = dataInput[key];
+            }
+        });
+
+        rowRange.setValues([rowValues]);
+
+        writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "update", tableName, id,
+            "Update record id=" + id + " di " + tableName);
+
+        _invalidateDataCache(tableName);
+
+        return responseJSON({ status: "success", message: "Data berhasil diupdate!" });
+    } catch (err) {
+        return _serverError("updateRecord", err);
+    } finally {
+        lock.releaseLock();
     }
-
-    var protectedKeys = ["id", "timestamp", "divisi_id", "email_address", "nama_pengupload", "is_deleted", "deleted_at", "deleted_by"];
-    protectedKeys.forEach(function(key) {
-        delete dataInput[key];
-    });
-    delete dataInput.actor;
-
-    headers.forEach(function (header, colIdx) {
-        var key = headerMap[normalizeHeader(header)] || normalizeKey(header);
-        if (dataInput[key] !== undefined) {
-            rowValues[colIdx] = dataInput[key];
-        }
-    });
-
-    rowRange.setValues([rowValues]);
-
-    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "update", tableName, id,
-        "Update record id=" + id + " di " + tableName);
-
-    _invalidateDataCache(tableName);
-
-    return responseJSON({ status: "success", message: "Data berhasil diupdate!" });
 }
 
 function hapusRecord(tableName, id, session) {
@@ -474,65 +499,78 @@ function hapusRecord(tableName, id, session) {
         _ensureSheet(tableName, _requiredRecordHeaders(tableName));
     }
 
-    var rowNumber = getSheetRow(sheet, id);
-    if (rowNumber === -1) {
-        return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
+    var lock = LockService.getScriptLock();
+    try {
+        lock.waitLock(30000);
+    } catch (_) {
+        return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
-    var headers = _getHeaders(sheet);
-    var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
-    var rowValues = rowRange.getValues()[0];
-    var headerMapByName = _getHeaderIndexMap(sheet, headers);
+    try {
+        var rowNumber = getSheetRow(sheet, id);
+        if (rowNumber === -1) {
+            return responseJSON({ status: "error", message: "Data tidak ditemukan (id: " + id + ")" });
+        }
 
-    var targetDivisi = rbac.targetDivisi || "";
-    var isSuperAdmin = session.role === "super_admin";
+        var headers = _getHeaders(sheet);
+        var rowRange = sheet.getRange(rowNumber, 1, 1, headers.length);
+        var rowValues = rowRange.getValues()[0];
+        var headerMapByName = _getHeaderIndexMap(sheet, headers);
 
-    if (!isSuperAdmin) {
-        var divIdx = headerMapByName.divisi_id;
-        if (divIdx !== undefined) {
-            var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
-            var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
-            if (existingDivisiId !== userDivisiId) {
-                writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:delete_division_mismatch", tableName, id, "Cross-division delete blocked");
-                return _errorResponse("ERR_403_DIVISI");
+        var targetDivisi = rbac.targetDivisi || "";
+        var isSuperAdmin = session.role === "super_admin";
+
+        if (!isSuperAdmin) {
+            var divIdx = headerMapByName.divisi_id;
+            if (divIdx !== undefined) {
+                var existingDivisiId = String(rowValues[divIdx] || "").trim().toUpperCase();
+                var userDivisiId = String(session.divisi_id || "").trim().toUpperCase();
+                if (existingDivisiId !== userDivisiId) {
+                    writeAuditLog(session.username, session.role, session.divisi_id || "-", "DENIED:delete_division_mismatch", tableName, id, "Cross-division delete blocked");
+                    return _errorResponse("ERR_403_DIVISI");
+                }
             }
         }
-    }
 
-    var deletedType = "";
-    if (headerMapByName.is_deleted !== undefined) {
-        var wasDeleted = /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
-        if (wasDeleted) {
-            return responseJSON({ status: "success", message: "Data sudah dihapus sebelumnya." });
+        var deletedType = "";
+        if (headerMapByName.is_deleted !== undefined) {
+            var wasDeleted = /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
+            if (wasDeleted) {
+                return responseJSON({ status: "success", message: "Data sudah dihapus sebelumnya." });
+            }
+            rowValues[headerMapByName.is_deleted] = true;
+            rowValues[headerMapByName.deleted_at] = new Date();
+            rowValues[headerMapByName.deleted_by] = session.username;
+            rowRange.setValues([rowValues]);
+            deletedType = "soft";
+        } else if (headerMapByName.aktif !== undefined) {
+            var isAlreadyInactive = /^(false|0|no|tidak|nonaktif)$/i.test(String(rowValues[headerMapByName.aktif]).trim());
+            if (isAlreadyInactive) {
+                return responseJSON({ status: "success", message: "Data sudah dinonaktifkan." });
+            }
+            rowValues[headerMapByName.aktif] = false;
+            if (headerMapByName.deleted_at !== undefined) rowValues[headerMapByName.deleted_at] = new Date();
+            if (headerMapByName.deleted_by !== undefined) rowValues[headerMapByName.deleted_by] = session.username;
+            rowRange.setValues([rowValues]);
+            deletedType = "deactivate";
+        } else {
+            sheet.deleteRow(rowNumber);
+            deletedType = "hard";
         }
-        rowValues[headerMapByName.is_deleted] = true;
-        rowValues[headerMapByName.deleted_at] = new Date();
-        rowValues[headerMapByName.deleted_by] = session.username;
-        rowRange.setValues([rowValues]);
-        deletedType = "soft";
-    } else if (headerMapByName.aktif !== undefined) {
-        var isAlreadyInactive = /^(false|0|no|tidak|nonaktif)$/i.test(String(rowValues[headerMapByName.aktif]).trim());
-        if (isAlreadyInactive) {
-            return responseJSON({ status: "success", message: "Data sudah dinonaktifkan." });
+
+        var logDetail = (deletedType === "hard" ? "Hard delete" : (deletedType === "deactivate" ? "Deactivate" : "Soft delete")) + " record id=" + id + " dari " + tableName;
+        writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, logDetail);
+
+        if (deletedType === "soft" && targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
+            updateSummary(targetDivisi, rbac.tableSuffix, -1);
         }
-        rowValues[headerMapByName.aktif] = false;
-        if (headerMapByName.deleted_at !== undefined) rowValues[headerMapByName.deleted_at] = new Date();
-        if (headerMapByName.deleted_by !== undefined) rowValues[headerMapByName.deleted_by] = session.username;
-        rowRange.setValues([rowValues]);
-        deletedType = "deactivate";
-    } else {
-        sheet.deleteRow(rowNumber);
-        deletedType = "hard";
+
+        _invalidateDataCache(tableName);
+
+        return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
+    } catch (err) {
+        return _serverError("hapusRecord", err);
+    } finally {
+        lock.releaseLock();
     }
-
-    var logDetail = (deletedType === "hard" ? "Hard delete" : (deletedType === "deactivate" ? "Deactivate" : "Soft delete")) + " record id=" + id + " dari " + tableName;
-    writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, logDetail);
-
-    if (deletedType === "soft" && targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
-        updateSummary(targetDivisi, rbac.tableSuffix, -1);
-    }
-
-    _invalidateDataCache(tableName);
-
-    return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
 }
