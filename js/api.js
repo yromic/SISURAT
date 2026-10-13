@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbxk2Z-K2WXNp7AQ54w9F6YGQafR0RSdQBjEv08TQCGdLW9PYbXT9qmkDnruPh2YhIiY4Q/exec";
+    "https://script.google.com/macros/s/AKfycbwqSsgfMZpl7D7j0-4tJ5oyuZ4FxXdQUDw340LGrpQk6AzduSjeJzpYtRf4TS6on-sCkQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -10,10 +10,6 @@
   // Kita batasi di 10MB dan kompres gambar otomatis jika >1MB.
   const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
   const IMAGE_COMPRESS_THRESHOLD = 1 * 1024 * 1024; // 1 MB
-  // PENTING: CacheService GAS memiliki batas 100 KB per nilai.
-  // Chunk size raw dalam bytes HARUS kelipatan 3 agar bit padding Base64 tidak kacau saat digabungkan.
-  // 72 KB = 73728 bytes (kelipatan 3). Base64 = 98304 karakter (~96 KB). Sangat aman di bawah limit 100 KB.
-  const CHUNK_SIZE_BYTES = 72 * 1024; // Wajib kelipatan 3!
 
   let paginationState = {
     currentPage: 1,
@@ -613,88 +609,34 @@
    * @returns {Promise<string>}      - URL publik file di Google Drive
    */
   async function uploadFileChunked(file, folderId, onProgress) {
-    // 1. Validasi ukuran
+    // 1. Validasi ukuran (maks 10 MB)
     const validation = validateFileSize(file);
     if (!validation.valid) throw new Error(validation.message);
 
-    // 2. Kompres gambar jika perlu
+    if (typeof onProgress === "function") onProgress(15);
+
+    // 2. Kompres gambar otomatis jika perlu (> 1 MB)
     const processedFile = await compressImage(file);
+    if (typeof onProgress === "function") onProgress(40);
 
-    // 3. Direct upload (bypass chunking) jika file kecil (< 500 KB)
-    if (processedFile.size < 500 * 1024) {
-      console.log("Direct upload (bypass chunking) for file: " + processedFile.name);
-      const base64DataUrl = await fileToDataURL(processedFile);
-      const token = getSessionToken();
-      const finalRes = await postAction("upload_file", {
-        base64DataUrl,
-        fileName: processedFile.name,
-        folderId,
-        session_token: token
-      });
-      if (!finalRes || finalRes.status !== "success") {
-        throw new Error((finalRes && finalRes.message) || "Gagal menyelesaikan upload file.");
-      }
-      if (typeof onProgress === "function") onProgress(100);
-      return finalRes.fileUrl;
-    }
+    // 3. Direct upload (1-Shot HTTP POST) langsung ke Google Drive via action upload_file
+    console.log("Direct upload for file: " + processedFile.name + " (" + Math.round(processedFile.size / 1024) + " KB)");
+    const base64DataUrl = await fileToDataURL(processedFile);
+    if (typeof onProgress === "function") onProgress(70);
 
-    // 4. Konversi ke ArrayBuffer → Base64 (split per chunk)
-    const arrayBuffer = await processedFile.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    const totalBytes = bytes.length;
-    const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE_BYTES);
-
-    // Buat session ID unik untuk upload ini
-    const uploadId = `upload_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-    // 4. Kirim semua chunk
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE_BYTES;
-      const end = Math.min(start + CHUNK_SIZE_BYTES, totalBytes);
-      const chunk = bytes.slice(start, end);
-
-      // Konversi Uint8Array chunk → Base64 string
-      let binary = "";
-      for (let j = 0; j < chunk.length; j++) {
-        binary += String.fromCharCode(chunk[j]);
-      }
-      const chunkBase64 = btoa(binary);
-
-      const res = await postAction("upload_chunk", {
-        uploadId,
-        chunkIndex: i,
-        totalChunks,
-        chunkBase64,
-      });
-
-      if (!res || res.status !== "success") {
-        throw new Error(
-          (res && res.message) || `Gagal mengirim chunk ${i + 1}/${totalChunks}`,
-        );
-      }
-
-      if (typeof onProgress === "function") {
-        onProgress(Math.round(((i + 1) / totalChunks) * 90)); // maks 90% saat chunk selesai
-      }
-    }
-
-    // 5. Finalize: gabungkan chunk + simpan ke Drive
-    const finalRes = await postAction("finalize_upload", {
-      uploadId,
-      totalChunks,
+    const token = getSessionToken();
+    const finalRes = await postAction("upload_file", {
+      base64DataUrl,
       fileName: processedFile.name,
-      mimeType: processedFile.type || "application/octet-stream",
       folderId,
+      session_token: token,
     });
 
     if (!finalRes || finalRes.status !== "success") {
-      throw new Error(
-        (finalRes && finalRes.message) || "Gagal menyelesaikan upload file.",
-      );
+      throw new Error((finalRes && finalRes.message) || "Gagal mengupload file ke Drive.");
     }
 
     if (typeof onProgress === "function") onProgress(100);
-
     return finalRes.fileUrl; // URL publik Google Drive
   }
 

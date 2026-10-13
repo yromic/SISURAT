@@ -2,10 +2,20 @@
 // SISURAT — Document & Record Management Service
 // ============================================================
 
-function _buildDataCacheKey(tableName, page, limit, divisionFilter, role) {
+function _getTableCacheVersion(tableName) {
+    try {
+        return CacheService.getScriptCache().get("v:" + tableName) || "1";
+    } catch (_) {
+        return "1";
+    }
+}
+
+function _buildDataCacheKey(tableName, page, limit, divisionFilter, role, version) {
+    var v = version || _getTableCacheVersion(tableName);
     var roleSegment = role ? "r" + role : "rguest";
     var divisiSegment = divisionFilter ? "d" + divisionFilter : "";
     return "data:" + tableName +
+           ":v" + v +
            ":" + roleSegment +
            ":p" + page +
            ":l" + limit +
@@ -13,38 +23,10 @@ function _buildDataCacheKey(tableName, page, limit, divisionFilter, role) {
 }
 
 function _invalidateDataCache(tableName) {
-    var cache = CacheService.getScriptCache();
-    var roles = ["super_admin", "admin_divisi", "admin", "operator", "guest"];
-    var limits = [25, 50, 100];
-    var pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    var divisionsList = [];
     try {
-        var divSheet = ss.getSheetByName("db_divisi");
-        if (divSheet) {
-            var divData = divSheet.getDataRange().getValues();
-            for (var i = 1; i < divData.length; i++) {
-                if (divData[i][1]) {
-                    divisionsList.push(String(divData[i][1]).trim().toUpperCase());
-                }
-            }
-        }
-    } catch (_) {}
-    divisionsList.push("");
-
-    var keys = [];
-    roles.forEach(function (role) {
-        pages.forEach(function (p) {
-            limits.forEach(function (l) {
-                divisionsList.forEach(function (d) {
-                    keys.push(_buildDataCacheKey(tableName, p, l, d, role));
-                });
-            });
-        });
-    });
-
-    var chunkSize = 100;
-    for (var i = 0; i < keys.length; i += chunkSize) {
-        cache.removeAll(keys.slice(i, i + chunkSize));
+        CacheService.getScriptCache().put("v:" + tableName, String(Date.now()), 21600);
+    } catch (e) {
+        console.warn("Gagal update versi cache untuk " + tableName + ": " + e.message);
     }
 }
 
