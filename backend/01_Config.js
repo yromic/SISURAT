@@ -142,7 +142,24 @@ var DB_USERS_HEADERS = [
     "password_salt",
     "password_v",
 ];
-var DB_AUDIT_LOG_HEADERS = ["timestamp", "actor", "role", "divisi_id", "action", "table_name", "record_id", "detail"];
+var DB_AUDIT_LOG_HEADERS = [
+    "timestamp",
+    "actor",
+    "role",
+    "divisi_id",
+    "action",
+    "table_name",
+    "record_id",
+    "detail",
+    "trace_id",
+    "server_total_ms",
+    "drive_upload_ms",
+    "lock_wait_ms",
+    "sheet_write_ms",
+    "client_prep_ms",
+    "sync_queue_ms",
+    "is_sync"
+];
 var DB_SUMMARY_HEADERS = ["divisi_id", "total_surat_masuk", "total_surat_keluar", "total_piagam", "last_updated"];
 var REF_SEKOLAH_HEADERS = ["id", "nama_sekolah", "npsn", "aktif"];
 var SURAT_MASUK_HEADERS = ["id", "timestamp", "email_address", "nama_pengupload", "divisi_id", "asal_surat", "nomor_surat", "tanggal_surat", "perihal", "tanggal_diterima", "upload_file", "is_deleted", "deleted_at", "deleted_by"];

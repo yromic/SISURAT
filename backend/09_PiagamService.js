@@ -51,6 +51,16 @@ function simpanPiagam(dataInput, session) {
         }
     }
 
+    var tServerStart = Date.now();
+    var tDrive = 0;
+    var tLock = 0;
+    var tSheet = 0;
+
+    var telemetry = (dataInput && dataInput._telemetry) ? dataInput._telemetry : {};
+    if (dataInput && dataInput._telemetry) {
+        delete dataInput._telemetry;
+    }
+
     var sheet = ss.getSheetByName(tableName);
     if (!sheet) {
         return responseJSON({ status: "error", message: "Tabel tidak ditemukan: " + tableName });
@@ -61,6 +71,7 @@ function simpanPiagam(dataInput, session) {
 
     if (dataInput.ttd_base64 && dataInput.ttd_base64.includes("base64,")) {
         try {
+            var t0Drive = Date.now();
             var splitBase64 = dataInput.ttd_base64.split(",");
             var imageBlob = Utilities.newBlob(
                 Utilities.base64Decode(splitBase64[1]),
@@ -78,6 +89,7 @@ function simpanPiagam(dataInput, session) {
             );
             var fileId = file.getId();
             linkTTD = "https://drive.google.com/uc?export=view&id=" + fileId;
+            tDrive += (Date.now() - t0Drive);
         } catch (err) {
             return _serverError("simpanPiagam.uploadTTD", err);
         }
@@ -109,24 +121,43 @@ function simpanPiagam(dataInput, session) {
     });
 
     var lock = LockService.getScriptLock();
+    var t0Lock = Date.now();
     try {
         lock.waitLock(30000);
+        tLock = Date.now() - t0Lock;
     } catch (_) {
         return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
     try {
+        var t0Sheet = Date.now();
         sheet.appendRow(newRow);
+        tSheet = Date.now() - t0Sheet;
+
+        var tServerTotal = Date.now() - tServerStart;
+        var perfMetrics = {
+            trace_id: telemetry.trace_id || "",
+            server_total_ms: tServerTotal,
+            drive_upload_ms: tDrive,
+            lock_wait_ms: tLock,
+            sheet_write_ms: tSheet,
+            client_prep_ms: Number(telemetry.client_prep_ms || 0),
+            sync_queue_ms: Number(telemetry.sync_queue_ms || 0),
+            is_sync: telemetry.is_background_sync === true
+        };
+
         if (isPublicSubmit) {
-            writeAuditLog("public", "public_user", targetDivisi, "create", tableName, recordId, "Tambah piagam publik");
+            writeAuditLog("public", "public_user", targetDivisi, "create", tableName, recordId, "Tambah piagam publik", perfMetrics);
         } else {
-            writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam");
+            writeAuditLog(session.username, rbac.session.role, targetDivisi, "create", tableName, recordId, "Tambah piagam", perfMetrics);
         }
         updateSummary(targetDivisi, "piagam", 1);
 
         return responseJSON({
             status: "success",
             message: "Data Berhasil Disimpan!",
+            trace_id: telemetry.trace_id || "",
+            server_metrics: perfMetrics
         });
     } catch (err) {
         return _serverError("simpanPiagam", err);

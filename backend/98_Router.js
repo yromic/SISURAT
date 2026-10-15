@@ -156,7 +156,8 @@ function routeAction(action, data, params) {
                 return _errorResponse("ERR_400_DIVISI_REQUIRED");
             }
             data.table = tableToDelete;
-            return hapusRecord(tableToDelete, data.id, sessionResult.session);
+            var hapusTelemetry = data._telemetry || (data.data && data.data._telemetry) || {};
+            return hapusRecord(tableToDelete, data.id, sessionResult.session, hapusTelemetry);
 
         case "upload_chunk":
             sessionResult = _requireSessionFromData(data, action);
@@ -280,12 +281,26 @@ function routeAction(action, data, params) {
                 folderId = _resolveDriveFolder(data.folderId);
             }
 
+            var t0Upload = Date.now();
             var fileUrl = uploadFileToDrive(base64DataUrl, fileName, folderId);
-            writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "upload", "-", "-", "Upload file utuh: " + fileName);
+            var tDriveUpload = Date.now() - t0Upload;
+            var uploadMetrics = {
+                trace_id: (data._telemetry && data._telemetry.trace_id) || "",
+                server_total_ms: tDriveUpload,
+                drive_upload_ms: tDriveUpload,
+                lock_wait_ms: 0,
+                sheet_write_ms: 0,
+                client_prep_ms: Number((data._telemetry && data._telemetry.client_prep_ms) || 0),
+                sync_queue_ms: 0,
+                is_sync: false
+            };
+            writeAuditLog(sessionResult.session.username, sessionResult.session.role, sessionResult.session.divisi_id || "-", "upload", "-", "-", "Upload file utuh: " + fileName, uploadMetrics);
             return responseJSON({
                 status: "success",
                 message: "File berhasil disimpan ke Drive.",
-                fileUrl: fileUrl
+                fileUrl: fileUrl,
+                trace_id: uploadMetrics.trace_id,
+                server_metrics: uploadMetrics
             });
 
         default:

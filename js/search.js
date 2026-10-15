@@ -89,6 +89,9 @@
   }
 
   function _renderPage() {
+    if (window.SisuratTelemetry) {
+      window.SisuratTelemetry.startTimer("dom_render_search_page");
+    }
     const container = document.getElementById("result");
     const countSpan = document.getElementById("result-count");
     const data = state.allResults;
@@ -105,6 +108,9 @@
         `;
       const pager = document.getElementById("search-pagination");
       if (pager) pager.style.display = "none";
+      if (window.SisuratTelemetry) {
+        window.SisuratTelemetry.stopTimer("dom_render_search_page", { items_count: 0 });
+      }
       return;
     }
 
@@ -229,6 +235,9 @@
         numbersEl.innerHTML = html;
       }
     }
+    if (window.SisuratTelemetry) {
+      window.SisuratTelemetry.stopTimer("dom_render_search_page", { items_count: pageData.length, page: page });
+    }
   }
 
   // Pagination controls
@@ -295,6 +304,9 @@
     }
 
     const processAndRender = (rawList) => {
+      if (window.SisuratTelemetry) {
+        window.SisuratTelemetry.startTimer("search_filter");
+      }
       let data = [...rawList];
       const keyword = document.getElementById("search").value.toLowerCase();
       const jenis = document.getElementById("jenis").value;
@@ -333,6 +345,14 @@
         const dateB = SisuratApi.parseDate(b.tanggal);
         return (dateB ? dateB.getTime() : 0) - (dateA ? dateA.getTime() : 0);
       });
+
+      if (window.SisuratTelemetry) {
+        window.SisuratTelemetry.stopTimer("search_filter", {
+          keyword: keyword,
+          result_count: sorted.length,
+          total_raw: rawList.length
+        });
+      }
 
       render(sorted);
     };

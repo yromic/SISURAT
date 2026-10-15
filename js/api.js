@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbwqSsgfMZpl7D7j0-4tJ5oyuZ4FxXdQUDw340LGrpQk6AzduSjeJzpYtRf4TS6on-sCkQ/exec";
+    "https://script.google.com/macros/s/AKfycbxK0GCXeexDTjFqZrB_VuDkEJP1_jDUQe-Bbwu8AREKEp0iP15WoxusrrhFcn4kB2gymQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
@@ -411,8 +411,28 @@
     }
   }
 
+  function generateTraceId() {
+    return `trc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
   async function savePiagam(data) {
-    const res = await postAction("simpan_piagam", data);
+    const t0Client = performance.now();
+    const payload = { ...data };
+    if (!payload._telemetry) {
+      payload._telemetry = {
+        trace_id: generateTraceId(),
+        client_start_ts: Date.now(),
+        client_prep_ms: Number(payload._client_prep_ms || 0),
+        is_background_sync: !navigator.onLine,
+        sync_queue_ms: 0
+      };
+    }
+    delete payload._client_prep_ms;
+    const res = await postAction("simpan_piagam", payload);
+    const clientTotal = Math.round(performance.now() - t0Client);
+    if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+      window.SisuratTelemetry.recordMutation("simpan_piagam", "db_piagam", payload._telemetry.trace_id, clientTotal, res);
+    }
     if (res && res.status === "success" && window.SisuratCache) {
       window.SisuratCache.clearByPrefix("sisurat:v1:master:db_piagam:");
       window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
@@ -457,8 +477,18 @@
   }
 
   async function saveRecord(table, data) {
-    // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
+    const t0Client = performance.now();
     const payload = { ...data };
+    if (!payload._telemetry) {
+      payload._telemetry = {
+        trace_id: generateTraceId(),
+        client_start_ts: Date.now(),
+        client_prep_ms: Number(payload._client_prep_ms || 0),
+        is_background_sync: !navigator.onLine,
+        sync_queue_ms: 0
+      };
+    }
+    delete payload._client_prep_ms;
     if (payload.file_base64 && !payload.folder_id) {
       payload.folder_id = getFolderId(table, false);
     }
@@ -468,7 +498,11 @@
     delete payload.actor;
     delete payload.email_address;
     delete payload.nama_pengupload;
-    const res = await postAction("simpan_record", { table, data: payload });
+    const res = await postAction("simpan_record", { table, data: payload, _telemetry: payload._telemetry });
+    const clientTotal = Math.round(performance.now() - t0Client);
+    if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+      window.SisuratTelemetry.recordMutation("simpan_record", table, payload._telemetry.trace_id, clientTotal, res);
+    }
     if (res && res.status === "success" && window.SisuratCache) {
       window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
       window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
@@ -477,8 +511,18 @@
   }
 
   async function updateRecord(table, id, data) {
-    // Tambahkan folder_id otomatis agar backend simpan di folder yang tepat
+    const t0Client = performance.now();
     const payload = { ...data };
+    if (!payload._telemetry) {
+      payload._telemetry = {
+        trace_id: generateTraceId(),
+        client_start_ts: Date.now(),
+        client_prep_ms: Number(payload._client_prep_ms || 0),
+        is_background_sync: !navigator.onLine,
+        sync_queue_ms: 0
+      };
+    }
+    delete payload._client_prep_ms;
     if (payload.file_base64 && !payload.folder_id) {
       payload.folder_id = getFolderId(table, false);
     }
@@ -488,7 +532,11 @@
     delete payload.actor;
     delete payload.email_address;
     delete payload.nama_pengupload;
-    const res = await postAction("update_record", { table, id, data: payload });
+    const res = await postAction("update_record", { table, id, data: payload, _telemetry: payload._telemetry });
+    const clientTotal = Math.round(performance.now() - t0Client);
+    if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+      window.SisuratTelemetry.recordMutation("update_record", table, payload._telemetry.trace_id, clientTotal, res);
+    }
     if (res && res.status === "success" && window.SisuratCache) {
       window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
       window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
@@ -497,7 +545,19 @@
   }
 
   async function deleteRecord(table, id) {
-    const res = await postAction("hapus_record", { table, id });
+    const t0Client = performance.now();
+    const telemetry = {
+      trace_id: generateTraceId(),
+      client_start_ts: Date.now(),
+      client_prep_ms: 0,
+      is_background_sync: !navigator.onLine,
+      sync_queue_ms: 0
+    };
+    const res = await postAction("hapus_record", { table, id, _telemetry: telemetry });
+    const clientTotal = Math.round(performance.now() - t0Client);
+    if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+      window.SisuratTelemetry.recordMutation("hapus_record", table, telemetry.trace_id, clientTotal, res);
+    }
     if (res && res.status === "success" && window.SisuratCache) {
       window.SisuratCache.clearByPrefix(`sisurat:v1:master:${table}:`);
       window.SisuratCache.clearByPrefix("sisurat:v1:summary:");
@@ -609,6 +669,7 @@
    * @returns {Promise<string>}      - URL publik file di Google Drive
    */
   async function uploadFileChunked(file, folderId, onProgress) {
+    const t0ClientUpload = performance.now();
     // 1. Validasi ukuran (maks 10 MB)
     const validation = validateFileSize(file);
     if (!validation.valid) throw new Error(validation.message);
@@ -616,24 +677,39 @@
     if (typeof onProgress === "function") onProgress(15);
 
     // 2. Kompres gambar otomatis jika perlu (> 1 MB)
+    const t0Prep = performance.now();
     const processedFile = await compressImage(file);
     if (typeof onProgress === "function") onProgress(40);
 
     // 3. Direct upload (1-Shot HTTP POST) langsung ke Google Drive via action upload_file
     console.log("Direct upload for file: " + processedFile.name + " (" + Math.round(processedFile.size / 1024) + " KB)");
     const base64DataUrl = await fileToDataURL(processedFile);
+    const clientPrepDuration = Math.round(performance.now() - t0Prep);
     if (typeof onProgress === "function") onProgress(70);
 
+    const traceId = generateTraceId();
     const token = getSessionToken();
     const finalRes = await postAction("upload_file", {
       base64DataUrl,
       fileName: processedFile.name,
       folderId,
       session_token: token,
+      _telemetry: {
+        trace_id: traceId,
+        client_start_ts: Date.now(),
+        client_prep_ms: clientPrepDuration,
+        file_size_bytes: processedFile.size,
+        file_name: processedFile.name
+      }
     });
 
     if (!finalRes || finalRes.status !== "success") {
       throw new Error((finalRes && finalRes.message) || "Gagal mengupload file ke Drive.");
+    }
+
+    const totalClientDuration = Math.round(performance.now() - t0ClientUpload);
+    if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+      window.SisuratTelemetry.recordMutation("upload_file", folderId || "drive", traceId, totalClientDuration, finalRes);
     }
 
     if (typeof onProgress === "function") onProgress(100);

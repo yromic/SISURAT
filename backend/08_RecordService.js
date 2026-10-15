@@ -235,17 +235,29 @@ function simpanRecord(tableName, dataInput, session) {
         _ensureSheet(tableName, _requiredRecordHeaders(tableName));
     }
 
+    var tServerStart = Date.now();
+    var tDrive = 0;
+    var tLock = 0;
+    var tSheet = 0;
+
+    var telemetry = (dataInput && dataInput._telemetry) ? dataInput._telemetry : {};
+    if (dataInput && dataInput._telemetry) {
+        delete dataInput._telemetry;
+    }
+
     var targetDivisi = rbac.targetDivisi || "";
     dataInput.divisi_id = targetDivisi;
 
     if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
         try {
+            var t0Drive = Date.now();
             var fileFolderId = _getFolderIdForDivisi(targetDivisi, tableName);
             dataInput.upload_file = uploadFileToDrive(
                 dataInput.file_base64,
                 dataInput.file_name || "",
                 fileFolderId
             );
+            tDrive += (Date.now() - t0Drive);
         } catch (err) {
             return _serverError("simpanRecord.uploadFile", err);
         }
@@ -256,9 +268,11 @@ function simpanRecord(tableName, dataInput, session) {
 
     if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
         try {
+            var t0Ttd = Date.now();
             var ttdFolderId = _getFolderIdForDivisi(targetDivisi, "db_piagam_ttd");
             var ttdFileName = "ttd_" + Date.now() + ".png";
             dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
+            tDrive += (Date.now() - t0Ttd);
             delete dataInput.ttd_base64;
             delete dataInput.ttd_folder_id;
         } catch (err) {
@@ -304,17 +318,33 @@ function simpanRecord(tableName, dataInput, session) {
     });
 
     var lock = LockService.getScriptLock();
+    var t0Lock = Date.now();
     try {
         lock.waitLock(30000);
+        tLock = Date.now() - t0Lock;
     } catch (_) {
         return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
 
     try {
+        var t0Sheet = Date.now();
         sheet.appendRow(newRow);
+        tSheet = Date.now() - t0Sheet;
+
+        var tServerTotal = Date.now() - tServerStart;
+        var perfMetrics = {
+            trace_id: telemetry.trace_id || "",
+            server_total_ms: tServerTotal,
+            drive_upload_ms: tDrive,
+            lock_wait_ms: tLock,
+            sheet_write_ms: tSheet,
+            client_prep_ms: Number(telemetry.client_prep_ms || 0),
+            sync_queue_ms: Number(telemetry.sync_queue_ms || 0),
+            is_sync: telemetry.is_background_sync === true
+        };
 
         writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "create", tableName, recordId,
-            "Tambah data baru ke " + tableName);
+            "Tambah data baru ke " + tableName, perfMetrics);
 
         if (targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
             updateSummary(targetDivisi, rbac.tableSuffix, 1);
@@ -322,7 +352,12 @@ function simpanRecord(tableName, dataInput, session) {
 
         _invalidateDataCache(tableName);
 
-        return responseJSON({ status: "success", message: "Data berhasil disimpan!" });
+        return responseJSON({
+            status: "success",
+            message: "Data berhasil disimpan!",
+            trace_id: telemetry.trace_id || "",
+            server_metrics: perfMetrics
+        });
     } catch (err) {
         return _serverError("simpanRecord", err);
     } finally {
@@ -339,6 +374,16 @@ function updateRecord(tableName, id, dataInput, session) {
         return _errorResponse("ERR_401_SESSION");
     }
 
+    var tServerStart = Date.now();
+    var tDrive = 0;
+    var tLock = 0;
+    var tSheet = 0;
+
+    var telemetry = (dataInput && dataInput._telemetry) ? dataInput._telemetry : {};
+    if (dataInput && dataInput._telemetry) {
+        delete dataInput._telemetry;
+    }
+
     var rbac = _checkRole(session, "update", tableName, dataInput);
     if (!rbac.allowed) {
         return _errorResponse(rbac.error || "ERR_403_ROLE");
@@ -353,8 +398,10 @@ function updateRecord(tableName, id, dataInput, session) {
     }
 
     var lock = LockService.getScriptLock();
+    var t0Lock = Date.now();
     try {
         lock.waitLock(30000);
+        tLock = Date.now() - t0Lock;
     } catch (_) {
         return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
@@ -371,6 +418,7 @@ function updateRecord(tableName, id, dataInput, session) {
         var headerMapByName = _getHeaderIndexMap(sheet, headers);
 
         var isSuperAdmin = session.role === "super_admin";
+        var targetDivisi = rbac.targetDivisi || "";
 
         if (!isSuperAdmin) {
             var divIdx = headerMapByName.divisi_id;
@@ -395,6 +443,7 @@ function updateRecord(tableName, id, dataInput, session) {
             delete dataInput.folder_id;
         } else if (!dataInput.upload_file && dataInput.file_base64 && dataInput.file_base64.indexOf("base64,") !== -1) {
             try {
+                var t0DriveUpdate = Date.now();
                 if (dataInput.old_file_url) {
                     deleteFileFromDriveSecure(dataInput.old_file_url, session, targetDivisi);
                     delete dataInput.old_file_url;
@@ -404,6 +453,7 @@ function updateRecord(tableName, id, dataInput, session) {
                     dataInput.file_name || "",
                     fileFolderId
                 );
+                tDrive += (Date.now() - t0DriveUpdate);
                 delete dataInput.file_base64;
                 delete dataInput.file_name;
                 delete dataInput.folder_id;
@@ -416,12 +466,14 @@ function updateRecord(tableName, id, dataInput, session) {
 
         if (dataInput.ttd_base64 && dataInput.ttd_base64.indexOf("base64,") !== -1) {
             try {
+                var t0TtdUpdate = Date.now();
                 if (dataInput.old_ttd_url) {
                     deleteFileFromDriveSecure(dataInput.old_ttd_url, session, targetDivisi);
                     delete dataInput.old_ttd_url;
                 }
                 var ttdFileName = "ttd_" + Date.now() + ".png";
                 dataInput.ttd_pengambil = uploadFileToDrive(dataInput.ttd_base64, ttdFileName, ttdFolderId);
+                tDrive += (Date.now() - t0TtdUpdate);
                 delete dataInput.ttd_base64;
                 delete dataInput.ttd_folder_id;
             } catch (err) {
@@ -444,14 +496,33 @@ function updateRecord(tableName, id, dataInput, session) {
             }
         });
 
+        var t0SheetUpdate = Date.now();
         rowRange.setValues([rowValues]);
+        tSheet = Date.now() - t0SheetUpdate;
+
+        var tServerTotalUpdate = Date.now() - tServerStart;
+        var perfMetricsUpdate = {
+            trace_id: telemetry.trace_id || "",
+            server_total_ms: tServerTotalUpdate,
+            drive_upload_ms: tDrive,
+            lock_wait_ms: tLock,
+            sheet_write_ms: tSheet,
+            client_prep_ms: Number(telemetry.client_prep_ms || 0),
+            sync_queue_ms: Number(telemetry.sync_queue_ms || 0),
+            is_sync: telemetry.is_background_sync === true
+        };
 
         writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "update", tableName, id,
-            "Update record id=" + id + " di " + tableName);
+            "Update record id=" + id + " di " + tableName, perfMetricsUpdate);
 
         _invalidateDataCache(tableName);
 
-        return responseJSON({ status: "success", message: "Data berhasil diupdate!" });
+        return responseJSON({
+            status: "success",
+            message: "Data berhasil diupdate!",
+            trace_id: telemetry.trace_id || "",
+            server_metrics: perfMetricsUpdate
+        });
     } catch (err) {
         return _serverError("updateRecord", err);
     } finally {
@@ -459,7 +530,7 @@ function updateRecord(tableName, id, dataInput, session) {
     }
 }
 
-function hapusRecord(tableName, id, session) {
+function hapusRecord(tableName, id, session, telemetryData) {
     if (tableName == "users" || tableName == "db_users") {
         return responseJSON({ status: "error", message: "Gunakan action manage_user untuk mengelola user" });
     }
@@ -467,6 +538,11 @@ function hapusRecord(tableName, id, session) {
     if (!session) {
         return _errorResponse("ERR_401_SESSION");
     }
+
+    var tServerStart = Date.now();
+    var tLock = 0;
+    var tSheet = 0;
+    var telemetry = telemetryData || {};
 
     var rbac = _checkRole(session, "delete", tableName);
     if (!rbac.allowed) {
@@ -482,8 +558,10 @@ function hapusRecord(tableName, id, session) {
     }
 
     var lock = LockService.getScriptLock();
+    var t0Lock = Date.now();
     try {
         lock.waitLock(30000);
+        tLock = Date.now() - t0Lock;
     } catch (_) {
         return responseJSON({ status: "error", code: "ERR_503_LOCK_TIMEOUT", message: "Server sedang sibuk. Silakan coba beberapa saat lagi." });
     }
@@ -514,6 +592,7 @@ function hapusRecord(tableName, id, session) {
             }
         }
 
+        var t0SheetDelete = Date.now();
         var deletedType = "";
         if (headerMapByName.is_deleted !== undefined) {
             var wasDeleted = /^(true|1|yes|ya)$/i.test(String(rowValues[headerMapByName.is_deleted]).trim());
@@ -539,9 +618,22 @@ function hapusRecord(tableName, id, session) {
             sheet.deleteRow(rowNumber);
             deletedType = "hard";
         }
+        tSheet = Date.now() - t0SheetDelete;
+
+        var tServerTotalDelete = Date.now() - tServerStart;
+        var perfMetricsDelete = {
+            trace_id: telemetry.trace_id || "",
+            server_total_ms: tServerTotalDelete,
+            drive_upload_ms: 0,
+            lock_wait_ms: tLock,
+            sheet_write_ms: tSheet,
+            client_prep_ms: Number(telemetry.client_prep_ms || 0),
+            sync_queue_ms: Number(telemetry.sync_queue_ms || 0),
+            is_sync: telemetry.is_background_sync === true
+        };
 
         var logDetail = (deletedType === "hard" ? "Hard delete" : (deletedType === "deactivate" ? "Deactivate" : "Soft delete")) + " record id=" + id + " dari " + tableName;
-        writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, logDetail);
+        writeAuditLog(session.username, rbac.session.role, targetDivisi || "-", "delete", tableName, id, logDetail, perfMetricsDelete);
 
         if (deletedType === "soft" && targetDivisi && (rbac.tableSuffix === "surat_masuk" || rbac.tableSuffix === "surat_keluar" || rbac.tableSuffix === "piagam")) {
             updateSummary(targetDivisi, rbac.tableSuffix, -1);
@@ -549,7 +641,12 @@ function hapusRecord(tableName, id, session) {
 
         _invalidateDataCache(tableName);
 
-        return responseJSON({ status: "success", message: "Data berhasil dihapus!" });
+        return responseJSON({
+            status: "success",
+            message: "Data berhasil dihapus!",
+            trace_id: telemetry.trace_id || "",
+            server_metrics: perfMetricsDelete
+        });
     } catch (err) {
         return _serverError("hapusRecord", err);
     } finally {
