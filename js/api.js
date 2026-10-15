@@ -2,7 +2,7 @@
   "use strict";
 
   const BASE_URL =
-    "https://script.google.com/macros/s/AKfycbxK0GCXeexDTjFqZrB_VuDkEJP1_jDUQe-Bbwu8AREKEp0iP15WoxusrrhFcn4kB2gymQ/exec";
+    "https://script.google.com/macros/s/AKfycbwATcNELNGMYP8NwDEfkhJmaZj9GvLDhGHHE_VRRjL7k4ppfd2bPi3RnvdLxQ7r03ItbQ/exec";
 
   // ─── Batas ukuran file upload ─────────────────────────────────────────────────
   // Google Apps Script memiliki batas eksekusi 6 menit dan payload ~50MB,
