@@ -36,13 +36,22 @@ function _getHeaderIndexMap(sheet, existingHeaders) {
 
 function _appendMissingHeaders(sheet, requiredHeaders) {
     var headers = _getHeaders(sheet);
+    var missing = [];
     requiredHeaders.forEach(function(header) {
         var normalized = _normalizeHeaderName(header);
-        if (_headerIndex(headers, normalized) >= 0) return;
-        sheet.insertColumnAfter(Math.max(sheet.getLastColumn(), 1));
-        sheet.getRange(1, sheet.getLastColumn()).setValue(header);
-        headers.push(normalized);
+        if (_headerIndex(headers, normalized) < 0) {
+            missing.push(header);
+        }
     });
+    if (missing.length > 0) {
+        var lastCol = Math.max(sheet.getLastColumn(), headers.length);
+        if (lastCol < 1) {
+            sheet.getRange(1, 1, 1, missing.length).setValues([missing]);
+        } else {
+            sheet.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]);
+        }
+        return _getHeaders(sheet);
+    }
     return headers;
 }
 

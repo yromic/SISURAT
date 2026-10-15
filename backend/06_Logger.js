@@ -5,6 +5,7 @@
 function writeAuditLog(actor, role, divisi_id, action, tableName, recordId, detail, metrics) {
     try {
         var logSheet = _ensureSheet("db_audit_log", DB_AUDIT_LOG_HEADERS);
+        var headers = _ensureHeaders(logSheet, DB_AUDIT_LOG_HEADERS) || _getHeaders(logSheet);
         metrics = metrics || {};
         var row = {
             timestamp: new Date(),
@@ -24,7 +25,6 @@ function writeAuditLog(actor, role, divisi_id, action, tableName, recordId, deta
             sync_queue_ms: typeof metrics.sync_queue_ms === "number" ? metrics.sync_queue_ms : "",
             is_sync: metrics.is_sync === true ? true : (metrics.is_sync === false ? false : ""),
         };
-        var headers = _getHeaders(logSheet);
         logSheet.appendRow(headers.map(function(header) {
             return row[header] !== undefined ? row[header] : "";
         }));
