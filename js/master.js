@@ -679,10 +679,12 @@
               <!-- Area pratinjau: coba gambar dulu, fallback ke iframe -->
               <div id="file-preview-area" class="hidden transition-all duration-300">
                 <img src="${thumbUrl}" alt="Pratinjau File"
-                  onerror="this.style.display='none'; document.getElementById('file-preview-iframe').classList.remove('hidden');"
+                  loading="lazy"
+                  onerror="this.style.display='none'; var f=document.getElementById('file-preview-iframe'); if(f){ f.classList.remove('hidden'); if(f.dataset.src && (!f.src || f.src.indexOf('about:blank') !== -1)) f.src=f.dataset.src; }"
                   class="w-full max-h-64 object-contain bg-gray-50" />
                 <iframe id="file-preview-iframe"
-                  src="${previewUrl}"
+                  data-src="${previewUrl}"
+                  src="about:blank"
                   class="hidden w-full h-64 border-0"
                   allow="autoplay">
                 </iframe>
@@ -822,6 +824,8 @@
   }
 
   function closeModal() {
+    const iframe = document.getElementById("file-preview-iframe");
+    if (iframe) iframe.src = "about:blank";
     document.getElementById("master-modal").classList.add("hidden");
     document.getElementById("master-modal").classList.remove("flex");
     state.editingId = null;
@@ -1018,12 +1022,12 @@
       state.rawData.unshift(optimisticRecord);
     }
 
+    const editingIdSnap = state.editingId;
     applySearch();
     closeModal();
     showToast("success", isEdit ? "Pembaruan diterapkan..." : "Data disimpan...");
 
     // Kirim ke API di background
-    const editingIdSnap = state.editingId;
     (async () => {
       try {
         let result;
@@ -1523,6 +1527,13 @@
     const isHidden = area.classList.contains("hidden");
     area.classList.toggle("hidden", !isHidden);
     if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
+
+    if (isHidden) {
+      const iframe = document.getElementById("file-preview-iframe");
+      if (iframe && iframe.dataset.src && (!iframe.src || iframe.src.indexOf("about:blank") !== -1)) {
+        iframe.src = iframe.dataset.src;
+      }
+    }
   }
 
   // Handle file selection and validation from both inputs
