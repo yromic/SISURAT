@@ -767,16 +767,37 @@
       </div>`;
   }
 
+  // ─── Modal Submit Button State Manager ───────────────────────────────────────
+  function setModalSubmitButtonState(mode, customText) {
+    const btn = document.getElementById("modal-submit-btn");
+    if (!btn) return;
+    const isEdit = state.editingId !== null;
+    if (mode === "uploading") {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i>${customText || "Mengupload..."}`;
+    } else if (mode === "saving") {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i>${customText || "Menyimpan..."}`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = isEdit
+        ? '<i class="fas fa-save mr-1"></i>Terapkan Pembaruan'
+        : '<i class="fas fa-save mr-1"></i>Simpan';
+    }
+  }
+
   function openAddModal() {
     state.editingId = null;
     state.existingFileUrl = null;
     state.existingTtdUrl = null;
     state.selectedFile = null;
+    hideUploadProgress();
     document.getElementById("modal-title").textContent =
       `Tambah ${getTabLabel()}`;
     document.getElementById("modal-form-body").innerHTML = buildFormHTML(
       state.activeTab,
     );
+    setModalSubmitButtonState("idle");
     document.getElementById("master-modal").classList.remove("hidden");
     document.getElementById("master-modal").classList.add("flex");
     if (state.activeTab === "piagam") {
@@ -798,12 +819,14 @@
     state.existingTtdUrl = rowData.ttd_pengambil || null;
     state.canvasDirty = false;
     state.selectedFile = null;
+    hideUploadProgress();
 
     document.getElementById("modal-title").textContent =
       `Edit ${getTabLabel()}`;
     document.getElementById("modal-form-body").innerHTML = buildFormHTML(
       state.activeTab,
     );
+    setModalSubmitButtonState("idle");
 
     // Isi nilai form
     const fields = FORM_FIELDS[state.activeTab];
@@ -831,6 +854,8 @@
     state.canvasDirty = false;
     state.canvas = null;
     state.ctx = null;
+    hideUploadProgress();
+    setModalSubmitButtonState("idle");
   }
 
   // ─── Canvas TTD (Modal) ───────────────────────────────────────────────────────
@@ -932,7 +957,6 @@
     const tab = state.activeTab;
     const table = TAB_TABLE[tab];
     const fields = FORM_FIELDS[tab];
-    const submitBtn = document.getElementById("modal-submit-btn");
 
     // Kumpulkan data dari form
     const data = {};
@@ -946,6 +970,7 @@
     const emptyField = fields.find((f) => !f.readonly && !f.optional && !data[f.id]);
     if (emptyField) {
       showModalAlert("error", `Field "${emptyField.label}" harus diisi!`);
+      setModalSubmitButtonState("idle");
       return;
     }
 
@@ -972,8 +997,7 @@
       try {
         const folderId = SisuratApi.getFolderId(table, false);
         showUploadProgress(`Mengupload "${file.name}"...`);
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i>Mengupload...';
+        setModalSubmitButtonState("uploading", `Mengupload "${file.name}"...`);
 
         const fileUrl = await SisuratApi.uploadFileChunked(
           file,
@@ -986,14 +1010,16 @@
         }
 
         hideUploadProgress();
+        setModalSubmitButtonState("saving", "Menyimpan data...");
       } catch (err) {
         hideUploadProgress();
         console.error("Gagal upload file:", err);
         showModalAlert("error", "Gagal upload file. Silakan coba lagi.");
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan';
+        setModalSubmitButtonState("idle");
         return;
       }
+    } else {
+      setModalSubmitButtonState("saving", "Menyimpan data...");
     }
 
         // ─── OPTIMISTIC UPDATE LOGIC ───
@@ -1556,6 +1582,7 @@
 
     // Render Preview
     renderFilePreview(file);
+    setModalSubmitButtonState("idle");
   }
 
   // Render preview details of the selected file
@@ -1619,6 +1646,7 @@
     const pickInput = document.getElementById("form-file-picker");
     if (camInput) camInput.value = "";
     if (pickInput) pickInput.value = "";
+    setModalSubmitButtonState("idle");
   }
 
   // Toggle tampil/sembunyikan pratinjau TTD lama
