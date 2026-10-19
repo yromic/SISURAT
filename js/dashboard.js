@@ -372,6 +372,9 @@
 
   async function loadDashboard() {
     try {
+      if (window.SisuratTelemetry) {
+        window.SisuratTelemetry.startTimer("dashboard_load");
+      }
       const isSuperAdmin = SisuratAuth.isSuperAdmin();
 
       // Helper function to handle summary updates
@@ -390,6 +393,9 @@
           const user = SisuratAuth.getStoredUser();
           const userDivId = user ? user.divisi_id : "";
           displayStats(userDivId);
+        }
+        if (window.SisuratTelemetry) {
+          window.SisuratTelemetry.stopTimer("dashboard_load", { isSuperAdmin });
         }
       };
 

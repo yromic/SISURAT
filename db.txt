@@ -7,7 +7,7 @@ id,kode_divisi,nama_divisi,status,drive_folder_id,created_at,created_by
 username,password,role,nama,email,role_id,aktif,divisi_id,scope,password_hash,password_salt,password_v
 
 # Sheet: db_audit_log
-timestamp,actor,role,divisi_id,action,table_name,record_id,detail
+timestamp,actor,role,divisi_id,action,table_name,record_id,detail,trace_id,server_total_ms,drive_upload_ms,lock_wait_ms,sheet_write_ms,client_prep_ms,sync_queue_ms,is_sync
 
 # Sheet: db_summary
 divisi_id,total_surat_masuk,total_surat_keluar,total_piagam,last_updated

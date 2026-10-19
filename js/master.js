@@ -204,7 +204,8 @@
 
   // ─── State ────────────────────────────────────────────────────────────────────
   const state = {
-    activeTab: "piagam",
+    activeTab: "masuk",
+    modalTab: null,
     rawData: [],
     filteredData: [],
     currentPage: 1,
@@ -264,6 +265,9 @@
   // ─── Tab ──────────────────────────────────────────────────────────────────────
   function switchTab(tabName) {
     state.activeTab = tabName;
+    try {
+      sessionStorage.setItem("sisurat_master_tab", tabName);
+    } catch (_) {}
     state.currentPage = 1;
     state.editingId = null;
     state.sortKey = null;
@@ -679,10 +683,12 @@
               <!-- Area pratinjau: coba gambar dulu, fallback ke iframe -->
               <div id="file-preview-area" class="hidden transition-all duration-300">
                 <img src="${thumbUrl}" alt="Pratinjau File"
-                  onerror="this.style.display='none'; document.getElementById('file-preview-iframe').classList.remove('hidden');"
+                  loading="lazy"
+                  onerror="this.style.display='none'; var f=document.getElementById('file-preview-iframe'); if(f){ f.classList.remove('hidden'); if(f.dataset.src && (!f.src || f.src.indexOf('about:blank') !== -1)) f.src=f.dataset.src; }"
                   class="w-full max-h-64 object-contain bg-gray-50" />
                 <iframe id="file-preview-iframe"
-                  src="${previewUrl}"
+                  data-src="${previewUrl}"
+                  src="about:blank"
                   class="hidden w-full h-64 border-0"
                   allow="autoplay">
                 </iframe>
@@ -786,21 +792,36 @@
     }
   }
 
+  function deduceTabFromRecord(rowData) {
+    if (!rowData || typeof rowData !== "object") return state.activeTab;
+    if (rowData._table === "db_surat_masuk" || rowData.asal_surat !== undefined || rowData.tanggal_diterima !== undefined) {
+      return "masuk";
+    }
+    if (rowData._table === "db_surat_keluar" || rowData.tanggal_share !== undefined) {
+      return "keluar";
+    }
+    if (rowData._table === "db_piagam" || rowData.tahun_perlombaan !== undefined || rowData.jenis_perlombaan !== undefined) {
+      return "piagam";
+    }
+    return state.activeTab;
+  }
+
   function openAddModal() {
     state.editingId = null;
+    state.modalTab = state.activeTab;
     state.existingFileUrl = null;
     state.existingTtdUrl = null;
     state.selectedFile = null;
     hideUploadProgress();
     document.getElementById("modal-title").textContent =
-      `Tambah ${getTabLabel()}`;
+      `Tambah ${getTabLabel(state.modalTab)}`;
     document.getElementById("modal-form-body").innerHTML = buildFormHTML(
-      state.activeTab,
+      state.modalTab,
     );
     setModalSubmitButtonState("idle");
     document.getElementById("master-modal").classList.remove("hidden");
     document.getElementById("master-modal").classList.add("flex");
-    if (state.activeTab === "piagam") {
+    if (state.modalTab === "piagam") {
       initModalCanvas();
     }
     // Isi field nama_pengupload readonly dengan nama user yang login
@@ -814,6 +835,7 @@
 
   function openEditModal(rowData, rowId) {
     state.editingId = rowId;
+    state.modalTab = deduceTabFromRecord(rowData);
     // Simpan URL file lama & TTD lama sebelum buildFormHTML
     state.existingFileUrl = rowData.upload_file || null;
     state.existingTtdUrl = rowData.ttd_pengambil || null;
@@ -822,14 +844,14 @@
     hideUploadProgress();
 
     document.getElementById("modal-title").textContent =
-      `Edit ${getTabLabel()}`;
+      `Edit ${getTabLabel(state.modalTab)}`;
     document.getElementById("modal-form-body").innerHTML = buildFormHTML(
-      state.activeTab,
+      state.modalTab,
     );
     setModalSubmitButtonState("idle");
 
     // Isi nilai form
-    const fields = FORM_FIELDS[state.activeTab];
+    const fields = FORM_FIELDS[state.modalTab];
     fields.forEach((f) => {
       const el = document.getElementById(`form-${f.id}`);
       if (el && rowData[f.id] !== undefined) {
@@ -839,15 +861,18 @@
 
     document.getElementById("master-modal").classList.remove("hidden");
     document.getElementById("master-modal").classList.add("flex");
-    if (state.activeTab === "piagam") {
+    if (state.modalTab === "piagam") {
       initModalCanvas();
     }
   }
 
   function closeModal() {
+    const iframe = document.getElementById("file-preview-iframe");
+    if (iframe) iframe.src = "about:blank";
     document.getElementById("master-modal").classList.add("hidden");
     document.getElementById("master-modal").classList.remove("flex");
     state.editingId = null;
+    state.modalTab = null;
     state.existingFileUrl = null;
     state.existingTtdUrl = null;
     state.selectedFile = null;
@@ -954,7 +979,7 @@
   }
 
   async function submitForm() {
-    const tab = state.activeTab;
+    const tab = state.modalTab || state.activeTab;
     const table = TAB_TABLE[tab];
     const fields = FORM_FIELDS[tab];
 
@@ -1032,7 +1057,7 @@
       ...data,
       nama_pengupload: data.nama_pengupload || (global.SisuratAuth && global.SisuratAuth.getStoredUser() ? (global.SisuratAuth.getStoredUser().nama || global.SisuratAuth.getStoredUser().username) : ""),
       _table: table,
-      jenis: getTabLabel()
+      jenis: getTabLabel(tab)
     };
 
     if (isEdit) {
@@ -1044,12 +1069,12 @@
       state.rawData.unshift(optimisticRecord);
     }
 
+    const editingIdSnap = state.editingId;
     applySearch();
     closeModal();
     showToast("success", isEdit ? "Pembaruan diterapkan..." : "Data disimpan...");
 
     // Kirim ke API di background
-    const editingIdSnap = state.editingId;
     (async () => {
       try {
         let result;
@@ -1273,13 +1298,14 @@
   }
 
   // ─── UI Helpers ───────────────────────────────────────────────────────────────
-  function getTabLabel() {
+  function getTabLabel(customTab) {
+    const tab = customTab || state.modalTab || state.activeTab;
     const map = {
       piagam: "Piagam",
       masuk: "Surat Masuk",
       keluar: "Surat Keluar",
     };
-    return map[state.activeTab] || "Data";
+    return map[tab] || "Data";
   }
 
   function showModalAlert(type, msg) {
@@ -1494,12 +1520,24 @@
     const type = urlParams.get("type"); // "surat_masuk" or "surat_keluar"
     const mode = urlParams.get("mode"); // "create"
 
-    let initialTab = "piagam";
+    let initialTab = "masuk";
     if (type === "surat_masuk") {
       initialTab = "masuk";
     } else if (type === "surat_keluar") {
       initialTab = "keluar";
+    } else if (type === "piagam") {
+      initialTab = "piagam";
+    } else {
+      try {
+        const savedTab = sessionStorage.getItem("sisurat_master_tab");
+        if (savedTab && TAB_TABLE[savedTab]) {
+          initialTab = savedTab;
+        }
+      } catch (_) {}
     }
+
+    // Segera aktifkan tab awal sebelum menunggu request jaringan
+    switchTab(initialTab);
 
     const table = TAB_TABLE[initialTab];
     showTableLoading(true);
@@ -1529,8 +1567,6 @@
       showTableLoading(false);
     }
 
-    switchTab(initialTab);
-
     if (mode === "create") {
       openAddModal();
       
@@ -1549,6 +1585,13 @@
     const isHidden = area.classList.contains("hidden");
     area.classList.toggle("hidden", !isHidden);
     if (btn) btn.textContent = isHidden ? "Sembunyikan" : "Tampilkan";
+
+    if (isHidden) {
+      const iframe = document.getElementById("file-preview-iframe");
+      if (iframe && iframe.dataset.src && (!iframe.src || iframe.src.indexOf("about:blank") !== -1)) {
+        iframe.src = iframe.dataset.src;
+      }
+    }
   }
 
   // Handle file selection and validation from both inputs

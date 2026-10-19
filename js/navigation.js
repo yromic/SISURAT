@@ -56,7 +56,23 @@
       global.SisuratAuth.isSuperAdmin()
     ) {
       const saSection = document.getElementById("sidebar-superadmin-section");
-      if (saSection) saSection.classList.remove("hidden");
+      if (saSection) {
+        saSection.classList.remove("hidden");
+        if (!document.getElementById("btn-nav-telemetry")) {
+          const btn = document.createElement("button");
+          btn.id = "btn-nav-telemetry";
+          btn.type = "button";
+          btn.className = "w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-emerald-400 hover:bg-emerald-500/10 font-bold transition-all text-left mt-2 border border-emerald-500/20";
+          btn.innerHTML = '<i class="fas fa-stopwatch w-6 text-center text-lg"></i><span class="flex-1 text-xs">Telemetri Riset</span><kbd class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Ctrl+Shift+P</kbd>';
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (global.SisuratTelemetry && typeof global.SisuratTelemetry.openModal === "function") {
+              global.SisuratTelemetry.openModal();
+            }
+          });
+          saSection.appendChild(btn);
+        }
+      }
     }
   }
 

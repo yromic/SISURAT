@@ -28,12 +28,25 @@
   function enqueue(action, data) {
     const queue = getQueue();
     const syncId = `sync_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const enqueuedAt = Date.now();
+
+    if (data && typeof data === "object") {
+      if (!data._telemetry) {
+        data._telemetry = {
+          trace_id: `trc_${enqueuedAt}_${Math.random().toString(36).slice(2, 8)}`,
+          client_start_ts: enqueuedAt,
+          client_prep_ms: 0,
+        };
+      }
+      data._telemetry.enqueued_at = enqueuedAt;
+      data._telemetry.is_background_sync = true;
+    }
 
     queue.push({
       id: syncId,
       action,
       data,
-      timestamp: Date.now()
+      timestamp: enqueuedAt
     });
 
     saveQueue(queue);
@@ -68,12 +81,37 @@
 
       try {
         console.log(`[Sync] Memproses item ${item.id}: ${item.action}`);
+
+        // Hitung waktu mengendap di antrean (dwell time)
+        const dwellTime = Math.max(0, Date.now() - (item.timestamp || Date.now()));
+        if (item.data && typeof item.data === "object") {
+          if (!item.data._telemetry) {
+            item.data._telemetry = {
+              trace_id: `trc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              client_start_ts: item.timestamp || Date.now(),
+              client_prep_ms: 0
+            };
+          }
+          item.data._telemetry.sync_queue_ms = dwellTime;
+          item.data._telemetry.is_background_sync = true;
+          if (item.data.data && typeof item.data.data === "object") {
+            item.data.data._telemetry = item.data._telemetry;
+          }
+        }
+
         const res = await global.SisuratApi.postActionRaw(item.action, item.data);
 
         if (res && res.status === "success") {
           console.log(`[Sync] Item ${item.id} berhasil disinkronkan.`);
           remainingQueue = remainingQueue.filter(q => q.id !== item.id);
           saveQueue(remainingQueue);
+
+          // Laporkan ke client telemetry store
+          if (window.SisuratTelemetry && typeof window.SisuratTelemetry.recordMutation === "function") {
+            const traceId = (item.data && item.data._telemetry && item.data._telemetry.trace_id) || item.id;
+            const targetTable = (item.data && (item.data.table || (item.data.data && item.data.data.table))) || "sync";
+            window.SisuratTelemetry.recordMutation(item.action, targetTable, traceId, dwellTime, res, true);
+          }
 
           // Pemicu invalidasi cache lokal setelah sinkronisasi sukses
           if (global.SisuratApi && typeof global.SisuratApi.invalidateCache === "function") {
